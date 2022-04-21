@@ -8,7 +8,7 @@ import {
   Partition,
   PartitionList,
   Output,
-  OutputList
+  OutputList,
   Zone,
   ZoneList,
   PanelOptions,
@@ -442,6 +442,13 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
           publishZoneBypassStateChange(panel.zones.byId(Id));
         }
       });
+      
+      logger.info(`Subscribing to panel outputs events`);
+      panel.zones.on('OStatusChanged', (Id, EventStr) => {
+        if (['Pulsed', 'Activated', 'Deactivated'].includes(EventStr)) {
+          publishOutputStateChange(panel.outputs.byId(Id), false);
+        }
+      
       logger.info(`Subscribing to Home Assistant online status`);
       mqttClient.subscribe(`${config.ha_discovery_prefix_topic}/status`, { qos: 0 }, function(error, granted) {
         if (error) {
