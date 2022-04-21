@@ -238,6 +238,21 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       }
     }
   }
+  
+  function publishOutputStateChange(output: Output) {
+    mqttClient.publish(`${ALARM_TOPIC}/${output.Id}`, JSON.stringify({
+      id: output.Id,
+      label: output.Label,
+      type: output.Type
+    }), { qos: 1, retain: false });
+    }
+    let outputStatus = output.OStatus ? '1' : '0';
+    mqttClient.publish(`${ALARM_TOPIC}/output/${output.Id}/status`, outputStatus, {
+      qos: 1, retain: false,
+    });
+    logger.verbose(`[Panel => MQTT] Published output status ${outputStatus} on output ${output.Label}`);
+  }
+  
 
   function publishPartitionStateChanged(partition: Partition) {
     mqttClient.publish(`${ALARM_TOPIC}/${partition.Id}/status`, alarmPayload(partition), { qos: 1, retain: true });
@@ -443,8 +458,8 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
         }
       });
       
-      logger.info(`Subscribing to panel outputs events`);
-      panel.zones.on('OStatusChanged', (Id, EventStr) => {
+      logger.info(`Subscribing to panel output events`);
+      panel.outputs.on('OStatusChanged', (Id, EventStr) => {
         if (['Pulsed', 'Activated', 'Deactivated'].includes(EventStr)) {
           publishOutputStateChange(panel.outputs.byId(Id), false);
         }
