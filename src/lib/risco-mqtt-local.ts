@@ -643,4 +643,3 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     logger.info(`Initialization completed`);
   }
 
-}
