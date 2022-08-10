@@ -490,7 +490,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
           qos: 1, retain: true,
         });
       
-        logger.info(`[Panel => MQTT][Discovery] Published switch to HA Output label = ${output.Label}, HA name = ${payload.name} on output ${output.Id}`);
+        logger.info(`[Panel => MQTT][Discovery] Published switch to HA Output label = ${output.Label}, HA name = ${payload.name} switch on output ${output.Id} output type ${output.Type}`);
         logger.verbose(`[Panel => MQTT][Discovery] Output discovery payload\n${JSON.stringify(payload, null, 2)}`);
 
       } else if (output.Type === 0 || output.Type === 2) {
@@ -521,7 +521,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
         mqttClient.publish(`${config.ha_discovery_prefix_topic}/button/${config.risco_node_id}/${useroutputIdSegment}-output/config`, JSON.stringify(payload), {
           qos: 1, retain: true,
         });
-        logger.info(`[Panel => MQTT][Discovery] Published switch to HA Output label = ${output.Label}, HA name = ${payload.name} on output ${output.Id}`);
+        logger.info(`[Panel => MQTT][Discovery] Published switch to HA Output label = ${output.Label}, HA name = ${payload.name} button on output ${output.Id} output type ${output.Type}`);
         logger.verbose(`[Panel => MQTT][Discovery] Output discovery payload\n${JSON.stringify(payload, null, 2)}`);
       }
       
