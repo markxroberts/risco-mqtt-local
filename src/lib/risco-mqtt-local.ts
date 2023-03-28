@@ -341,6 +341,26 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     });
     logger.verbose(`[Panel => MQTT] Published zone status ${zoneStatus} on zone ${zone.Label}`);
   }
+  function publishZoneBatteryStateChange(zone: Zone, publishAttributes: boolean) {
+    if (publishAttributes) {
+      mqttClient.publish(`${config.risco_node_id}/alarm/zone/${zone.Id}/battery`, JSON.stringify({
+        id: zone.Id,
+        label: zone.Label,
+        type: zone.type,
+        typeLabel: zone.typeLabel,
+        tech: zone.tech,
+        techLabel: zone.techLabel,
+        tamper: zone.Tamper,
+        low_battery: zone.LowBattery,
+        bypass: zone.Bypass,
+      }), { qos: 1, retain: true });
+    }
+    let zoneBattery = zone.LowBattery ? '1' : '0';
+    mqttClient.publish(`${config.risco_node_id}/alarm/zone/${zone.Id}/battery/status`, zoneBattery, {
+      qos: 1, retain: false,
+    });
+    logger.verbose(`[Panel => MQTT] Published zone battery status ${zoneBattery} on zone ${zone.Label}`);
+  }
   function publishOutputStateChange(output: Output, EventStr: string) {
     const outputStatus = outputState(EventStr)
     if (EventStr !== 'Pulsed') {
@@ -362,6 +382,9 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
   }
   function activeZones(zones: ZoneList): Zone[] {
     return zones.values.filter(z => !z.NotUsed);
+  }
+  function batteryZones(zones: ZoneList): Zone[] {
+    return zones.values.filter(z => z.Tech === 'W');
   }
   function activeToggleOutputs(outputs: OutputList): Output[] {
     return outputs.values.filter(o => o.UserUsable !== false && (o.Type === 1 || o.Type === 3));
@@ -592,6 +615,42 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       logger.verbose(`[Panel => MQTT][Discovery] Sensor discovery payload\n${JSON.stringify(payload, null, 2)}`);
       logger.verbose(`[Panel => MQTT][Discovery] Bypass switch discovery payload\n${JSON.stringify(bypassZonePayload, null, 2)}`);
     }
+    for (const zone of batteryZones(panel.zones)) {
+
+      const zoneConf = cloneDeep(config.zones.default);
+      merge(zoneConf, config.zones?.[zone.Label]);
+
+      const payload: any = {
+        availability: {
+          topic: `${config.risco_node_id}/alarm/status`,
+        },
+        unique_id: `${config.risco_node_id}-zone-${zone.Id}`,
+        payload_on: '1',
+        payload_off: '0',
+        device_class: 'battery',
+        device: getDeviceInfo(),
+        qos: 1,
+        state_topic: `${config.risco_node_id}/alarm/zone/${zone.Id}/battery/status`,
+        json_attributes_topic: `${config.risco_node_id}/alarm/zone/${zone.Id}`,
+      };
+
+      const zoneName = zoneConf.name || zone.Label;
+      payload.name = zoneConf.name_prefix + zoneName + ' Battery';
+
+      let nodeIdSegment: string;
+      if (config.ha_discovery_include_nodeId) {
+        nodeIdSegment = `${zone.Label.replace(/ /g, '-')}/${zone.Id}`;
+      } else {
+        nodeIdSegment = `${zone.Id}`;
+      }
+
+      mqttClient.publish(`${config.ha_discovery_prefix_topic}/binary_sensor/${nodeIdSegment}/config`, JSON.stringify(payload), {
+        qos: 1,
+        retain: true,
+      });
+      logger.info(`[Panel => MQTT][Discovery] Published binary_sensor to HA: Zone label = ${zone.Label}, HA name = ${payload.name}`);
+      logger.verbose(`[Panel => MQTT][Discovery] Sensor discovery payload\n${JSON.stringify(payload, null, 2)}`);
+    }
   }
 
   function panelOrMqttConnected() {
@@ -667,6 +726,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
         }
         if (['LowBattery', 'BatteryOK'].includes(EventStr)) {
           publishZoneStateChange(panel.zones.byId(Id), true);
+          publishZoneBatteryStateChange(panel.zones.byId(Id), true);
         }
       });
       logger.info(`Subscribing to panel outputs events`);
