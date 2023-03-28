@@ -86,7 +86,7 @@ const CONFIG_DEFAULTS: RiscoMQTTConfig = {
   },
   user_outputs: {
     default: {
-      device_class: 'switch',
+      device_class: '',
       name_prefix: '',
     },
   },
