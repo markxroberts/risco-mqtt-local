@@ -384,7 +384,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     return zones.values.filter(z => !z.NotUsed);
   }
   function batteryZones(zones: ZoneList): Zone[] {
-    return zones.values.filter(z => z.Tech === 'W');
+    return zones.values.filter(z => z.tech === 'W');
   }
   function activeToggleOutputs(outputs: OutputList): Output[] {
     return outputs.values.filter(o => o.UserUsable !== false && (o.Type === 1 || o.Type === 3));
