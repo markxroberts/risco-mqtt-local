@@ -331,7 +331,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
   }
 
   function publishPartitionStateChanged(partition: Partition) {
-    mqttClient.publish(`${config.risco_node_id}/alarm/${partition.Id}/status`, alarmPayload(partition), { qos: 1, retain: true });
+    mqttClient.publish(`${config.risco_node_id}/alarm/partition/${partition.Id}/status`, alarmPayload(partition), { qos: 1, retain: true });
     logger.info(`[Panel => MQTT] Published alarm status ${alarmPayload(partition)} on partition ${partition.Id}`);
   }
 
@@ -705,13 +705,13 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     }
     logger.info(`Publishing initial output states to Home assistant`);
     for (const output of activeToggleOutputs(panel.outputs)) {
-      publishOutputStateChange(output, '0');
+      publishOutputStateChange(output);
     }
     for (const output of activeButtonOutputs(panel.outputs)) {
-      publishOutputStateChange(output, '0');
+      publishOutputStateChange(output);
     }
     for (const systemoutput of activeSystemOutputs(panel.outputs)) {
-      publishOutputStateChange(systemoutput, '0');
+      publishOutputStateChange(systemoutput);
     }
 
     if (!listenerInstalled) {
