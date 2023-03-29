@@ -39,7 +39,7 @@ npm install @vanackej/risco-mqtt-local
 
 ## Configuration
 
-Create a file config.json in your project directory.
+Create a file config.json in your project directory.  If you're going to use the file below as a template, make sure you remove everything after // on each line!
 
 ```
 {
