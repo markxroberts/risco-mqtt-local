@@ -26,9 +26,10 @@ Local APIs are based on [TJForc](https://github.com/TJForc) [local RISCO communi
 - Interaction with MQTT Binary Sensor integration in Home Assistant.
 - Home Assistant MQTT Auto Discovery.
 - RISCO multipartitions.
-- Bypass zones in Home Assistant (additional switch created for each zone)
+- Bypass zones in Home Assistant (additional switch created for each zone).
 - Multiple systems now supported with configurable alarm topic.
-- Outputs now supported.  Non-user-usable outputs represented as binary sensors (private outputs in configuration).  User-usable outputs represented as switches.  Note that pulsed switches will immediately revert to off.
+- Outputs now supported.  Non-user-usable outputs represented as binary sensors (system outputs in configuration).  User-usable outputs represented as switches or button.  Note that pulsed switches are represented as buttons.  Refer to https://www.home-assistant.io/integrations/button/ and https://www.home-assistant.io/integrations/binary_sensor/ for acceptable device classes.
+- Wireless zones now show battery status as additional binary sensors (this is the only state avaialble).
 
 ## Installation
 
@@ -74,12 +75,12 @@ Create a file config.json in your project directory.
       "name_prefix": ""
     },
     "Up/over Trigger": { 
-      "device_class": "garage", 
+      "device_class": "none", 
       "name": "Garage door trigger RISCO", 
       "name_prefix": "" 
     }
   },
-  "private_outputs": {
+  "system_outputs": {
     "default": {
       "name_prefix": ""
     },
@@ -136,7 +137,7 @@ For multiple partitions, change **mqtt-alarm-topic** in each installation.
 
 ## Usage
 
-First, create the `config.json` file.
+First, create the `config.json` file.  Only the first part of the file with system settings is mandatory.  It's not necessary to describe all of the zones/partitions/sensors as these can be customized from the Home Assistant front end.
 
 ### Using Node
 
