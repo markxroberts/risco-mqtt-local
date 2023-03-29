@@ -31,6 +31,10 @@ export interface RiscoMQTTConfig {
   ha_discovery_prefix_topic?: string,
   ha_discovery_include_nodeId?: boolean,
   risco_node_id?: string,
+  partitions?: {
+    default?: PartitionConfig
+    [label: string]: PartitionConfig
+  },
   zones?: {
     default?: ZoneConfig
     [label: string]: ZoneConfig
@@ -49,6 +53,11 @@ export interface RiscoMQTTConfig {
 
 export interface MQTTConfig extends IClientOptions {
   url: string
+}
+
+export interface PartitionConfig {
+  name?: string
+  name_prefix?: string
 }
 
 export interface ZoneConfig {
@@ -77,6 +86,11 @@ const CONFIG_DEFAULTS: RiscoMQTTConfig = {
   ha_discovery_include_nodeId: false,
   risco_node_id: 'risco-alarm-panel',
   panel: {},
+  partitions: {
+    default: {
+      name_prefix: 'risco alarm panel',
+    },
+  },
   zones: {
     default: {
       off_delay: 0,
