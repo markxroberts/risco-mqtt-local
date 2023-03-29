@@ -757,7 +757,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
         }
       });
       logger.info(`Subscribing to panel outputs events`);
-      panel.outputs.on('StatusChanged', (Id, EventStr) => {
+      panel.outputs.on('OStatusChanged', (Id, EventStr) => {
         if (['Pulsed', 'Activated', 'Deactivated'].includes(EventStr)) {
           publishOutputStateChange(panel.outputs.byId(Id));
         }
