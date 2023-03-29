@@ -19,7 +19,7 @@ import { cloneDeep } from 'lodash';
 const { createLogger, format, transports } = pkg;
 const { combine, timestamp, printf, colorize } = format;
 
-const ALARM_TOPIC_REGEX = /^\w+\/alarm\/([0-9]+)\/set$/m;
+const ALARM_TOPIC_REGEX = /^\w+\/alarm\/partition\/([0-9]+)\/set$/m;
 const ZONE_BYPASS_TOPIC_REGEX = /^\w+\/alarm\/zone\/([0-9]+)-bypass\/set$/m;
 const OUTPUT_TOPIC_REGEX = /^\w+\/alarm\/output\/([0-9]+)\/trigger$/m;
 
@@ -717,7 +717,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     if (!listenerInstalled) {
       logger.info(`Subscribing to Home assistant commands topics`);
       for (const partition of activePartitions(panel.partitions)) {
-        const partitionCommandsTopic = `${config.risco_node_id}/alarm/${partition.Id}/set`;
+        const partitionCommandsTopic = `${config.risco_node_id}/alarm/partition/${partition.Id}/set`;
         logger.info(`Subscribing to ${partitionCommandsTopic} topic`);
         mqttClient.subscribe(partitionCommandsTopic);
       }
