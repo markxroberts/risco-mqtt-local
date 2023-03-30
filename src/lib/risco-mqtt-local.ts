@@ -285,7 +285,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       });
     } else if (topic == `${config.ha_discovery_prefix_topic}/status`) {
       if (message.toString() === 'online') {
-        logger.info('Home Assistant is back online');
+        logger.info('Home Assistant is online');
         panelOrMqttConnected();
       } else {
         logger.info('Home Assistant has gone offline');
@@ -467,7 +467,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       mqttClient.publish(`${config.ha_discovery_prefix_topic}/alarm_control_panel/${config.risco_node_id}/${partitionIdSegment}/config`, JSON.stringify(payload), {
         qos: 1, retain: true,
       });
-      logger.info(`[Panel => MQTT][Discovery] Published alarm_control_panel to HA Output label = ${partition.Label}, HA name = ${payload.name} on partition ${partition.Id}`);
+      logger.info(`[Panel => MQTT][Discovery] Published alarm_control_panel to HA. Partition label = ${partition.Label}, HA name = ${payload.name} on partition ${partition.Id}`);
       logger.verbose(`[Panel => MQTT][Discovery] Alarm discovery payload\n${JSON.stringify(payload, null, 2)}`);
     }
 
@@ -507,7 +507,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       mqttClient.publish(`${config.ha_discovery_prefix_topic}/switch/${config.risco_node_id}/${useroutputIdSegment}-output/config`, JSON.stringify(payload), {
         qos: 1, retain: true,
       });
-      logger.info(`[Panel => MQTT][Discovery] Published switch to HA on output ${output.Id}`);
+      logger.info(`[Panel => MQTT][Discovery] Published switch to HA. Output label = ${output.Label}, HA name = ${payload.name} on output ${output.Id}`);
       logger.verbose(`[Panel => MQTT][Discovery] Output discovery payload\n${JSON.stringify(payload, null, 2)}`);
     }
     for (const output of activeButtonOutputs(panel.outputs)) {
@@ -542,7 +542,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       mqttClient.publish(`${config.ha_discovery_prefix_topic}/switch/${config.risco_node_id}/${useroutputIdSegment}-output/config`, JSON.stringify(payload), {
         qos: 1, retain: true,
       });
-      logger.info(`[Panel => MQTT][Discovery] Published button to HA on output ${output.Id}`);
+      logger.info(`[Panel => MQTT][Discovery] Published button to HA. Output label = ${output.Label}, HA name = ${payload.name} on output ${output.Id}`);
       logger.verbose(`[Panel => MQTT][Discovery] Output discovery payload\n${JSON.stringify(payload, null, 2)}`);
     }
     for (const systemoutput of activeSystemOutputs(panel.outputs)) {
@@ -577,7 +577,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       mqttClient.publish(`${config.ha_discovery_prefix_topic}/binary_sensor/${systemoutputIdSegment}-output/config`, JSON.stringify(payload), {
         qos: 1, retain: true,
       });
-      logger.info(`[Panel => MQTT][Discovery] Published binary_sensor to HA on output ${systemoutput.Id}`);
+      logger.info(`[Panel => MQTT][Discovery] Published binary_sensor to HA. Output label = ${output.Label}, HA name = ${payload.name} on output ${systemoutput.Id}`);
       logger.verbose(`[Panel => MQTT][Discovery] Output discovery payload\n${JSON.stringify(payload, null, 2)}`);
     }
 
@@ -639,8 +639,8 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
         qos: 1,
         retain: true,
       });
-      logger.info(`[Panel => MQTT][Discovery] Published binary_sensor to HA: Zone label = ${zone.Label}, HA name = ${payload.name}`);
-      logger.info(`[Panel => MQTT][Discovery] Published switch to HA: Zone label = ${zone.Label}, HA name = ${bypassZonePayload.name}`);
+      logger.info(`[Panel => MQTT][Discovery] Published binary_sensor to HA: Zone label = ${zone.Label}, HA name = ${payload.name}, on zone ${zone.Id}`);
+      logger.info(`[Panel => MQTT][Discovery] Published switch to HA: Zone label = ${zone.Label}, HA name = ${bypassZonePayload.name}, on zone ${zone.Id}`);
       logger.verbose(`[Panel => MQTT][Discovery] Sensor discovery payload\n${JSON.stringify(payload, null, 2)}`);
       logger.verbose(`[Panel => MQTT][Discovery] Bypass switch discovery payload\n${JSON.stringify(bypassZonePayload, null, 2)}`);
     }
