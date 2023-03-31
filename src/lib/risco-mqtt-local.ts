@@ -651,7 +651,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
         availability: {
           topic: `${config.risco_node_id}/alarm/status`,
         },
-        unique_id: `${config.risco_node_id}-zone-${zone.Id}`,
+        unique_id: `${config.risco_node_id}-zone-${zone.Id}-battery`,
         payload_on: '1',
         payload_off: '0',
         device_class: 'battery',
@@ -666,9 +666,9 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
 
       let nodeIdSegment: string;
       if (config.ha_discovery_include_nodeId) {
-        nodeIdSegment = `${zone.Label.replace(/ /g, '-')}/${zone.Id}`;
+        nodeIdSegment = `${zone.Label.replace(/ /g, '-')}/${zone.Id}_battery`;
       } else {
-        nodeIdSegment = `${zone.Id}`;
+        nodeIdSegment = `${zone.Id}_battery`;
       }
 
       mqttClient.publish(`${config.ha_discovery_prefix_topic}/binary_sensor/${nodeIdSegment}/config`, JSON.stringify(payload), {
