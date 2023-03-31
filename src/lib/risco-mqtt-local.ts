@@ -698,10 +698,10 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     for (const partition of activePartitions(panel.partitions)) {
       publishPartitionStateChanged(partition);
     }
-
     for (const zone of activeZones(panel.zones)) {
       publishZoneStateChange(zone, true);
       publishZoneBypassStateChange(zone);
+      publishZoneBatteryStateChange(zone, true);
     }
     logger.info(`Publishing initial output states to Home assistant`);
     for (const output of activeToggleOutputs(panel.outputs)) {
