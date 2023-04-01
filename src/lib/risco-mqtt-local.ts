@@ -542,7 +542,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
         useroutputIdSegment = `${output.Id}`;
       }
 
-      mqttClient.publish(`${config.ha_discovery_prefix_topic}/switch/${config.risco_node_id}/${useroutputIdSegment}-output/config`, JSON.stringify(payload), {
+      mqttClient.publish(`${config.ha_discovery_prefix_topic}/button/${config.risco_node_id}/${useroutputIdSegment}-output/config`, JSON.stringify(payload), {
         qos: 1, retain: true,
       });
       logger.info(`[Panel => MQTT][Discovery] Published button to HA on output ${output.Id}`);
