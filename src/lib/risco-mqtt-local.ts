@@ -608,6 +608,8 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       }
 
       const zoneName = zoneConf.name || zone.Label;
+      payload.name = zoneConf.name_prefix + zoneName;
+
 
       let nodeIdSegment: string;
       if (config.ha_discovery_include_nodeId) {
