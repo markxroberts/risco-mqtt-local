@@ -398,19 +398,19 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     return zones.values.filter(z => !z.NotUsed);
   }
   function activeBypassZones(zones: ZoneList): Zone[] {
-    return zones.values.filter(z => z.Type !== 3);
+    return zones.values.filter(z => z.Type !== 3 && !z.NotUsed);
   }
   function batteryZones(zones: ZoneList): Zone[] {
     return zones.values.filter(z => z.tech === 'W');
   }
   function activeToggleOutputs(outputs: OutputList): Output[] {
-    return outputs.values.filter(o => o.UserUsable !== false && (o.Type === 1 || o.Type === 3));
+    return outputs.values.filter(o => o.UserUsable !== false && !o.Pulsed);
   }
   function activeButtonOutputs(outputs: OutputList): Output[] {
-    return outputs.values.filter(o => o.UserUsable !== false && (o.Type === 0 || o.Type === 2));
+    return outputs.values.filter(o => o.UserUsable !== false && o.Pulsed);
   }
   function activeSystemOutputs(systemoutputs: OutputList): Output[] {
-    return systemoutputs.values.filter(o => o.UserUsable === false && o.Label !=='' && (o.Type === 1 || o.Type === 3));
+    return systemoutputs.values.filter(o => o.UserUsable === false && !o.Pulsed);
   }
 
   function publishOnline() {
