@@ -510,7 +510,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       mqttClient.publish(`${config.ha_discovery_prefix_topic}/switch/${config.risco_node_id}/${useroutputIdSegment}-output/config`, JSON.stringify(payload), {
         qos: 1, retain: true,
       });
-      logger.info(`[Panel => MQTT][Discovery] Published switch to HA on output ${output.Id}`);
+      logger.info(`[Panel => MQTT][Discovery] Published switch to HA: Output label = ${output.Label}, HA name = ${payload.name}`);
       logger.verbose(`[Panel => MQTT][Discovery] Output discovery payload\n${JSON.stringify(payload, null, 2)}`);
     }
     for (const output of activeButtonOutputs(panel.outputs)) {
@@ -525,7 +525,6 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
           topic: `${config.risco_node_id}/alarm/status`,
         },
         payload_press: '1',
-        device_class: useroutputConf.device_class,
         icon: 'mdi:gesture-tap-button',
         device: getDeviceInfo(),
         qos: 1,
@@ -545,7 +544,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       mqttClient.publish(`${config.ha_discovery_prefix_topic}/button/${config.risco_node_id}/${useroutputIdSegment}-output/config`, JSON.stringify(payload), {
         qos: 1, retain: true,
       });
-      logger.info(`[Panel => MQTT][Discovery] Published button to HA on output ${output.Id}`);
+      logger.info(`[Panel => MQTT][Discovery] Published button to HA: Output label = ${output.Label}, HA name = ${payload.name}`);
       logger.verbose(`[Panel => MQTT][Discovery] Output discovery payload\n${JSON.stringify(payload, null, 2)}`);
     }
     for (const systemoutput of activeSystemOutputs(panel.outputs)) {
@@ -580,7 +579,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       mqttClient.publish(`${config.ha_discovery_prefix_topic}/binary_sensor/${systemoutputIdSegment}-output/config`, JSON.stringify(payload), {
         qos: 1, retain: true,
       });
-      logger.info(`[Panel => MQTT][Discovery] Published binary_sensor to HA on output ${systemoutput.Id}`);
+      logger.info(`[Panel => MQTT][Discovery] Published binary_sensor to HA: Output label = ${systemoutput.Label}, HA name = ${payload.name}`);
       logger.verbose(`[Panel => MQTT][Discovery] Output discovery payload\n${JSON.stringify(payload, null, 2)}`);
     }
 
