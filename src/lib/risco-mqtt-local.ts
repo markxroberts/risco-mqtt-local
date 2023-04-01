@@ -629,7 +629,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       const zoneConf = cloneDeep(config.zones.default);
       merge(zoneConf, config.zones?.[zone.Label]);
 
-      const bypassZonePayload: any = {
+      const payload: any = {
         availability: {
           topic: `${config.risco_node_id}/alarm/status`,
         },
@@ -646,7 +646,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       };
 
       const zoneName = zoneConf.name || zone.Label;
-      bypassZonePayload.name = zoneConf.name_prefix + zoneName + ' Bypass';
+      payload.name = zoneConf.name_prefix + zoneName + ' Bypass';
 
       let nodeIdSegment: string;
       if (config.ha_discovery_include_nodeId) {
@@ -655,12 +655,12 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
         nodeIdSegment = `${zone.Id}`;
       }
 
-      mqttClient.publish(`${config.ha_discovery_prefix_topic}/switch/${nodeIdSegment}-bypass/config`, JSON.stringify(bypassZonePayload), {
+      mqttClient.publish(`${config.ha_discovery_prefix_topic}/switch/${nodeIdSegment}-bypass/config`, JSON.stringify(payload), {
         qos: 1,
         retain: true,
       });
-      logger.info(`[Panel => MQTT][Discovery] Published switch to HA: Zone label = ${zone.Label}, HA name = ${bypassZonePayload.name}`);
-      logger.verbose(`[Panel => MQTT][Discovery] Bypass switch discovery payload\n${JSON.stringify(bypassZonePayload, null, 2)}`);
+      logger.info(`[Panel => MQTT][Discovery] Published switch to HA: Zone label = ${zone.Label}, HA name = ${payload.name}`);
+      logger.verbose(`[Panel => MQTT][Discovery] Bypass switch discovery payload\n${JSON.stringify(payload, null, 2)}`);
     }
 
     for (const zone of batteryZones(panel.zones)) {
