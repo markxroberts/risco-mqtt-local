@@ -329,7 +329,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     }
   }
   function alarmSensorState(zone: Zone) {
-    if (zone.Alarm === 'Alarm' && zone.Armed === 'Armed') {
+    if (zone.Alarm) && (zone.Arm) {
       return '1';
     } else {
       return '0';
