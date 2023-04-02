@@ -319,11 +319,17 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       }
     }
   }
-
   function outputState(EventStr: string) {
     if (EventStr === 'Activated') {
       return '1';
     } else if (EventStr === 'Pulsed') {
+      return '1';
+    } else {
+      return '0';
+    }
+  }
+  function alarmSensorState(zone: Zone) {
+    if (zone.Alarm === 'Alarm' && zone.Armed === 'Armed') {
       return '1';
     } else {
       return '0';
@@ -340,6 +346,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       mqttClient.publish(`${config.risco_node_id}/alarm/zone/${zone.Id}`, JSON.stringify({
         id: zone.Id,
         alarm: zone.Alarm,
+        arm: zone.Arm
         label: zone.Label,
         type: zone.type,
         typeLabel: zone.typeLabel,
@@ -379,6 +386,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     if (publishAttributes) {
       mqttClient.publish(`${config.risco_node_id}/alarm/zone/${zone.Id}/battery`, JSON.stringify({
         id: zone.Id,
+        arm: zone.Arm
         label: zone.Label,
         type: zone.type,
         typeLabel: zone.typeLabel,
@@ -389,7 +397,8 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
         bypass: zone.Bypass,
       }), { qos: 1, retain: true });
     }
-    let zoneAlarm = zone.Alarm ? '1' : '0';
+  }
+    const zoneAlarm = alarmSensorState(zone)  
     mqttClient.publish(`${config.risco_node_id}/alarm/zone/${zone.Id}/alarm/status`, zoneAlarm, {
       qos: 1, retain: false,
     });
