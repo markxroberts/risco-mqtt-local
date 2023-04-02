@@ -625,7 +625,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
 
       const alarmSensorPayload: any = {
         availability: {
-          topic: `${config.mqtt_alarm_topic}/alarm/status`,
+          topic: `${config.risco_node_id}/alarm/status`,
         },
         unique_id: `${config.risco_node_id}-zone-${zone.Id}`,
         payload_on: '1',
@@ -633,8 +633,8 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
         device_class: 'problem',
         device: getDeviceInfo(),
         qos: 1,
-        state_topic: `${config.mqtt_alarm_topic}/alarm/zone/${zone.Id}/alarm/status`,
-        json_attributes_topic: `${config.mqtt_alarm_topic}/alarm/zone/${zone.Id}`,
+        state_topic: `${config.risco_node_id}/alarm/zone/${zone.Id}/alarm/status`,
+        json_attributes_topic: `${config.risco_node_id}/alarm/zone/${zone.Id}`,
       };
 
       if (zoneConf.off_delay) {
