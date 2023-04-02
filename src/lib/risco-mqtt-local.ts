@@ -106,7 +106,7 @@ const CONFIG_DEFAULTS: RiscoMQTTConfig = {
   },
   system_outputs: {
     default: {
-      device_class: '',
+      device_class: 'running',
       name_prefix: '',
     },
   },
