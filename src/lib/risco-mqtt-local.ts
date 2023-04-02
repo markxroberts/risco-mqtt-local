@@ -636,7 +636,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
         availability: {
           topic: `${config.risco_node_id}/alarm/status`,
         },
-        unique_id: `${config.risco_node_id}-zone-${zone.Id}`,
+        unique_id: `${config.risco_node_id}-zone-alarm-${zone.Id}`,
         payload_on: '1',
         payload_off: '0',
         device_class: 'problem',
@@ -665,7 +665,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
         qos: 1,
         retain: true,
       });
-      mqttClient.publish(`${config.ha_discovery_prefix_topic}/binary_sensor/${nodeIdSegment}/config`, JSON.stringify(alarmSensorPayload), {
+      mqttClient.publish(`${config.ha_discovery_prefix_topic}/binary_sensor/${nodeIdSegment}-alarm/config`, JSON.stringify(alarmSensorPayload), {
         qos: 1,
         retain: true,
       });
