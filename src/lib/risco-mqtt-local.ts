@@ -268,7 +268,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
         const outputcommand = message.toString();
         logger.info(`[MQTT => Panel] Received output trigger command on topic ${topic} for output ${outputId}`);
         try {
-          if (outputcommand !== panel.outputs.byId(outputId).Status) {
+          if (outputcommand !== panel.outputs.byId(outputId).OState) {
             const success = await panel.toggleOutput(outputId);
             if (success) {
               logger.info(`[MQTT => Panel] toggle output command sent on output ${outputId}`);
@@ -321,7 +321,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
   }
 
   function outputState(output: Output) {
-    if (output.Status === 'Activated' || output.Status === 'Pulsed') {
+    if (output.OState === 'a') {
       return '1';
     } else {
       return '0';
@@ -377,7 +377,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     mqttClient.publish(`${config.risco_node_id}/alarm/output/${output.Id}/status`, outputState(output), {
       qos: 1, retain: false,
     });
-    logger.verbose(`[Panel => MQTT] Published output status ${output.Status} on output ${output.Label}`);
+    logger.verbose(`[Panel => MQTT] Published output status ${output.OState} on output ${output.Label}`);
   }
 
   function publishZoneBypassStateChange(zone: Zone) {
