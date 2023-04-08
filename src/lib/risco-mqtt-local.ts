@@ -321,7 +321,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
   }
 
   function outputState(output: Output) {
-    if (output.Status === 'a') {
+    if (output.Status === 'Activated' || output.Status === 'Pulsed') {
       return '1';
     } else {
       return '0';
