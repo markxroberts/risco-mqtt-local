@@ -12,7 +12,7 @@ import {
   Zone,
   ZoneList,
   PanelOptions,
-} from '@vanackej/risco-lan-bridge/dist';
+} from '@markxroberts/risco-lan-bridge/dist';
 import pkg from 'winston';
 import { cloneDeep } from 'lodash';
 
