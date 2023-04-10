@@ -805,7 +805,8 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     publishOnline();
 
     logger.info(`Delay 30 seconds before publishing initial states`);
-    setTimeout(publishInitialStates(),30000);
+    let t: any;
+    t = setTimeout(publishInitialStates(),30000);
 
     if (!listenerInstalled) {
       logger.info(`Subscribing to Home assistant commands topics`);
