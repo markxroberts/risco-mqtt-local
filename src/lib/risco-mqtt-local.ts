@@ -448,13 +448,13 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     return zones.values.filter(z => z.tech === 'W');
   }
   function activeToggleOutputs(outputs: OutputList): Output[] {
-    return outputs.values.filter(o => o.UserUsable !== false && !o.Pulsed);
+    return outputs.values.filter(o => o.UserUsable && !o.Pulsed);
   }
   function activeButtonOutputs(outputs: OutputList): Output[] {
-    return outputs.values.filter(o => o.UserUsable !== false && o.Pulsed);
+    return outputs.values.filter(o => o.UserUsable && o.Pulsed);
   }
   function activeSystemOutputs(systemoutputs: OutputList): Output[] {
-    return systemoutputs.values.filter(o => o.UserUsable === false && o.Label !=='');
+    return systemoutputs.values.filter(o => !o.UserUsable && o.Type !== undefined);
   }
 
   function publishOnline() {
@@ -767,20 +767,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     }
   }
 
-  function panelOrMqttConnected() {
-    if (!panelReady) {
-      logger.info(`Panel is not connected, waiting`);
-      return;
-    }
-    if (!mqttReady) {
-      logger.info(`MQTT is not connected, waiting`);
-      return;
-    }
-    logger.info(`Panel and MQTT communications are ready`);
-    logger.info(`Publishing Home Assistant discovery info`);
-    publishHomeAssistantDiscoveryInfo();
-    publishOnline();
-
+  function publishInitialStates() {
     logger.info(`Publishing initial partitions and zones state to Home assistant`);
     for (const partition of activePartitions(panel.partitions)) {
       publishPartitionStateChanged(partition);
@@ -801,6 +788,24 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     for (const systemoutput of activeSystemOutputs(panel.outputs)) {
       publishOutputStateChange(systemoutput, '0');
     }
+  }
+
+  function panelOrMqttConnected() {
+    if (!panelReady) {
+      logger.info(`Panel is not connected, waiting`);
+      return;
+    }
+    if (!mqttReady) {
+      logger.info(`MQTT is not connected, waiting`);
+      return;
+    }
+    logger.info(`Panel and MQTT communications are ready`);
+    logger.info(`Publishing Home Assistant discovery info`);
+    publishHomeAssistantDiscoveryInfo();
+    publishOnline();
+
+    logger.info(`Delay 30 seconds before publishing initial states`);
+    setTimeout(publishInitialStates(),30000);
 
     if (!listenerInstalled) {
       logger.info(`Subscribing to Home assistant commands topics`);
