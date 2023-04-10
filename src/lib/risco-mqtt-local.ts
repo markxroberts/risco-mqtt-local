@@ -319,14 +319,28 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       }
     }
   }
-  function outputState(EventStr: string) {
-    if (EventStr === 'Activated') {
-      return '1';
-    } else if (EventStr === 'Pulsed') {
-      return '1';
+  function outputState(output: Output, EventStr: string) {
+    if (EventStr !== '0') {
+      if (EventStr === 'Activated' || EventStr === 'Pulsed') {
+        return {
+          output: '1',
+          text: EventStr};
+      } else {
+        return {
+          output: '0',
+          text: EventStr};
+      }
     } else {
-      return '0';
-    }
+      if (output.OStatus === 'a') {
+        return {
+          output: '1',
+          text: 'Activated'};
+      } else {
+        return {
+          output: '0',
+          text: 'Deactivated'};
+      }
+    }  
   }
   function alarmSensorState(zone: Zone) {
     if (zone.Alarm && zone.Arm) {
@@ -406,12 +420,12 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
   }
 
   function publishOutputStateChange(output: Output, EventStr: string) {
-    const outputStatus = outputState(EventStr)
+    const outputStatus = outputState(output, EventStr)
     const outputId = output.Id
-    mqttClient.publish(`${config.risco_node_id}/alarm/output/${output.Id}/status`, outputStatus, {
+    mqttClient.publish(`${config.risco_node_id}/alarm/output/${output.Id}/status`, outputStatus.output, {
       qos: 1, retain: false,
     });
-    logger.verbose(`[Panel => MQTT] Published output status ${EventStr} on output ${output.Label}`);
+    logger.verbose(`[Panel => MQTT] Published output status ${outputStats.text} on output ${output.Label}`);
   }
 
   function publishZoneBypassStateChange(zone: Zone) {
