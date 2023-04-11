@@ -454,7 +454,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     return outputs.values.filter(o => o.UserUsable && o.Pulsed);
   }
   function activeSystemOutputs(systemoutputs: OutputList): Output[] {
-    return systemoutputs.values.filter(o => !o.UserUsable && 0 o.Type >= 0 && o.Type <= 3 );
+    return systemoutputs.values.filter(o => !o.UserUsable && o.Type >= 0 && o.Type <= 3 );
   }
 
   function publishOnline() {
