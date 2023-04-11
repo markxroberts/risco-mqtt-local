@@ -788,6 +788,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     for (const systemoutput of activeSystemOutputs(panel.outputs)) {
       publishOutputStateChange(systemoutput, '0');
     }
+    logger.info(`Initial states published`);
   }
 
   function panelOrMqttConnected() {
@@ -804,9 +805,9 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     publishHomeAssistantDiscoveryInfo();
     publishOnline();
 
-    logger.info(`Delay 30 seconds before publishing initial states`);
+    logger.info(`Delay 15 seconds before publishing initial states`);
     let t: any;
-    t = setTimeout(() => publishInitialStates(),30000);
+    t = setTimeout(() => publishInitialStates(),15000);
 
     if (!listenerInstalled) {
       logger.info(`Subscribing to Home assistant commands topics`);
