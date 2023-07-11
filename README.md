@@ -1,7 +1,5 @@
 [![license badge](https://img.shields.io/badge/license-MIT-green.svg)](https://github.com/vanackej/risco-mqtt-local/blob/main/LICENSE)
-[![Package Version](https://shields.io/npm/v/@vanackej/risco-mqtt-local/latest)](https://www.npmjs.com/package/@vanackej/risco-mqtt-local)
-[![Docker Pulls](https://img.shields.io/docker/pulls/vanackej/risco-mqtt-local)](https://hub.docker.com/r/vanackej/risco-mqtt-local)
-[![Node Version](https://shields.io/node/v/@vanackej/risco-mqtt-local)](https://www.npmjs.com/package/@vanackej/risco-mqtt-local)
+[![Docker Pulls](https://img.shields.io/docker/pulls/markxroberts/risco-mqtt-local)](https://hub.docker.com/r/markxroberts/risco-mqtt-local)
 [![Maintenance badge](https://shields.io/badge/maintenance-yes-green.svg)](https://www.npmjs.com/package/@vanackej/risco-mqtt-local)
 
 [![Add to Home Assistant](https://my.home-assistant.io/badges/supervisor_add_addon_repository.svg)](https://my.home-assistant.io/redirect/supervisor_add_addon_repository/?repository_url=https%3A%2F%2Fgithub.com%2Fvanackej%2Frisco-mqtt-local)
