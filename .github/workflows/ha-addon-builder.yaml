@@ -8,6 +8,7 @@ on:
   push:
     branches:
       - main
+      - dev-with-working-changes
   pull_request:
     branches:
       - main
