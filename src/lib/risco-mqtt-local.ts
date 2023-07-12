@@ -168,6 +168,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
   let panelReady = false;
   let mqttReady = false;
   let listenerInstalled = false;
+  let initialized = false;
 
   if (!config.mqtt?.url) throw new Error('mqtt url option is required');
 
@@ -285,8 +286,15 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       });
     } else if (topic == `${config.ha_discovery_prefix_topic}/status`) {
       if (message.toString() === 'online') {
-        logger.info('Home Assistant is back online');
-        panelOrMqttConnected();
+        logger.info('Home Assistant is online');
+        if (!initialized) {
+          logger.info(`Delay 30 seconds before publishing initial states`);
+          let t: any;
+          t = setTimeout(() => publishInitialStates(),30000);
+          initialized = false;
+        } else {
+          publishInitialStates();
+        }
       } else {
         logger.info('Home Assistant has gone offline');
       }
@@ -801,12 +809,11 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     }
     logger.info(`Panel and MQTT communications are ready`);
     logger.info(`Publishing Home Assistant discovery info`);
-    publishHomeAssistantDiscoveryInfo();
-    publishOnline();
 
-    logger.info(`Delay 30 seconds before publishing initial states`);
-    let t: any;
-    t = setTimeout(() => publishInitialStates(),30000);
+    if (!initialized) {
+      publishHomeAssistantDiscoveryInfo();
+      publishOnline();
+    }
 
     if (!listenerInstalled) {
       logger.info(`Subscribing to Home assistant commands topics`);
