@@ -854,7 +854,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     for (const systemoutput of activeSystemOutputs(panel.outputs)) {
       publishOutputStateChange(systemoutput, '0');
     }
-    publishCloudStatus(panel.socketMode, panel.cloudConnected)
+    publishCloudStatus(proxy.socketMode, proxy.cloudConnected)
     publishPanelStatus(panelReady)
     logger.info(`Finished publishing initial partitions, zones and output states to Home assistant`);
   }
@@ -938,10 +938,10 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
         }
       });
       panel.riscoComm.on('Clock', publishOnline);
-      panel.riscoComm.on('Disconnected', publishPanelStatus(false));
+      panel.riscoComm.tcpSocket.on('Disconnected', publishPanelStatus(false));
       panel.riscoComm.on('PanelCommReady', publishPanelStatus(true));
-      panel.riscoComm.on('CloudConnected', publishCloudStatus(true));
-      panel.riscoComm.on('CloudDisconnected', publishCloudStatus(false));
+      panel.riscoComm.tcpSocket.on('CloudConnected', publishCloudStatus(proxy.socketMode, true));
+      panel.riscoComm.tcpSocket.on('CloudDisconnected', publishCloudStatus(proxy.socketMode, false));
 
       listenerInstalled = true;
     } else {
