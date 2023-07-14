@@ -512,7 +512,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
   function publishHomeAssistantDiscoveryInfo() {
 
     const payload = {
-      name: `${config.risco_node_id} Cloud connection status`
+      name: `${config.risco_node_id} Cloud connection status`,
       object_id: `${config.risco_node_id}-cloud-connection-status`,
       state_topic: `${config.risco_node_id}/alarm/cloudstatus`,
       unique_id: `${config.risco_node_id}-cloudstatus`,
@@ -532,7 +532,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     logger.verbose(`[Panel => MQTT][Discovery] Cloud status payload\n${JSON.stringify(payload, null, 2)}`);
 
     const payload = {
-      name: `${config.risco_node_id} Panel connection status`
+      name: `${config.risco_node_id} Panel connection status`,
       object_id: `${config.risco_node_id}-panel-connection-status`,
       state_topic: `${config.risco_node_id}/alarm/panelstatus`,
       unique_id: `${config.risco_node_id}-panelstatus`,
