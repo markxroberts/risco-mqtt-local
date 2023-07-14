@@ -367,13 +367,13 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
   }
 
   function publishCloudStatus(proxy, state) {
-    mqttClient.publish(`${config.risco_node_id}/alarm/panelstatus/${state}`, panelReady, { qos: 1, retain: true });
-    logger.verbose(`[Panel => MQTT] Published panel connection status ${panelReady}`);
+    mqttClient.publish(`${config.risco_node_id}/alarm/panelstatus/${state}`, cloudStatus(proxy, state), { qos: 1, retain: true });
+    logger.verbose(`[Panel => MQTT] Published panel connection status ${cloudStatus(proxy, state)}`);
   }
 
   function publishPanelStatus(state) {
-    mqttClient.publish(`${config.risco_node_id}/alarm/cloudstatus/${state}`, cloudStatus(proxy, state), { qos: 1, retain: true });
-    logger.verbose(`[Panel => MQTT] Published cloud connection status ${cloudStatus(proxy, state)}`);
+    mqttClient.publish(`${config.risco_node_id}/alarm/cloudstatus/${state}`, panelReady, { qos: 1, retain: true });
+    logger.verbose(`[Panel => MQTT] Published cloud connection status ${panelReady}`);
   }
 
   function publishPartitionStateChanged(partition: Partition) {
@@ -511,7 +511,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
 
   function publishHomeAssistantDiscoveryInfo() {
 
-    const payload = {
+    const cloudPayload = {
       name: `${config.risco_node_id} Cloud connection status`,
       object_id: `${config.risco_node_id}-cloud-connection-status`,
       state_topic: `${config.risco_node_id}/alarm/cloudstatus`,
@@ -525,13 +525,13 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       device: getDeviceInfo(),
     };
 
-    mqttClient.publish(`${config.ha_discovery_prefix_topic}/binary_sensor/${config.risco_node_id}/cloudstatus/config`, JSON.stringify(payload), {
+    mqttClient.publish(`${config.ha_discovery_prefix_topic}/binary_sensor/${config.risco_node_id}/cloudstatus/config`, JSON.stringify(cloudPayload), {
       qos: 1, retain: true,
     });
-    logger.info(`[Panel => MQTT][Discovery] Published cloud status sensor, HA name = ${payload.name}`);
-    logger.verbose(`[Panel => MQTT][Discovery] Cloud status payload\n${JSON.stringify(payload, null, 2)}`);
+    logger.info(`[Panel => MQTT][Discovery] Published cloud status sensor, HA name = ${cloudPayload.name}`);
+    logger.verbose(`[Panel => MQTT][Discovery] Cloud status payload\n${JSON.stringify(cloudPayload, null, 2)}`);
 
-    const payload = {
+    const panelPayload = {
       name: `${config.risco_node_id} Panel connection status`,
       object_id: `${config.risco_node_id}-panel-connection-status`,
       state_topic: `${config.risco_node_id}/alarm/panelstatus`,
@@ -545,11 +545,11 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       device: getDeviceInfo(),
     };
 
-    mqttClient.publish(`${config.ha_discovery_prefix_topic}/binary_sensor/${config.risco_node_id}/panelstatus/config`, JSON.stringify(payload), {
+    mqttClient.publish(`${config.ha_discovery_prefix_topic}/binary_sensor/${config.risco_node_id}/panelstatus/config`, JSON.stringify(panelPayload), {
       qos: 1, retain: true,
     });
-    logger.info(`[Panel => MQTT][Discovery] Published panel status sensor, HA name = ${payload.name}`);
-    logger.verbose(`[Panel => MQTT][Discovery] Panel status payload\n${JSON.stringify(payload, null, 2)}`);
+    logger.info(`[Panel => MQTT][Discovery] Published panel status sensor, HA name = ${panelPayload.name}`);
+    logger.verbose(`[Panel => MQTT][Discovery] Panel status payload\n${JSON.stringify(panelPayload, null, 2)}`);
 
     for (const partition of activePartitions(panel.partitions)) {
 
@@ -938,9 +938,10 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
         }
       });
       panel.riscoComm.on('Clock', publishOnline);
-      panel.riscoComm.on('PanelDisconnected', publishPanelStatus(false))
-      panel.riscoComm.on('PanelCommReady', publishPanelStatus(true))
-      panel.proxy.on(panel.socketMode, cloudStatus);
+      panel.riscoComm.on('Disconnected', publishPanelStatus(false));
+      panel.riscoComm.on('PanelCommReady', publishPanelStatus(true));
+      panel.riscoComm.on('CloudConnected', publishCloudStatus(true));
+      panel.riscoComm.on('CloudDisconnected', publishCloudStatus(false));
 
       listenerInstalled = true;
     } else {
