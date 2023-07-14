@@ -358,17 +358,17 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     }
   }
 
-  function cloudStatus(proxy, state) {
-    if (proxy === 'direct' && state === 'on') {
+  function cloudStatus(state) {
+    if (state === false) {
       return '1';
     } else {
       return '0';
     }
   }
 
-  function publishCloudStatus(proxy, state) {
-    mqttClient.publish(`${config.risco_node_id}/alarm/panelstatus/${state}`, cloudStatus(proxy, state), { qos: 1, retain: true });
-    logger.verbose(`[Panel => MQTT] Published panel connection status ${cloudStatus(proxy, state)}`);
+  function publishCloudStatus(state) {
+    mqttClient.publish(`${config.risco_node_id}/alarm/panelstatus/${state}`, cloudStatus(state), { qos: 1, retain: true });
+    logger.verbose(`[Panel => MQTT] Published panel connection status ${cloudStatus(state)}`);
   }
 
   function publishPanelStatus(state) {
@@ -854,7 +854,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     for (const systemoutput of activeSystemOutputs(panel.outputs)) {
       publishOutputStateChange(systemoutput, '0');
     }
-    publishCloudStatus(panel.riscoComm.tcpSocket.SocketOptions.socketMode, panel.proxy.cloudConnected)
+    publishCloudStatus(panel.proxy.cloudConnected)
     publishPanelStatus(panelReady)
     logger.info(`Finished publishing initial partitions, zones and output states to Home assistant`);
   }
@@ -940,8 +940,8 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       panel.riscoComm.on('Clock', publishOnline);
       panel.riscoComm.tcpSocket.on('Disconnected', (data) => {publishPanelStatus(false)});
       panel.riscoComm.on('PanelCommReady', (data) => {publishPanelStatus(true)});
-      panel.riscoComm.tcpSocket.on('CloudConnected', () => {publishCloudStatus(panel.riscoComm.tcpSocket.SocketOptions.socketMode, true)});
-      panel.riscoComm.tcpSocket.on('CloudDisconnected', () => {publishCloudStatus(panel.riscoComm.tcpSocket.SocketOptions.socketMode, false)});
+      panel.riscoComm.tcpSocket.on('CloudConnected', () => {publishCloudStatus(true)});
+      panel.riscoComm.tcpSocket.on('CloudDisconnected', () => {publishCloudStatus(false)});
 
       listenerInstalled = true;
     } else {
