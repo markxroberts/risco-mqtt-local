@@ -525,6 +525,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
         payload_on: '1',
         payload_off: '0',
         device_class: 'connectivity',
+        entity_category: 'diagnostic',
         device: getDeviceInfo(),
       }
 
@@ -546,6 +547,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       payload_on: 'true',
       payload_off: 'false',
       device_class: 'connectivity',
+      entity_category: 'diagnostic',
       device: getDeviceInfo(),
     };
 
