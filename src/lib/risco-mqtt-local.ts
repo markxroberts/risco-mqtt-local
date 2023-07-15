@@ -550,9 +550,9 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       unique_id: `${config.risco_node_id}-panelstatus`,
       availability: {
         topic: `${config.risco_node_id}/alarm/panelstatus`,
+        payload_available: '1',
+        payload_not_available: '0',
       },
-      payload_available: '1',
-      payload_not_available: '0',
       payload_on: '1',
       payload_off: '0',
       device_class: 'connectivity',
@@ -581,7 +581,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     mqttClient.publish(`${config.ha_discovery_prefix_topic}/sensor/${config.risco_node_id}/systemmessage/config`, JSON.stringify(systemPayload), {
       qos: 1, retain: true,
     });
-    logger.info(`[Panel => MQTT][Discovery] Published System message sensor, HA name = ${systemPayload}`);
+    logger.info(`[Panel => MQTT][Discovery] Published System message sensor, HA name = ${systemPayload.name}`);
     logger.verbose(`[Panel => MQTT][Discovery] System message payload\n${JSON.stringify(systemPayload, null, 2)}`);
 
     for (const partition of activePartitions(panel.partitions)) {
