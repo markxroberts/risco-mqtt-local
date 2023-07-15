@@ -542,7 +542,9 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       state_topic: `${config.risco_node_id}/alarm/panelstatus`,
       unique_id: `${config.risco_node_id}-panelstatus`,
       availability: {
-        topic: `${config.risco_node_id}/alarm/status`,
+        topic: `${config.risco_node_id}/alarm/panelstatus`,
+        payload_available: '1',
+        payload_unavailable: '0',
       },
       payload_on: '1',
       payload_off: '0',
@@ -862,8 +864,10 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     }
     if (config.panel.socketMode === 'proxy') {
       publishCloudStatus(panel.proxy.cloudConnected)
+      logger.verbose(`Cloud connection status published. Socket mode is ${config.panel.socketMode} and connection status is ${panel.proxy.cloudConnected}`)
     }
     publishPanelStatus(panelReady)
+    logger.verbose(`Published panel status ${panelReady}`)
     logger.info(`Finished publishing initial partitions, zones and output states to Home assistant`);
   }
 
