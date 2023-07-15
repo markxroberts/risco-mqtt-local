@@ -374,8 +374,8 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
   }
 
   function publishPanelStatus(state) {
-    mqttClient.publish(`${config.risco_node_id}/alarm/cloudstatus/${state}`, `${panelReady}`, { qos: 1, retain: true });
-    logger.verbose(`[Panel => MQTT] Published cloud connection status ${panelReady}`);
+    mqttClient.publish(`${config.risco_node_id}/alarm/cloudstatus/${state}`, cloudStatus(state), { qos: 1, retain: true });
+    logger.verbose(`[Panel => MQTT] Published cloud connection status ${cloudStatus(state)}`);
   }
 
   function publishPartitionStateChanged(partition: Partition) {
@@ -544,8 +544,8 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       availability: {
         topic: `${config.risco_node_id}/alarm/status`,
       },
-      payload_on: 'true',
-      payload_off: 'false',
+      payload_on: '1',
+      payload_off: '0',
       device_class: 'connectivity',
       entity_category: 'diagnostic',
       device: getDeviceInfo(),
