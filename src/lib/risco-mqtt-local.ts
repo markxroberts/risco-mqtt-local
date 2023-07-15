@@ -369,12 +369,12 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
   }
 
   function publishCloudStatus(state) {
-    mqttClient.publish(`${config.risco_node_id}/alarm/panelstatus/${state}`, cloudStatus(state), { qos: 1, retain: true });
+    mqttClient.publish(`${config.risco_node_id}/alarm/panelstatus`, cloudStatus(state), { qos: 1, retain: true });
     logger.verbose(`[Panel => MQTT] Published panel connection status ${cloudStatus(state)}`);
   }
 
   function publishPanelStatus(state) {
-    mqttClient.publish(`${config.risco_node_id}/alarm/cloudstatus/${state}`, cloudStatus(state), { qos: 1, retain: true });
+    mqttClient.publish(`${config.risco_node_id}/alarm/cloudstatus`, cloudStatus(state), { qos: 1, retain: true });
     logger.verbose(`[Panel => MQTT] Published cloud connection status ${cloudStatus(state)}`);
   }
 
@@ -515,7 +515,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
 
     if (config.panel.socketMode === 'proxy') {
       const cloudPayload = {
-        name: `${config.risco_node_id} Cloud connection status`,
+        name: `Cloud connection status`,
         object_id: `${config.risco_node_id}-cloud-connection-status`,
         state_topic: `${config.risco_node_id}/alarm/cloudstatus`,
         unique_id: `${config.risco_node_id}-cloudstatus`,
@@ -537,7 +537,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     };
 
     const panelPayload = {
-      name: `${config.risco_node_id} Panel connection status`,
+      name: `Panel connection status`,
       object_id: `${config.risco_node_id}-panel-connection-status`,
       state_topic: `${config.risco_node_id}/alarm/panelstatus`,
       unique_id: `${config.risco_node_id}-panelstatus`,
