@@ -368,6 +368,14 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     }
   }
 
+  function panelStatus(state) {
+    if (state) {
+      return '1';
+    } else {
+      return '0';
+    }
+  }
+
   function publishCloudStatus(state) {
     if (config.panel.socketMode === 'proxy') {
       mqttClient.publish(`${config.risco_node_id}/alarm/panelstatus`, cloudStatus(state), { qos: 1, retain: true });
@@ -376,8 +384,8 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
   }
 
   function publishPanelStatus(state) {
-    mqttClient.publish(`${config.risco_node_id}/alarm/cloudstatus`, cloudStatus(state), { qos: 1, retain: true });
-    logger.verbose(`[Panel => MQTT] Published cloud connection status ${cloudStatus(state)}`);
+    mqttClient.publish(`${config.risco_node_id}/alarm/cloudstatus`, panelStatus(state), { qos: 1, retain: true });
+    logger.verbose(`[Panel => MQTT] Published cloud connection status ${panelStatus(state)}`);
   }
 
   function publishPartitionStateChanged(partition: Partition) {
@@ -865,11 +873,11 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       publishOutputStateChange(systemoutput, '0');
     }
     if (config.panel.socketMode === 'proxy') {
-      publishCloudStatus(panel.proxy.cloudConnected)
-      logger.verbose(`Cloud connection status published. Socket mode is ${config.panel.socketMode} and connection status is ${panel.proxy.cloudConnected}`)
+      publishCloudStatus(panel.proxy.cloudConnected);
+      logger.verbose(`Cloud connection status published. Socket mode is ${config.panel.socketMode} and connection status is ${panel.proxy.cloudConnected}`);
     }
-    publishPanelStatus(panelReady)
-    logger.verbose(`Published panel status ${panelReady}`)
+    publishPanelStatus(panelReady);
+    logger.verbose(`Published panel status ${panelReady}`);
     logger.info(`Finished publishing initial partitions, zones and output states to Home assistant`);
   }
 
