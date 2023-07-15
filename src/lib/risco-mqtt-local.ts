@@ -380,7 +380,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     logger.verbose(`[Panel => MQTT] Published panel connection status ${cloudStatus(state)}`);
   }
 
-  function publishSystemMessage(message) {
+  function publishSystemStateChange(message) {
     mqttClient.publish(`${config.risco_node_id}/alarm/systemmessage`, `${message}`, { qos: 1, retain: true });
     logger.verbose(`[Panel => MQTT] Published system message ${message}`);
   }
@@ -892,7 +892,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     }
     publishPanelStatus(panelReady);
     logger.info(`Finished publishing initial partitions, zones and output states to Home assistant`);
-    publishSystemMessage(mbSystem.SStatus)
+    publishSystemMessage(panel.mbSystem.SStatus)
   }
 
   function panelOrMqttConnected() {
@@ -967,7 +967,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       });
 
       logger.info(`Subscribing to panel system events`);
-      panel.outputs.on('SStatusChanged', (EventStr, value) => {
+      panel.mbSystem.on('SStatusChanged', (EventStr, value) => {
         publishSystemStateChange(EventStr);
       });
 
