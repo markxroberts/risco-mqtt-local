@@ -513,7 +513,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
 
   function publishHomeAssistantDiscoveryInfo() {
 
-    if (config.panel.SocketMode === 'proxy') {
+    if (config.panel.socketMode === 'proxy') {
       const cloudPayload = {
         name: `${config.risco_node_id} Cloud connection status`,
         object_id: `${config.risco_node_id}-cloud-connection-status`,
@@ -858,7 +858,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     for (const systemoutput of activeSystemOutputs(panel.outputs)) {
       publishOutputStateChange(systemoutput, '0');
     }
-    if (config.panel.SocketMode === 'proxy') {
+    if (config.panel.socketMode === 'proxy') {
       publishCloudStatus(panel.proxy.cloudConnected)
     }
     publishPanelStatus(panelReady)
