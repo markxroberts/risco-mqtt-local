@@ -368,24 +368,16 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     }
   }
 
-  function panelStatus(state) {
-    if (state) {
-      return '1';
-    } else {
-      return '0';
-    }
-  }
-
   function publishCloudStatus(state) {
     if (config.panel.socketMode === 'proxy') {
-      mqttClient.publish(`${config.risco_node_id}/alarm/panelstatus`, cloudStatus(state), { qos: 1, retain: true });
-      logger.verbose(`[Panel => MQTT] Published panel connection status ${cloudStatus(state)}`);
+      mqttClient.publish(`${config.risco_node_id}/alarm/cloudstatus`, cloudStatus(state), { qos: 1, retain: true });
+      logger.verbose(`[Panel => MQTT] Published cloud connection status ${cloudStatus(state)}`);
     }
   }
 
   function publishPanelStatus(state) {
-    mqttClient.publish(`${config.risco_node_id}/alarm/cloudstatus`, panelStatus(state), { qos: 1, retain: true });
-    logger.verbose(`[Panel => MQTT] Published cloud connection status ${panelStatus(state)}`);
+    mqttClient.publish(`${config.risco_node_id}/alarm/panelstatus`, cloudStatus(state), { qos: 1, retain: true });
+    logger.verbose(`[Panel => MQTT] Published panel connection status ${cloudStatus(state)}`);
   }
 
   function publishPartitionStateChanged(partition: Partition) {
