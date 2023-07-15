@@ -85,7 +85,9 @@ const CONFIG_DEFAULTS: RiscoMQTTConfig = {
   ha_discovery_prefix_topic: 'homeassistant',
   ha_discovery_include_nodeId: false,
   risco_node_id: 'risco-alarm-panel',
-  panel: {},
+  panel: {
+    SocketMode: 'direct',
+  },
   partitions: {
     default: {
       name_prefix: 'risco alarm panel',
@@ -511,18 +513,20 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
 
   function publishHomeAssistantDiscoveryInfo() {
 
-    const cloudPayload = {
-      name: `${config.risco_node_id} Cloud connection status`,
-      object_id: `${config.risco_node_id}-cloud-connection-status`,
-      state_topic: `${config.risco_node_id}/alarm/cloudstatus`,
-      unique_id: `${config.risco_node_id}-cloudstatus`,
-      availability: {
-        topic: `${config.risco_node_id}/alarm/status`,
-      },
-      payload_on: '1',
-      payload_off: '0',
-      device_class: 'connectivity',
-      device: getDeviceInfo(),
+    if (config.panel.SocketMode === 'proxy') {
+      const cloudPayload = {
+        name: `${config.risco_node_id} Cloud connection status`,
+        object_id: `${config.risco_node_id}-cloud-connection-status`,
+        state_topic: `${config.risco_node_id}/alarm/cloudstatus`,
+        unique_id: `${config.risco_node_id}-cloudstatus`,
+        availability: {
+          topic: `${config.risco_node_id}/alarm/status`,
+        },
+        payload_on: '1',
+        payload_off: '0',
+        device_class: 'connectivity',
+        device: getDeviceInfo(),
+      }
     };
 
     mqttClient.publish(`${config.ha_discovery_prefix_topic}/binary_sensor/${config.risco_node_id}/cloudstatus/config`, JSON.stringify(cloudPayload), {
@@ -854,7 +858,9 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     for (const systemoutput of activeSystemOutputs(panel.outputs)) {
       publishOutputStateChange(systemoutput, '0');
     }
-    publishCloudStatus(panel.proxy.cloudConnected)
+    if (config.panel.SocketMode === 'proxy') {
+      publishCloudStatus(panel.proxy.cloudConnected)
+    }
     publishPanelStatus(panelReady)
     logger.info(`Finished publishing initial partitions, zones and output states to Home assistant`);
   }
