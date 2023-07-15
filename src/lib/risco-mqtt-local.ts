@@ -892,7 +892,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     }
     publishPanelStatus(panelReady);
     logger.info(`Finished publishing initial partitions, zones and output states to Home assistant`);
-    publishSystemStateChange(panel.mbSystem.SStatus)
+    publishSystemStateChange(panel.mbSystem.Status)
   }
 
   function panelOrMqttConnected() {
