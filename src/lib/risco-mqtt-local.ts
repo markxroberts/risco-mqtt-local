@@ -545,9 +545,9 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       unique_id: `${config.risco_node_id}-panelstatus`,
       availability: {
         topic: `${config.risco_node_id}/alarm/panelstatus`,
-        payload_available: '1',
-        payload_unavailable: '0',
       },
+      payload_available: '1',
+      payload_not_available: '0',
       payload_on: '1',
       payload_off: '0',
       device_class: 'connectivity',
