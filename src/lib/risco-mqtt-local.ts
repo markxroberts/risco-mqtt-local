@@ -86,7 +86,7 @@ const CONFIG_DEFAULTS: RiscoMQTTConfig = {
   ha_discovery_include_nodeId: false,
   risco_node_id: 'risco-alarm-panel',
   panel: {
-    SocketMode: 'direct',
+    socketMode: 'direct',
   },
   partitions: {
     default: {
@@ -527,13 +527,13 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
         device_class: 'connectivity',
         device: getDeviceInfo(),
       }
-    };
 
-    mqttClient.publish(`${config.ha_discovery_prefix_topic}/binary_sensor/${config.risco_node_id}/cloudstatus/config`, JSON.stringify(cloudPayload), {
-      qos: 1, retain: true,
-    });
-    logger.info(`[Panel => MQTT][Discovery] Published cloud status sensor, HA name = ${cloudPayload.name}`);
-    logger.verbose(`[Panel => MQTT][Discovery] Cloud status payload\n${JSON.stringify(cloudPayload, null, 2)}`);
+      mqttClient.publish(`${config.ha_discovery_prefix_topic}/binary_sensor/${config.risco_node_id}/cloudstatus/config`, JSON.stringify(cloudPayload), {
+        qos: 1, retain: true,
+      });
+      logger.info(`[Panel => MQTT][Discovery] Published cloud status sensor, HA name = ${cloudPayload.name}`);
+      logger.verbose(`[Panel => MQTT][Discovery] Cloud status payload\n${JSON.stringify(cloudPayload, null, 2)}`);
+    };
 
     const panelPayload = {
       name: `${config.risco_node_id} Panel connection status`,
