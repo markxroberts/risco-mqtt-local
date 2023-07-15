@@ -361,7 +361,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
   }
 
   function cloudStatus(state) {
-    if (state === false) {
+    if (state) {
       return '1';
     } else {
       return '0';
@@ -369,8 +369,10 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
   }
 
   function publishCloudStatus(state) {
-    mqttClient.publish(`${config.risco_node_id}/alarm/panelstatus`, cloudStatus(state), { qos: 1, retain: true });
-    logger.verbose(`[Panel => MQTT] Published panel connection status ${cloudStatus(state)}`);
+    if (config.panel.socketMode === 'proxy') {
+      mqttClient.publish(`${config.risco_node_id}/alarm/panelstatus`, cloudStatus(state), { qos: 1, retain: true });
+      logger.verbose(`[Panel => MQTT] Published panel connection status ${cloudStatus(state)}`);
+    }
   }
 
   function publishPanelStatus(state) {
