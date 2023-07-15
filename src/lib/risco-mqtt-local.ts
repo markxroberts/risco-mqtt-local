@@ -578,10 +578,10 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       device: getDeviceInfo(),
     };
 
-    mqttClient.publish(`${config.ha_discovery_prefix_topic}/sensor/${config.risco_node_id}/systemmessage/config`, JSON.stringify(panelPayload), {
+    mqttClient.publish(`${config.ha_discovery_prefix_topic}/sensor/${config.risco_node_id}/systemmessage/config`, JSON.stringify(systemPayload), {
       qos: 1, retain: true,
     });
-    logger.info(`[Panel => MQTT][Discovery] Published System message sensor, HA name = ${systemPayload.name}`);
+    logger.info(`[Panel => MQTT][Discovery] Published System message sensor, HA name = ${systemPayload}`);
     logger.verbose(`[Panel => MQTT][Discovery] System message payload\n${JSON.stringify(systemPayload, null, 2)}`);
 
     for (const partition of activePartitions(panel.partitions)) {
