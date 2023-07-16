@@ -57,6 +57,7 @@ Create a file config.json in your project directory.  I suggest using config-sam
     "panelId": 1,
     "watchDogInterval": 10000,
     "socketMode": "direct" // Optional
+    "commandsLog": false // If enabled, dump all commands in a file named risco-commands-${date}.csv
   },
   "ha_discovery_prefix_topic": "homeassistant" //Optional
   "risco_node_id": "risco-alarm-panel" //Optional - topic to which state changes are published for multiple instances
@@ -166,6 +167,12 @@ For multiple partitions, change **risco_node_id** in each installation.
 First, create the `config.json` file.  Only the first part of the file with system settings is mandatory.  It's not necessary to describe all of the zones/partitions/sensors as these can be customized from the Home Assistant front end.  I suggest using `config-sample.json` as a template.  The bind mount location is `/data` in the container.
 
 It needs to be strictly in json format.
+
+## Support
+
+### Bug reports
+
+Please use the bug issue template and fill all requested informations, including debug logs and commands logs.
 
 ## Credits
 
