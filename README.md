@@ -1,6 +1,6 @@
 [![license badge](https://img.shields.io/badge/license-MIT-green.svg)](https://github.com/markxroberts/risco-mqtt-local/blob/main/LICENSE)
 [![Docker Pulls](https://img.shields.io/docker/pulls/markxroberts/risco-mqtt-local)](https://hub.docker.com/r/markxroberts/risco-mqtt-local)
-[![Maintenance](https://img.shields.io/maintenance/yes/2023.svg)
+![Maintenance](https://img.shields.io/maintenance/yes/2023.svg)
 [![buy me a coffee](https://img.shields.io/badge/If%20you%20like%20it-Buy%20me%20a%20coffee-orange.svg)](https://www.buymeacoffee.com/markxr)
 
 [![Add to Home Assistant](https://my.home-assistant.io/badges/supervisor_add_addon_repository.svg)](https://my.home-assistant.io/redirect/supervisor_add_addon_repository/?repository_url=https%3A%2F%2Fgithub.com%2Fmarkxroberts%2Frisco-mqtt-local)
@@ -9,8 +9,7 @@
 
 Provide Risco alarm panels integration to Home Assistant using Local TCP communication with Panel (no cloud access required)
 
-This project is a fork of [risco-mqtt-home-assistant](https://github.com/mancioshell/risco-mqtt-home-assistant) by [Alessandro Mancini](https://github.com/mancioshell), using local APIs instead of RiscoCloud APIs.  It is an adapted version of [Johann Vanackere](https://github.com/vanackej/risco-mqtt-local)
-Local APIs are based on [TJForc](https://github.com/TJForc) [local RISCO communication library](https://github.com/TJForc/risco-lan-bridge)
+This project is a fork of [Johann Vanackere](https://github.com/vanackej/risco-mqtt-local).  In turn this forks [risco-mqtt-home-assistant](https://github.com/mancioshell/risco-mqtt-home-assistant) by [Alessandro Mancini](https://github.com/mancioshell), using local APIs instead of RiscoCloud APIs.  Local APIs are based on [TJForc](https://github.com/TJForc) [local RISCO communication library](https://github.com/TJForc/risco-lan-bridge)
 
 ## Requirements
 
@@ -21,24 +20,32 @@ Local APIs are based on [TJForc](https://github.com/TJForc) [local RISCO communi
 ## Features
 
 - Interaction with RISCO alarm control panel using local APIs.
-- Interaction with MQTT Alarm Control Panel integration in Home Assistant: maps away, home and disarmed
-- Interaction with MQTT Binary Sensor integration in Home Assistant: sensors for each alarm state and additional alarm triggered sensor
+- Interaction with MQTT Alarm Control Panel integration in Home Assistant: maps away, home and disarmed.
+- Interaction with MQTT Binary Sensor integration in Home Assistant: sensors for each alarm state and additional alarm triggered sensor.
 - Home Assistant MQTT Auto Discovery.
 - RISCO multipartitions.
 - Bypass zones in Home Assistant (additional switch created for each zone).
-- Multiple systems now supported with configurable alarm topic.
-- Outputs now supported.  Non-user-usable outputs represented as binary sensors (system outputs in configuration).  User-usable outputs represented as switches or button.  Note that pulsed switches are represented as buttons.  Refer to https://www.home-assistant.io/integrations/button/ and https://www.home-assistant.io/integrations/binary_sensor/ for acceptable device classes.
+- Multiple systems with configurable alarm topic for each.
+- Outputs supported.  Non-user-usable outputs represented as binary sensors (system outputs in configuration).  User-usable outputs represented as switches or button.  Note that pulsed switches are represented as buttons.  Refer to https://www.home-assistant.io/integrations/button/ and https://www.home-assistant.io/integrations/binary_sensor/ for acceptable device classes.
 - Wireless zones now show battery status as additional binary sensors (this is the only information the panel gives).
+- Separate binary sensors are provided that are only triggered in an alarm state. This permits automations based only on alarm-triggers.
+- Cloud proxy status sensor supported.
+- Configurable reconnection delay after dropping of Cloud connection.
 
 ## Installation
 
 ```
-npm install @vanackej/risco-mqtt-local
+npm install @markxroberts/risco-mqtt-local
 ```
+Or 
+```
+docker run -v $(pwd)/config.json:/data/config.json markxroberts/risco-mqtt-local:latest
+```
+Or install as HA add-on.
 
 ## Configuration
 
-Create a file config.json in your project directory.  If you're going to use the file below as a template, make sure you remove everything after // on each line!
+Create a file config.json in your project directory.  I suggest using config-sample.json in this folder rather than copying the commented version below.
 
 ```
 {
@@ -48,7 +55,8 @@ Create a file config.json in your project directory.  If you're going to use the
     "panelPort": 1000,
     "panelPassword": "1234",
     "panelId": 1,
-    "watchDogInterval": 10000
+    "watchDogInterval": 10000,
+    "socketMode": "direct" // Optional
   },
   "ha_discovery_prefix_topic": "homeassistant" //Optional
   "risco_node_id": "risco-alarm-panel" //Optional - topic to which state changes are published for multiple instances
@@ -109,7 +117,7 @@ Create a file config.json in your project directory.  If you're going to use the
 
 ```
 
-The panel full configuration options are described here : https://github.com/vanackej/risco-lan-bridge#configuration
+The panel full configuration options are described here : https://github.com/markxroberts/risco-lan-bridge#configuration
 
 NB Ensure that zone description matches label stored in panel exactly (including case) to ensure that config is correctly represented.
 
@@ -117,7 +125,7 @@ NB Ensure that zone description matches label stored in panel exactly (including
 
 **risco-mqtt-local** subscribes at startup one topic for every partition in your risco alarm panel configuration.
 
-Topics format is `risco_alarm_panel/alarm/<partition_id>/set` where **partition_id** is the id of the partition
+Topic format is `<risco_node_id>/alarm/<partition_id>/set` where **partition_id** is the id of the partition
 
 Payload could be : **disarmed** if risco panel is in disarmed mode,**armed_home** if risco panel is in armed at home mode and **armed_away** if risco panel is in armed away mode.
 
@@ -125,15 +133,23 @@ Payload could be : **disarmed** if risco panel is in disarmed mode,**armed_home*
 
 risco-mqtt-local publishes one topic for every partition and for every zones in your risco alarm panel configuration.
 
-Partitions topics format is `risco_alarm_panel/alarm/<partition_id>/status` where **partition_id** is the id of the partition
+Partition topicsformat is `<risco_node_id>/alarm/<partition_id>/status` where **partition_id** is the id of the partition
 
 Payload could be : **disarmed** if risco panel is in disarmed mode,**armed_home** if risco panel is in armed at home mode and **armed_away** if risco panel is in armed away mode.
 
-Zones topics format is `risco_alarm_panel/alarm/<partition_id>/sensor/<zone_id>/status` where **partition_id** is the id of the partition and **zone_id** is the id of the zone.
+Zones topics format is `<risco_node_id>/alarm/<partition_id>/<zone_id>/status` where **partition_id** is the id of the partition and **zone_id** is the id of the zone.
 
 Payload could be : **triggered** if zone is curently triggered, and **idle** if zone is currently idle.
 
-In addition to every zones, risco-mqtt-local publishes a topic for every zone with all the info of the zone in the payload in json format. Topics format is `risco_alarm_panel/alarm/<partition_id>/sensor/<zone_id>` where **partition_id** is the id of the partition and **zone_id** is the id of the zone.
+In addition to every zone status, risco-mqtt-local publishes a topic for every zone with all the info of the zone in the payload in json format. Topics format is `<risco_node_id>/alarm/<partition_id>/<zone_id>` where **partition_id** is the id of the partition and **zone_id** is the id of the zone.
+
+Zones that may be bypassed are published as switches at: `<risco_alarm_panel>/alarm/<partition_id>/switch/<zone_id>-bypass`.  Entry/exit zones may not be bypassed and so are not published.
+
+Battery-powered zones have separate sensors for the battery.   These are published at: `<risco_node_id>/alarm/<partition_id>/<zone_id>/battery`.  These only have a binary state.
+
+Outputs are published as `<risco_node_id/alarm>/<output_id>/status` for sensor outputs.  For outputs where interaction is possible, these are published as `<risco_node_id>/alarm/<output_id>/status` unless buttons, which are stateless.  Switches are published to `<risco_node_id>/alarm/<output_id>/set` as subscribed topics.
+
+The cloud proxy status is published at `<risco_node_id>/alarm/cloudstatus` if the cloud proxy is enabled.
 
 ## Home Assistant Auto Discovery
 
@@ -141,19 +157,18 @@ risco-mqtt-local supports [mqtt auto discovery](https://www.home-assistant.io/do
 
 Default `<discovery_prefix>` is **homeassistant**. You can change it by overwriting the value within **ha_discovery_prefix_topic** config.
 
-Home assistant auto discovery republished on Home Assistant restart.
+Home assistant auto discovery is republished on Home Assistant restart.
 
 For multiple partitions, change **risco_node_id** in each installation.
 
 ## Usage
 
-First, create the `config.json` file.  Only the first part of the file with system settings is mandatory.  It's not necessary to describe all of the zones/partitions/sensors as these can be customized from the Home Assistant front end.
+First, create the `config.json` file.  Only the first part of the file with system settings is mandatory.  It's not necessary to describe all of the zones/partitions/sensors as these can be customized from the Home Assistant front end.  I suggest using `config-sample.json` as a template.  The bind mount location is `/data` in the container.
 
-
-### Using Docker image
-
-`docker run -v $(pwd)/config.json:/data/config.json markxroberts/risco-mqtt-local`
+It needs to be strictly in json format.
 
 ## Credits
 
-Thanks to [TJForc](https://github.com/TJForc) for the local communication library and [Alessandro Mancini](https://github.com/mancioshell) for his initial work
+The bulk of this work was completed by [vanackej](https;//github.com/vanackej).  I've adapted this and updated it, mainly for my purposes.
+
+Thanks to [TJForc](https://github.com/TJForc) for the local communication library and [Alessandro Mancini](https://github.com/mancioshell) for his initial work.

@@ -1,4 +1,4 @@
 # https://developers.home-assistant.io/docs/add-ons/repository#repository-configuration
 name: Risco MQTT Home Assistant add-on repository
-url: 'https://github.com/vanackej/risco-mqtt-local'
-maintainer: Johann Vanackere <johann.vanackere@gmail.com>
+url: 'https://github.com/markxroberts/risco-mqtt-local'
+maintainer: Mark Roberts <mark.roberts30@gmail.com>
