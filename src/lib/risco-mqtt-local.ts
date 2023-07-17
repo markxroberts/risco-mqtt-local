@@ -348,7 +348,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     let letter = 'A'
     let mode = code
     if (code !=='disarm') {
-      let mode = config.arming_modes.partition.find(code => {return config.arming_modes.partition.code});
+      mode = config.arming_modes.filter(this.results, {partId: [{ code: this.filter.partition}]});
       if (mode.includes('group')) {
         letter = mode.substr(mode.length - 1);
       }
