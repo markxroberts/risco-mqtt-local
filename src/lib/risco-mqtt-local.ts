@@ -42,21 +42,37 @@ export interface RiscoMQTTConfig {
   user_outputs?: {
     default?: OutputUserConfig
     [label: string]: OutputUserConfig
-  }
+  },
   system_outputs?: {
     default?: OutputSystemConfig
     [label: string]: OutputSystemConfig
-  }
+  },
   arming_modes?: {
     partition?: {
-      default?: DefaultArmingModes 
-      arm_away?: DefaultArmingModes
-      arm_home?: DefaultArmingModes
-      arm_night?: DefaultArmingModes
-      arm_vacation?: DefaultArmingModes
-      arm_custom_bypass?: DefaultArmingModes
-    }
-  }
+      default?: PartitionConfig
+      [Id: string]: PartitionConfig
+        arm_away?: {
+          default?: DefaultArmingModes
+          [arm_away: string]: DefaultArmingModes
+        }
+        arm_home?: {
+          default?: DefaultArmingModes
+          [arm_home: string]: DefaultArmingModes
+        }
+        arm_night?: {
+          default?: DefaultArmingModes
+          [arm_night: string]: DefaultArmingModes
+        }
+        arm_vacation?: {
+          default?: DefaultArmingModes
+          [arm_away: string]: DefaultArmingModes
+        }
+        arm_custom_bypass?: {
+          default?: DefaultArmingModes
+          [arm_away: string]: DefaultArmingModes
+        }
+      },
+    },
   panel: PanelOptions,
   mqtt?: MQTTConfig
 }
@@ -346,6 +362,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
 
   async function changeAlarmStatus(code: string, partId: number) {
     let letter = 'A';
+    let mode = 'null'
     if (code !=='disarm') {
       let mode = config.arming_modes.filter(this.results, {partId: [{ code: this.filter.partition}]});
       if (mode.includes('group')) {
