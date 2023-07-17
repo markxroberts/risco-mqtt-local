@@ -86,21 +86,11 @@ export interface OutputSystemConfig {
 }
 
 export interface ArmingConfig {
-  arm_away?: {
-    default?: ArmingModes,
-  }
-  arm_home?: {
-    default?: ArmingModes
-  }
-  arm_night?: {
-    default?: ArmingModes
-  }
-  arm_vacation?: {
-    default?: ArmingModes
-  }
-  arm_custom_bypass?: {
-    default?: ArmingModes
-  }
+  arm_away?: string
+  arm_home?: string
+  arm_night?: string
+  arm_vacation?: string
+  arm_custom_bypass?: string
 }
 
 export interface ArmingModes {
