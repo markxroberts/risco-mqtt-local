@@ -53,23 +53,18 @@ export interface RiscoMQTTConfig {
       [Id: string]: DefaultArmingModes
         arm_away?: {
           default?: DefaultArmingModes
-          [arm_away: string]: DefaultArmingModes
         }
         arm_home?: {
           default?: DefaultArmingModes
-          [arm_home: string]: DefaultArmingModes
         }
         arm_night?: {
           default?: DefaultArmingModes
-          [arm_night: string]: DefaultArmingModes
         }
         arm_vacation?: {
           default?: DefaultArmingModes
-          [arm_away: string]: DefaultArmingModes
         }
         arm_custom_bypass?: {
           default?: DefaultArmingModes
-          [arm_away: string]: DefaultArmingModes
         }
       },
     },
