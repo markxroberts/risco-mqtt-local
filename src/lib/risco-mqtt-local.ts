@@ -345,10 +345,10 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
   };
 
   async function changeAlarmStatus(code: string, partId: number) {
-    const letter = 'A'
+    let letter = 'A'
     let mode = code
     if (code !=='disarm') {
-      let mode = config.partition.find(code => {return config.partition.code});
+      let mode = config.arming_modes.partition.find(code => {return config.arming_modes.partition.code});
       if (mode.includes('group')) {
         letter = mode.substr(mode.length - 1);
       }
