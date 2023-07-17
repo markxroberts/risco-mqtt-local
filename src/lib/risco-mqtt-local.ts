@@ -49,8 +49,8 @@ export interface RiscoMQTTConfig {
   },
   arming_modes?: {
     partition?: {
-      default?: ArmingPartitions
-      [Id: string]: ArmingPartitions
+      default?: DefaultArmingModes
+      [Id: string]: DefaultArmingModes
         arm_away?: {
           default?: DefaultArmingModes
           [arm_away: string]: DefaultArmingModes
@@ -105,11 +105,8 @@ export interface OutputSystemConfig {
   name_prefix?: string
 }
 
-export interface ArmingPartitions {
-  partition?: string
-}
-
 export interface DefaultArmingModes {
+  partition?: string
   arm_away?: string,
   arm_home?: string,
   arm_night?: string,
