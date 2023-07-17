@@ -49,22 +49,22 @@ export interface RiscoMQTTConfig {
   },
   arming_modes?: {
     partition?: {
-      default?: string
-      [Id: string]: string
+      default?: PartitionConfig
+      [Id: string]: PartitionConfig
         arm_away?: {
-          default?: string
+          default?: "arm_away"
         }
         arm_home?: {
-          default?: string
+          default?: "arm_home"
         }
         arm_night?: {
-          default?: string
+          default?: "arm_night"
         }
         arm_vacation?: {
-          default?: string
+          default?: "arm_vacation"
         }
         arm_custom_bypass?: {
-          default?: string
+          default?: "arm_custom_bypass"
         }
       },
     },
