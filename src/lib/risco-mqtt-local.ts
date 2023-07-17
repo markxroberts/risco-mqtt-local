@@ -47,6 +47,16 @@ export interface RiscoMQTTConfig {
     default?: OutputSystemConfig
     [label: string]: OutputSystemConfig
   }
+  arming_modes?: {
+    partitions?: {
+      default?: DefaultArmingModes 
+      arm_away?: DefaultArmingModes
+      arm_home?: DefaultArmingModes
+      arm_night?: DefaultArmingModes
+      arm_vacation?: DefaultArmingModes
+      arm_custom_bypass?: DefaultArmingModes
+    }
+  }
   panel: PanelOptions,
   mqtt?: MQTTConfig
 }
@@ -77,6 +87,14 @@ export interface OutputSystemConfig {
   device_class?: string,
   name?: string
   name_prefix?: string
+}
+
+export interface DefaultArmingModes {
+  arm_away?: string,
+  arm_home?: string,
+  arm_night?: string,
+  arm_vacation?: string,
+  arm_custom_bypass?: string,
 }
 
 const CONFIG_DEFAULTS: RiscoMQTTConfig = {
@@ -110,6 +128,17 @@ const CONFIG_DEFAULTS: RiscoMQTTConfig = {
     default: {
       device_class: 'running',
       name_prefix: '',
+    },
+  },
+  arming_modes: {
+    partition: {
+      default: {
+        arm_away: 'arm_away',
+        arm_home: 'arm_home',
+        arm_night: 'arm_home',
+        arm_vacation: 'arm_away',
+        arm_custom_bypass: 'arm_home',
+      },
     },
   },
   mqtt: {
@@ -303,16 +332,36 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     }
   });
 
-  async function changeAlarmStatus(code: string, partitionId: number) {
-    switch (code) {
-      case 'DISARM':
-        return await panel.disarmPart(partitionId);
-      case 'ARM_HOME':
-        return await panel.armHome(partitionId);
-      case 'ARM_NIGHT':
-        return await panel.armHome(partitionId);
-      case 'ARM_AWAY':
-        return await panel.armAway(partitionId);
+  function groupLetterToNumber(letter) {
+    if (letter === 'A') {
+      return 1;
+    } else if (letter === 'B') {
+      return 2;
+    } else if (letter === 'C') {
+      return 3;
+    } else if (letter === 'D') {
+      return 4;
+    }
+  };
+
+  async function changeAlarmStatus(code: string, partId: number) {
+    const mode = code
+    if (mode !=='disarm') {
+      mode = config.partitionId.find(code => {return config.partitionId.code});
+      if (mode.includes(group)) {
+        letter = mode.substr(mode.length - 1);
+      }
+    };
+    const group = groupLetterToNumber(letter);
+    switch (mode) {
+      case 'disarm':
+        return await panel.disarmPart(partId);
+      case 'arm_home':
+        return await panel.armHome(partId);
+      case 'arm_away':
+        return await panel.armAway(partId);
+      case 'arm_group':
+        return await panel.armGroup(partId,group);
     }
   }
 
@@ -597,6 +646,12 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
         availability: {
           topic: `${config.risco_node_id}/alarm/status`,
         },
+        payload_disarm: 'disarm',
+        payload_arm_away: 'arm_away',
+        payload_arm_home: 'arm_home',
+        payload_arm_night: 'arm_night',
+        payload_arm_vacation: 'arm_vacation',
+        payload_arm_custom_bypass: 'arm_custom_bypass',
         device: getDeviceInfo(),
         command_topic: `${config.risco_node_id}/alarm/partition/${partition.Id}/set`,
       };
