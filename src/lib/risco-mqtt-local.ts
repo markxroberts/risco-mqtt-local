@@ -51,23 +51,8 @@ export interface RiscoMQTTConfig {
     partition?: {
       default?: ArmingConfig
       [Id: string]: ArmingConfig
-        arm_away?: {
-          default?: "arm_away"
-        }
-        arm_home?: {
-          default?: "arm_home"
-        }
-        arm_night?: {
-          default?: "arm_night"
-        }
-        arm_vacation?: {
-          default?: "arm_vacation"
-        }
-        arm_custom_bypass?: {
-          default?: "arm_custom_bypass"
-        }
-      },
     },
+  },
   panel: PanelOptions,
   mqtt?: MQTTConfig
 }
@@ -101,7 +86,19 @@ export interface OutputSystemConfig {
 }
 
 export interface ArmingConfig {
-  Id: string[]
+  arm_away?: ArmingModes,
+  arm_home?: ArmingModes,
+  arm_night?: ArmingModes,
+  arm_vacation?: ArmingModes,
+  arm_custom_bypass?: ArmingModes
+}
+
+export interface ArmingModes {
+  arm_away?: string
+  arm_home?: string
+  arm_night?: string
+  arm_vacation?: string
+  arm_custom_bypass?: string
 }
 
 const CONFIG_DEFAULTS: RiscoMQTTConfig = {
