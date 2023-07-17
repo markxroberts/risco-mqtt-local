@@ -49,8 +49,8 @@ export interface RiscoMQTTConfig {
   },
   arming_modes?: {
     partition?: {
-      default?: PartitionConfig
-      [Id: string]: PartitionConfig
+      default?: ArmingConfig
+      [Id: string]: ArmingConfig
         arm_away?: {
           default?: "arm_away"
         }
@@ -98,6 +98,10 @@ export interface OutputSystemConfig {
   device_class?: string,
   name?: string
   name_prefix?: string
+}
+
+export interface ArmingConfig {
+  Id: string[]
 }
 
 const CONFIG_DEFAULTS: RiscoMQTTConfig = {
