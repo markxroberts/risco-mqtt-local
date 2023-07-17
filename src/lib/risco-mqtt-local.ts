@@ -48,7 +48,7 @@ export interface RiscoMQTTConfig {
     [label: string]: OutputSystemConfig
   }
   arming_modes?: {
-    partitions?: {
+    partition?: {
       default?: DefaultArmingModes 
       arm_away?: DefaultArmingModes
       arm_home?: DefaultArmingModes
@@ -345,12 +345,13 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
   };
 
   async function changeAlarmStatus(code: string, partId: number) {
-    const mode = code
-    if (mode !=='disarm') {
-      mode = config.partitionId.find(code => {return config.partitionId.code});
-      if (mode.includes(group)) {
+    letter = 'A'
+    if (code !=='disarm') {
+      mode = config.partition.find(code => {return config.partition.code});
+      if (mode.includes('group')) {
         letter = mode.substr(mode.length - 1);
       }
+    else mode = code;
     };
     const group = groupLetterToNumber(letter);
     switch (mode) {
