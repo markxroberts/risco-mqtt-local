@@ -206,6 +206,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     for (const partition of activePartitions(panel.partitions)) {
       const armingConfig = cloneDeep(config.arming_modes.partition.default);
       merge(armingConfig, config.arming_modes?.[partition.Id]);
+      armingModes.push(armingConfig)
     }
   };
 
