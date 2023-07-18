@@ -23,6 +23,8 @@ const ALARM_TOPIC_REGEX = /^\w+\/alarm\/partition\/([0-9]+)\/set$/m;
 const ZONE_BYPASS_TOPIC_REGEX = /^\w+\/alarm\/zone\/([0-9]+)-bypass\/set$/m;
 const OUTPUT_TOPIC_REGEX = /^\w+\/alarm\/output\/([0-9]+)\/trigger$/m;
 
+let armingModes = []
+
 type LogLevel = 'error' | 'warn' | 'info' | 'verbose' | 'debug';
 
 export interface RiscoMQTTConfig {
@@ -162,17 +164,7 @@ const CONFIG_DEFAULTS: RiscoMQTTConfig = {
 export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
 
   const config = merge(CONFIG_DEFAULTS, userConfig);
-
-  function defineArmingConfig() {
-    for (const partition of activePartitions(panel.partitions)) {
-
-      const armingConfig = cloneDeep(config.arming_modes.partition.default);
-      merge(armingConfig, config.arming_modes?.[partition.Id]);
-    }
-  };
-
   const panel = new RiscoPanel(config.panel);
-  const armingModes = new defineArmingConfig();
 
   let format = combine(
     timestamp({
@@ -570,6 +562,13 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       logger.verbose('[Panel => MQTT] Published alarm offline');
     }
   }
+
+  function defineArmingConfig() {
+    for (const partition of activePartitions(panel.partitions)) {
+      const armingConfig = cloneDeep(config.arming_modes.partition.default);
+      merge(armingConfig, config.arming_modes?.[partition.Id]);
+    }
+  };
 
   function getDeviceInfo() {
     return {
@@ -978,6 +977,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
 
     if (!initialized) {
       publishHomeAssistantDiscoveryInfo();
+      let armingModes = defineArmingConfig();
       publishOnline();
     }
 
