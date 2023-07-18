@@ -333,6 +333,13 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     return partitions.values.filter(p => p.Exist);
   }
 
+  function defineArmingConfig() {
+    for (const partition of activePartitions(panel.partitions)) {
+      const armingConfig = cloneDeep(config.arming_modes.partition.default);
+      merge(armingConfig, config.arming_modes?.[partition.Id]);
+    }
+  };
+
   function groupLetterToNumber(letter) {
     if (letter === 'A') {
       return 1;
@@ -348,10 +355,6 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
   async function changeAlarmStatus(code: string, partId: number) {
     let letter = 'A';
     let mode = 'new';
-    for (const partition of activePartitions(panel.partitions)) {
-      const armingConfig = cloneDeep(config.arming_modes.partition.default);
-      merge(armingConfig, config.arming_modes?.[partition.Id]);
-    }
     if (code !=='disarm') {
       let mode = armingConfig.filter(this.results, {partId: [{ code: this.filter.partition}]});
       if (mode.includes('group')) {
@@ -967,7 +970,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
 
     if (!initialized) {
       publishHomeAssistantDiscoveryInfo();
-      let armingModes = defineArmingConfig();
+      let armingConfig = defineArmingConfig();
       publishOnline();
     }
 
