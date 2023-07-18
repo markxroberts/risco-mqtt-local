@@ -356,7 +356,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     let letter = 'A';
     let mode = 'new';
     if (code !=='disarm') {
-      let mode = armingConfig.filter(this.results, {partId: [{ code: this.filter.partition}]});
+      let mode = armingModes.filter(this.results, {partId: [{ code: this.filter.partition}]});
       if (mode.includes('group')) {
         letter = mode.substr(mode.length - 1);
       }
@@ -970,7 +970,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
 
     if (!initialized) {
       publishHomeAssistantDiscoveryInfo();
-      let armingConfig = defineArmingConfig();
+      let armingModes = defineArmingConfig();
       publishOnline();
     }
 
