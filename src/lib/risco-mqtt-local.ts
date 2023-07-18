@@ -198,7 +198,18 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
   let listenerInstalled = false;
   let initialized = false;
 
-  let armingModes: RiscoMQTTConfig["arming_modes"];
+  function activePartitions(partitions: PartitionList): Partition[] {
+    return partitions.values.filter(p => p.Exist);
+  }
+
+  function defineArmingConfig() {
+    for (const partition of activePartitions(panel.partitions)) {
+      const armingConfig = cloneDeep(config.arming_modes.partition.default);
+      merge(armingConfig, config.arming_modes?.[partition.Id]);
+    }
+  };
+
+  let armingModes = defineArmingConfig()
 
   if (!config.mqtt?.url) throw new Error('mqtt url option is required');
 
@@ -328,17 +339,6 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       }
     }
   });
-
-  function activePartitions(partitions: PartitionList): Partition[] {
-    return partitions.values.filter(p => p.Exist);
-  }
-
-  function defineArmingConfig() {
-    for (const partition of activePartitions(panel.partitions)) {
-      const armingConfig = cloneDeep(config.arming_modes.partition.default);
-      merge(armingConfig, config.arming_modes?.[partition.Id]);
-    }
-  };
 
   function groupLetterToNumber(letter) {
     if (letter === 'A') {
@@ -970,7 +970,6 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
 
     if (!initialized) {
       publishHomeAssistantDiscoveryInfo();
-      let armingModes = defineArmingConfig();
       publishOnline();
     }
 
