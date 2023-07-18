@@ -198,7 +198,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
   let listenerInstalled = false;
   let initialized = false;
 
-  let armingModes: RiscoMQTTConfig.arming_modes[];
+  let armingModes: RiscoMQTTConfig["arming_modes"];
 
   if (!config.mqtt?.url) throw new Error('mqtt url option is required');
 
