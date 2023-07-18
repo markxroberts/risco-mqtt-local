@@ -95,14 +95,6 @@ export interface ArmingConfig {
   arm_custom_bypass?: string
 }
 
-export interface ArmingModes {
-  arm_away?: string
-  arm_home?: string
-  arm_night?: string
-  arm_vacation?: string
-  arm_custom_bypass?: string
-}
-
 const CONFIG_DEFAULTS: RiscoMQTTConfig = {
   log: 'info',
   logColorize: false,
@@ -341,13 +333,6 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     return partitions.values.filter(p => p.Exist);
   }
 
-  function defineArmingConfig() {
-    for (const partition of activePartitions(panel.partitions)) {
-      const armingConfig = cloneDeep(config.arming_modes.partition.default);
-      merge(armingConfig, config.arming_modes?.[partition.Id]);
-    }
-  };
-
   function groupLetterToNumber(letter) {
     if (letter === 'A') {
       return 1;
@@ -363,7 +348,10 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
   async function changeAlarmStatus(code: string, partId: number) {
     let letter = 'A';
     let mode = 'new';
-    let armingConfig = defineArmingConfig();
+    for (const partition of activePartitions(panel.partitions)) {
+      const armingConfig = cloneDeep(config.arming_modes.partition.default);
+      merge(armingConfig, config.arming_modes?.[partition.Id]);
+    }
     if (code !=='disarm') {
       let mode = armingConfig.filter(this.results, {partId: [{ code: this.filter.partition}]});
       if (mode.includes('group')) {
