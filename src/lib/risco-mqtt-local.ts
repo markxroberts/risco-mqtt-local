@@ -171,6 +171,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     }
   };
 
+  const panel = new RiscoPanel(config.panel);
   const armingModes = new defineArmingConfig();
 
   let format = combine(
@@ -216,8 +217,6 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
   let initialized = false;
 
   if (!config.mqtt?.url) throw new Error('mqtt url option is required');
-
-  const panel = new RiscoPanel(config.panel);
 
   panel.on('SystemInitComplete', () => {
     panel.riscoComm.tcpSocket.on('Disconnected', () => {
