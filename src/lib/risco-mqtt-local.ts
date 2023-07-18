@@ -346,7 +346,6 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       const armingConfig = cloneDeep(config.arming_modes.partition.default);
       merge(armingConfig, config.arming_modes?.[partition.Id]);
     }
-    return armingConfig
   };
 
   function groupLetterToNumber(letter) {
@@ -364,8 +363,8 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
   async function changeAlarmStatus(code: string, partId: number) {
     let letter = 'A';
     let mode = 'new';
-    if (armingCongfig === undefined) {
-      defineArmingConfig();
+    if (armingConfig === undefined) {
+      let armingConfig = defineArmingConfig();
       if (code !=='disarm') {
         let mode = armingConfig.filter(this.results, {partId: [{ code: this.filter.partition}]});
         if (mode.includes('group')) {
@@ -540,9 +539,6 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     logger.verbose(`[Panel => MQTT] Published zone bypass status ${zone.Bypass} on zone ${zone.Label}`);
   }
 
-  function activePartitions(partitions: PartitionList): Partition[] {
-    return partitions.values.filter(p => p.Exist);
-  }
   function activeZones(zones: ZoneList): Zone[] {
     return zones.values.filter(z => !z.NotUsed);
   }
