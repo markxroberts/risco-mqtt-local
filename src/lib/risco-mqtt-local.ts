@@ -337,6 +337,18 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     }
   });
 
+  function activePartitions(partitions: PartitionList): Partition[] {
+    return partitions.values.filter(p => p.Exist);
+  }
+
+  function defineArmingConfig() {
+    for (const partition of activePartitions(panel.partitions)) {
+      const armingConfig = cloneDeep(config.arming_modes.partition.default);
+      merge(armingConfig, config.arming_modes?.[partition.Id]);
+    }
+    return armingConfig
+  };
+
   function groupLetterToNumber(letter) {
     if (letter === 'A') {
       return 1;
@@ -352,10 +364,13 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
   async function changeAlarmStatus(code: string, partId: number) {
     let letter = 'A';
     let mode = 'new';
-    if (code !=='disarm') {
-      let mode = armingModes.filter(this.results, {partId: [{ code: this.filter.partition}]});
-      if (mode.includes('group')) {
-        letter = mode.substr(mode.length - 1);
+    if (armingCongfig === undefined) {
+      defineArmingConfig();
+      if (code !=='disarm') {
+        let mode = armingConfig.filter(this.results, {partId: [{ code: this.filter.partition}]});
+        if (mode.includes('group')) {
+          letter = mode.substr(mode.length - 1);
+        }
       }
     };
     const group = groupLetterToNumber(letter);
@@ -562,13 +577,6 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       logger.verbose('[Panel => MQTT] Published alarm offline');
     }
   }
-
-  function defineArmingConfig() {
-    for (const partition of activePartitions(panel.partitions)) {
-      const armingConfig = cloneDeep(config.arming_modes.partition.default);
-      merge(armingConfig, config.arming_modes?.[partition.Id]);
-    }
-  };
 
   function getDeviceInfo() {
     return {
