@@ -23,8 +23,6 @@ const ALARM_TOPIC_REGEX = /^\w+\/alarm\/partition\/([0-9]+)\/set$/m;
 const ZONE_BYPASS_TOPIC_REGEX = /^\w+\/alarm\/zone\/([0-9]+)-bypass\/set$/m;
 const OUTPUT_TOPIC_REGEX = /^\w+\/alarm\/output\/([0-9]+)\/trigger$/m;
 
-let armingModes = []
-
 type LogLevel = 'error' | 'warn' | 'info' | 'verbose' | 'debug';
 
 export interface RiscoMQTTConfig {
@@ -199,6 +197,8 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
   let mqttReady = false;
   let listenerInstalled = false;
   let initialized = false;
+
+  let armingModes = new RiscoMQTTConfig.arming_modes;
 
   if (!config.mqtt?.url) throw new Error('mqtt url option is required');
 
