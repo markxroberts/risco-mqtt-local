@@ -660,15 +660,22 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
 
     for (const partition of activePartitions(panel.partitions)) {
 
-      const partitionLabel = partition.Label
-
       const partitionConf = cloneDeep(config.partitions.default);
       merge(partitionConf, config.partitions?.[partition.Label]);
 
       const armingConfig = cloneDeep(config.arming_modes.partition.default);
       merge(armingConfig, config.arming_modes?.[partition.Label]);
 
-      let alarmRemap = {partitionLabel: {armingConfig}};
+      const partitionLabel = partition.Label
+
+      let alarmRemap = {
+        partitionLabel: {
+          arm_away: armingConfig.arm_away,
+          arm_home: armingConfig.arm_home,
+          arm_night: armingConfig.arm_night,
+          arm_vacation: armingConfig.arm_vacation,
+          arm_custom_bypass: armingConfig.arm_custom_bypass
+        }};
       alarmMapping.push(alarmRemap);
       
       const payload = {
