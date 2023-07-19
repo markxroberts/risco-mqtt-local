@@ -198,20 +198,6 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
   let listenerInstalled = false;
   let initialized = false;
 
-  function activePartitions(partitions: PartitionList): Partition[] {
-    return partitions.values.filter(p => p.Exist);
-  }
-
-  function defineArmingConfig() {
-    for (const partition of activePartitions(panel.partitions)) {
-      const armingConfig = cloneDeep(config.arming_modes.partition.default);
-      merge(armingConfig, config.arming_modes?.[partition.Id]);
-      armingModes.push(armingConfig)
-    }
-  };
-
-  let armingModes = defineArmingConfig()
-
   if (!config.mqtt?.url) throw new Error('mqtt url option is required');
 
   panel.on('SystemInitComplete', () => {
@@ -357,13 +343,12 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     let letter = 'A';
     let mode = 'new';
     if (code !=='disarm') {
-      let mode = armingModes.filter(this.results, {partId: [{ code: this.filter.partition}]});
-      if (mode.includes('group')) {
-        letter = mode.substr(mode.length - 1);
+      if (code.includes('group')) {
+        letter = code.substr(code.length - 1);
       }
     };
     const group = groupLetterToNumber(letter);
-    switch (mode) {
+    switch (code) {
       case 'disarm':
         return await panel.disarmPart(partId);
       case 'arm_home':
@@ -528,7 +513,9 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     });
     logger.verbose(`[Panel => MQTT] Published zone bypass status ${zone.Bypass} on zone ${zone.Label}`);
   }
-
+  function activePartitions(partitions: PartitionList): Partition[] {
+    return partitions.values.filter(p => p.Exist);
+  }
   function activeZones(zones: ZoneList): Zone[] {
     return zones.values.filter(z => !z.NotUsed);
   }
@@ -645,6 +632,9 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       const partitionConf = cloneDeep(config.partitions.default);
       merge(partitionConf, config.partitions?.[partition.Label]);
 
+      const armingConfig = cloneDeep(config.arming_modes.partition.default);
+      merge(armingConfig, config.arming_modes?.[partition.Label]);
+
       const payload = {
         name: partition.Label,
         object_id: `${config.risco_node_id}-${partition.Id}`,
@@ -654,11 +644,11 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
           topic: `${config.risco_node_id}/alarm/status`,
         },
         payload_disarm: 'disarm',
-        payload_arm_away: 'arm_away',
-        payload_arm_home: 'arm_home',
-        payload_arm_night: 'arm_night',
-        payload_arm_vacation: 'arm_vacation',
-        payload_arm_custom_bypass: 'arm_custom_bypass',
+        payload_arm_away: armingConfig.arm_away,
+        payload_arm_home: armingConfig.arm_home,
+        payload_arm_night: armingConfig.arm_night,
+        payload_arm_vacation: armingConfig.arm_vacation,
+        payload_arm_custom_bypass: armingConfig.arm_custom_bypass,
         device: getDeviceInfo(),
         command_topic: `${config.risco_node_id}/alarm/partition/${partition.Id}/set`,
       };
