@@ -50,7 +50,7 @@ export interface RiscoMQTTConfig {
   arming_modes?: {
     partition?: {
       default?: ArmingConfig
-      [Id: string]: ArmingConfig
+      [label: string]: ArmingConfig
     },
   },
   panel: PanelOptions,
@@ -341,13 +341,14 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
 
   async function changeAlarmStatus(code: string, partId: number) {
     let letter = 'A';
-    let mode = 'new';
     if (code !=='disarm') {
       if (code.includes('group')) {
         letter = code.substr(code.length - 1);
+        logger.debug(`Group arming initiated.  Code is ${code}.`)
       }
     };
     const group = groupLetterToNumber(letter);
+    logger.debug(`Changing code for letter.  Letter is ${letter}.`)
     switch (code) {
       case 'disarm':
         return await panel.disarmPart(partId);
