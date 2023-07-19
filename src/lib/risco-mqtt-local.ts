@@ -93,6 +93,16 @@ export interface ArmingConfig {
   arm_custom_bypass?: string
 }
 
+export interface ArmingModes {
+  [partition?: string]: {
+    arm_away?: string
+    arm_home?: string
+    arm_night?: string
+    arm_vacation?: string
+    arm_custom_bypass?: string
+  }
+}
+
 const CONFIG_DEFAULTS: RiscoMQTTConfig = {
   log: 'info',
   logColorize: false,
@@ -155,7 +165,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
 
   const config = merge(CONFIG_DEFAULTS, userConfig);
   const panel = new RiscoPanel(config.panel);
-  let alarmMapping ='startup'
+  let alarmMapping: ArmingModes []
 
   let format = combine(
     timestamp({
@@ -342,18 +352,14 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
 
   async function changeAlarmStatus(code: string, partId: number) {
     let letter = 'A';
-    let alarmCode = ''
     if (code.includes('group')) {
       letter = code.substr(code.length - 1);
       logger.debug(`Group arming initiated.  Code is ${code}.`)
       code = 'arm_group'
     }
     const group = groupLetterToNumber(letter);
-    let alarmMapping = code.substr(0,3);
-    logger.debug(`Alarm mapping is ${alarmMapping}.`)
-    let alarmCode = code.substr(3);
     logger.debug(`Changing code for letter.  Letter is ${letter}.  Group is ${group}.`)
-    switch (alarmCode) {
+    switch (code) {
       case 'disarm':
         return await panel.disarmPart(partId);
       case 'arm_home':
@@ -365,26 +371,37 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     }
   }
 
+  function returnRiscoAlarmState(partition: Partition) {
+    if (partition.Arm) {
+      return 'arm_away'
+    }
+    if (partition.HomeStay) {
+      return 'arm_home'
+    }
+    if (partition.GrpAArm) {
+      return 'arm_groupA'
+    }
+    if (partition.GrpBArm) {
+      return 'arm_groupA'
+    }
+    if (partition.GrpCArm) {
+      return 'arm_groupA'
+    }
+    if (partition.GrpDArm) {
+      return 'arm_groupA'
+    }
+  }
+
   function alarmPayload(partition: Partition) {
     if (partition.Alarm) {
       return 'triggered';
     } else if (!partition.Arm && !partition.HomeStay && !partition.GrpAArm && !partition.GrpBArm && !partition.GrpCArm && !partition.GrpDArm) {
       return 'disarmed';
     } else {
-        if (alarmMapping === 'AH') {
-          return 'armed_home';
-        }
-        if (alarmMapping === 'AN') {
-          return 'armed_night';
-        }
-        if (alarmMapping === 'AV') {
-          return 'armed_vacation';
-        }
-        if (alarmMapping === 'AH') {
-          return 'armed_custom_bypass';
-        } else {
-          return 'armed_away';
-      }
+      const riscoState = returnRiscoAlarmState(partition)
+      const payloadMapping = Object.values(alarmMapping).indexOf(riscoState as unknown as riscoStatus);
+      const alarmKey = Object.keys(riscoStatus)[payloadMapping]
+      return alarmKey
     }
   }
   function outputState(output: Output, EventStr: string) {
@@ -643,23 +660,15 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
 
     for (const partition of activePartitions(panel.partitions)) {
 
+      const partitionLabel = partition.Label
+
       const partitionConf = cloneDeep(config.partitions.default);
       merge(partitionConf, config.partitions?.[partition.Label]);
 
       const armingConfig = cloneDeep(config.arming_modes.partition.default);
       merge(armingConfig, config.arming_modes?.[partition.Label]);
 
-      const AA = 'AA-'
-      const AH = 'AH-'
-      const AN = 'AN-'
-      const AV = 'AV-'
-      const AC = 'AC-'
-
-      const combine_arm_away = AA.concat(armingConfig.arm_away,);
-      const combine_arm_home = AH.concat(armingConfig.arm_away,);
-      const combine_arm_night = AN.concat(armingConfig.arm_away,);
-      const combine_arm_vacation = AV.concat(armingConfig.arm_away,);
-      const combine_arm_custom_bypass = AC.concat(armingConfig.arm_away,);
+      alarmMapping.push(partitionLabel);
       
       const payload = {
         name: partition.Label,
@@ -669,12 +678,12 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
         availability: {
           topic: `${config.risco_node_id}/alarm/status`,
         },
-        payload_disarm: 'AD-disarm',
-        payload_arm_away: combine_arm_away,
-        payload_arm_home: combine_arm_home,
-        payload_arm_night: combine_arm_night,
-        payload_arm_vacation: combine_arm_vacation,
-        payload_arm_custom_bypass: combine_arm_custom_bypass,
+        payload_disarm: 'disarm',
+        payload_arm_away: armingConfig,arm_away,
+        payload_arm_home: armingConfig,arm_home,
+        payload_arm_night: armingConfig,arm_night,
+        payload_arm_vacation: armingConfig,arm_vacation,
+        payload_arm_custom_bypass: armingConfig,arm_custom_bypass,
         device: getDeviceInfo(),
         command_topic: `${config.risco_node_id}/alarm/partition/${partition.Id}/set`,
       };
