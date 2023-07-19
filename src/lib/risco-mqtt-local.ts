@@ -342,19 +342,16 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
 
   async function changeAlarmStatus(code: string, partId: number) {
     let letter = 'A';
-    let alarmCode = 'disarm'
-    if (code !=='disarm') {
-      if (code.includes('group')) {
-        letter = code.substr(code.length - 1);
-        logger.debug(`Group arming initiated.  Code is ${code}.`)
-        code = 'arm_group'
-      }
-    };
+    let alarmCode = ''
+    if (code.includes('group')) {
+      letter = code.substr(code.length - 1);
+      logger.debug(`Group arming initiated.  Code is ${code}.`)
+      code = 'arm_group'
+    }
     const group = groupLetterToNumber(letter);
     let alarmMapping = code.substr(0,3);
-    if (code !=='disarm') {
-      let alarmCode = code.substr(3);
-    }
+    logger.debug(`Alarm mapping is ${alarmMapping}.`)
+    let alarmCode = code.substr(3);
     logger.debug(`Changing code for letter.  Letter is ${letter}.  Group is ${group}.`)
     switch (alarmCode) {
       case 'disarm':
@@ -672,7 +669,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
         availability: {
           topic: `${config.risco_node_id}/alarm/status`,
         },
-        payload_disarm: 'disarm',
+        payload_disarm: 'AD-disarm',
         payload_arm_away: combine_arm_away,
         payload_arm_home: combine_arm_home,
         payload_arm_night: combine_arm_night,
