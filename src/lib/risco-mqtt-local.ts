@@ -342,7 +342,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
 
   async function changeAlarmStatus(code: string, partId: number) {
     let letter = 'A';
-    let alarmCode = 'arming'
+    let alarmCode = 'disarm'
     if (code !=='disarm') {
       if (code.includes('group')) {
         letter = code.substr(code.length - 1);
