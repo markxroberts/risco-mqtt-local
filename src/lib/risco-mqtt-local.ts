@@ -94,12 +94,12 @@ export interface ArmingConfig {
 }
 
 export interface ArmingModes {
-  [partition?: string]: {
-    arm_away?: string
-    arm_home?: string
-    arm_night?: string
-    arm_vacation?: string
-    arm_custom_bypass?: string
+  [partition: string]: {
+    arm_away: string
+    arm_home: string
+    arm_night: string
+    arm_vacation: string
+    arm_custom_bypass: string
   }
 }
 
@@ -399,8 +399,8 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       return 'disarmed';
     } else {
       const riscoState = returnRiscoAlarmState(partition)
-      const payloadMapping = Object.values(alarmMapping).indexOf(riscoState as unknown as riscoStatus);
-      const alarmKey = Object.keys(riscoStatus)[payloadMapping]
+      const payloadMapping = Object.values(alarmMapping).indexOf(riscoState as unknown as alarmMapping);
+      const alarmKey = Object.keys(alarmMapping)[payloadMapping]
       return alarmKey
     }
   }
