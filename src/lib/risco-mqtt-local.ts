@@ -399,7 +399,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       return 'disarmed';
     } else {
       const riscoState = returnRiscoAlarmState(partition)
-      const payloadMapping = Object.values(alarmMapping[partition.Label]).indexOf(riscoState as unknown as typeof alarmMapping[partition.Label]);
+      const payloadMapping = Object.values(alarmMapping[partition.Label]).indexOf(riscoState as unknown as typeof alarmMapping);
       const alarmKey = Object.keys(alarmMapping[partition.Label])[payloadMapping]
       return alarmKey
     }
