@@ -342,6 +342,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
 
   async function changeAlarmStatus(code: string, partId: number) {
     let letter = 'A';
+    let alarmCode = 'arming'
     if (code !=='disarm') {
       if (code.includes('group')) {
         letter = code.substr(code.length - 1);
@@ -370,7 +371,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
   function alarmPayload(partition: Partition) {
     if (partition.Alarm) {
       return 'triggered';
-    } else if (!partition.Armed && !partition.HomeStay && !partition.GrpAArmed && !partition.GrpBArmed && !partition.GrpCArmed && !partition.GrpDArmed) {
+    } else if (!partition.Arm && !partition.HomeStay && !partition.GrpAArm && !partition.GrpBArm && !partition.GrpCArm && !partition.GrpDArm) {
       return 'disarmed';
     } else {
         if (alarmMapping === 'AH') {
@@ -651,11 +652,17 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       const armingConfig = cloneDeep(config.arming_modes.partition.default);
       merge(armingConfig, config.arming_modes?.[partition.Label]);
 
-      const combine_arm_away = string.concat('AA-',armingConfig.arm_away,);
-      const combine_arm_home = string.concat('AH-',armingConfig.arm_away,);
-      const combine_arm_night = string.concat('AN-',armingConfig.arm_away,);
-      const combine_arm_vacation = string.concat('AV-',armingConfig.arm_away,);
-      const combine_arm_custom_bypass = string.concat('AC-',armingConfig.arm_away,);
+      const AA = 'AA-'
+      const AH = 'AH-'
+      const AN = 'AN-'
+      const AV = 'AV-'
+      const AC = 'AC-'
+
+      const combine_arm_away = AA.concat(armingConfig.arm_away,);
+      const combine_arm_home = AH.concat(armingConfig.arm_away,);
+      const combine_arm_night = AN.concat(armingConfig.arm_away,);
+      const combine_arm_vacation = AV.concat(armingConfig.arm_away,);
+      const combine_arm_custom_bypass = AC.concat(armingConfig.arm_away,);
       
       const payload = {
         name: partition.Label,
