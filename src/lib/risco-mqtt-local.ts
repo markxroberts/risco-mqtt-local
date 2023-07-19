@@ -668,7 +668,8 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       const armingConfig = cloneDeep(config.arming_modes.partition.default);
       merge(armingConfig, config.arming_modes?.[partition.Label]);
 
-      alarmMapping.push(partitionLabel);
+      alarmRemap = {partitionLabel: {armingConfig}};
+      alarmMapping.push(alarmRemap);
       
       const payload = {
         name: partition.Label,
@@ -679,11 +680,11 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
           topic: `${config.risco_node_id}/alarm/status`,
         },
         payload_disarm: 'disarm',
-        payload_arm_away: armingConfig,arm_away,
-        payload_arm_home: armingConfig,arm_home,
-        payload_arm_night: armingConfig,arm_night,
-        payload_arm_vacation: armingConfig,arm_vacation,
-        payload_arm_custom_bypass: armingConfig,arm_custom_bypass,
+        payload_arm_away: armingConfig.arm_away,
+        payload_arm_home: armingConfig.arm_home,
+        payload_arm_night: armingConfig.arm_night,
+        payload_arm_vacation: armingConfig.arm_vacation,
+        payload_arm_custom_bypass: armingConfig.arm_custom_bypass,
         device: getDeviceInfo(),
         command_topic: `${config.risco_node_id}/alarm/partition/${partition.Id}/set`,
       };
