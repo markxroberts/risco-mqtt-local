@@ -345,6 +345,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       if (code.includes('group')) {
         letter = code.substr(code.length - 1);
         logger.debug(`Group arming initiated.  Code is ${code}.`)
+        code = "arm_group"
       }
     };
     const group = groupLetterToNumber(letter);
