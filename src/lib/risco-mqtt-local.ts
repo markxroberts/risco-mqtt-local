@@ -348,7 +348,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       }
     };
     const group = groupLetterToNumber(letter);
-    logger.debug(`Changing code for letter.  Letter is ${letter}.`)
+    logger.debug(`Changing code for letter.  Letter is ${letter}.  Group is ${group}.`)
     switch (code) {
       case 'disarm':
         return await panel.disarmPart(partId);
