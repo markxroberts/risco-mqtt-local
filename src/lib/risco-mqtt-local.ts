@@ -407,11 +407,11 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       logger.debug(`Risco Panel alarm state is ${riscoState}.`);
       let partitionAlarmMapping: ArmingConfig
       partitionAlarmMapping = {
-        arm_away: alarmMapping[partitionLabel].arm_away,
-        arm_home: alarmMapping[partitionLabel].arm_home,
-        arm_night: alarmMapping[partitionLabel].arm_night,
-        arm_vacation: alarmMapping[partitionLabel].arm_vacation,
-        arm_custom_bypass: alarmMapping[partitionLabel].arm_custom_bypass
+        arm_away: alarmMapping[partitionLabel][arm_away],
+        arm_home: alarmMapping[partitionLabel][arm_home],
+        arm_night: alarmMapping[partitionLabel][arm_night],
+        arm_vacation: alarmMapping[partitionLabel][arm_vacation],
+        arm_custom_bypass: alarmMapping[partitionLabel][arm_custom_bypass]
       }
       logger.verbose(`Partition mapping for ${partitionLabel} is ${partitionAlarmMapping}.`);
       const alarmKey = Object.keys(partitionAlarmMapping as (keyof typeof partitionAlarmMapping)[]).find((key) => {
