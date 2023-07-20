@@ -672,7 +672,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
 
       let alarmRemap: PartitionArmingModes [];
       alarmRemap = {
-        partitionLabel: {
+        [partitionLabel]: {
           arm_away: armingConfig.arm_away,
           arm_home: armingConfig.arm_home,
           arm_night: armingConfig.arm_night,
