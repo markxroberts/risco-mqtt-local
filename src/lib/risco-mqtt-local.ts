@@ -168,7 +168,6 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
   const config = merge(CONFIG_DEFAULTS, userConfig);
   const panel = new RiscoPanel(config.panel);
   let alarmMapping: PartitionArmingModes
-  alarmMapping = []
 
   let format = combine(
     timestamp({
@@ -680,7 +679,11 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
           arm_vacation: armingConfig.arm_vacation,
           arm_custom_bypass: armingConfig.arm_custom_bypass
         }};
-      alarmMapping.push(alarmRemap);
+      if (alarmMapping === undefined) {
+        alarmMapping = alarmRemap
+      } else {
+        alarmMapping.push(alarmRemap);
+      }     
       
       const payload = {
         name: partition.Label,
