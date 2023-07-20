@@ -396,6 +396,8 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
 
   function alarmPayload(partition: Partition) {
     const partitionLabel = partition.Label
+    logger.debug(`Partition being updated is ${partitionLabel}.`)
+    logger.verbose(`Currently mapped states are ${alarmMapping}.`)
     if (partition.Alarm) {
       return 'triggered';
     } else if (!partition.Arm && !partition.HomeStay && !partition.GrpAArm && !partition.GrpBArm && !partition.GrpCArm && !partition.GrpDArm) {
@@ -411,9 +413,10 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
         arm_vacation: alarmMapping[partitionLabel].arm_vacation,
         arm_custom_bypass: alarmMapping[partitionLabel].arm_custom_bypass
       }
+      logger.verbose(`Partition mapping for ${partitionLabel} is ${partitionAlarmMapping}.`);
       const alarmKey = Object.keys(partitionAlarmMapping as (keyof typeof partitionAlarmMapping)[]).find((key) => {
         return partitionAlarmMapping[key] === riscoState});
-      return alarmKey
+      return alarmKey;
       logger.debug(`HA version of alarm state is ${alarmKey}.`);
     }
   }
