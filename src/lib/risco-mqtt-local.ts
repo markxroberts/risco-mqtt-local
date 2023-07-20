@@ -94,17 +94,15 @@ export interface ArmingConfig {
 }
 
 export interface PartitionArmingModes {
-  partition: string
+  [partition: string]: ArmingModes
 }
 
-export interface ArmingModes extends PartitionArmingModes {
-  partition: {
+export interface ArmingModes {
     arm_away: string
     arm_home: string
     arm_night: string
     arm_vacation: string
     arm_custom_bypass: string
-  }
 }
 
 const CONFIG_DEFAULTS: RiscoMQTTConfig = {
