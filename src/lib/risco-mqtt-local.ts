@@ -397,7 +397,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
   function alarmPayload(partition: Partition) {
     const partitionLabel = partition.Label
     logger.debug(`Partition being updated is ${partitionLabel}.`)
-    logger.verbose(`Currently mapped states are ${alarmMapping}.`)
+    logger.verbose(`Currently mapped states are \n${JSON.stringify(alarmMapping, null, 2)}.`)
     if (partition.Alarm) {
       return 'triggered';
     } else if (!partition.Arm && !partition.HomeStay && !partition.GrpAArm && !partition.GrpBArm && !partition.GrpCArm && !partition.GrpDArm) {
@@ -698,7 +698,8 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
         }};
       alarmMapping.push(alarmRemap);
       logger.info(`Added alarm state mapping for partition ${partitionLabel}.`)
-      logger.verbose(`Added alarm state mappings for parition ${partitionLabel} as ${alarmRemap}.`)
+      logger.verbose(`Added alarm state mappings for parition ${partitionLabel} as \n${JSON.stringify(alarmRemap, null, 2)}.`)
+      logger.verbose(`Alarm mappings updated as \n${JSON.stringify(alarmMapping, null, 2)}.`)
       
       const payload = {
         name: partition.Label,
