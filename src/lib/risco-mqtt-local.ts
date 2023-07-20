@@ -400,9 +400,12 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     } else if (!partition.Arm && !partition.HomeStay && !partition.GrpAArm && !partition.GrpBArm && !partition.GrpCArm && !partition.GrpDArm) {
       return 'disarmed';
     } else {
-      const riscoState = returnRiscoAlarmState(partition)
+      const riscoState = returnRiscoAlarmState(partition);
+      logger.debug(`Risco Panel alarm state is ${riscoState}.`);
       const payloadMapping = Object.values(alarmMapping[partition.Label]).indexOf(riscoState as unknown as typeof alarmMapping);
-      const alarmKey = Object.keys(alarmMapping[partition.Label])[payloadMapping]
+      logger.debug(`Mapping of alarm state is ${payloadMapping}.`)
+      const alarmKey = Object.keys(alarmMapping[partition.Label])[payloadMapping];
+      logger.debug(`HA version of alarm state is ${alarmKey}.`)
       return alarmKey
     }
   }
@@ -680,6 +683,8 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
           arm_custom_bypass: armingConfig.arm_custom_bypass
         }};
       alarmMapping.push(alarmRemap);
+      logger.info(`Added alarm state mapping for partition ${partitionLabel}.`)
+      logger.debug(`Added alarm state mappings for parition ${partitionLabel} as ${alarmRemap}.`)
       
       const payload = {
         name: partition.Label,
