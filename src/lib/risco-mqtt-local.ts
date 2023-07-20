@@ -167,7 +167,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
 
   const config = merge(CONFIG_DEFAULTS, userConfig);
   const panel = new RiscoPanel(config.panel);
-  let alarmMapping: PartitionArmingModes []
+  let alarmMapping: PartitionArmingModes = []
 
   let format = combine(
     timestamp({
