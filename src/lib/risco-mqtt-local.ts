@@ -395,6 +395,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
   }
 
   function alarmPayload(partition: Partition) {
+    partitionLabel = partition.Label
     if (partition.Alarm) {
       return 'triggered';
     } else if (!partition.Arm && !partition.HomeStay && !partition.GrpAArm && !partition.GrpBArm && !partition.GrpCArm && !partition.GrpDArm) {
