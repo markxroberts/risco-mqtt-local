@@ -93,8 +93,12 @@ export interface ArmingConfig {
   arm_custom_bypass?: string
 }
 
-export interface ArmingModes {
-  [partition: string]: {
+export interface PartitionArmingModes {
+  partition: string
+}
+
+export interface ArmingModes extends PartitionArmingModes {
+  partition: {
     arm_away: string
     arm_home: string
     arm_night: string
@@ -165,7 +169,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
 
   const config = merge(CONFIG_DEFAULTS, userConfig);
   const panel = new RiscoPanel(config.panel);
-  let alarmMapping: ArmingModes []
+  let alarmMapping: PartitionArmingModes []
 
   let format = combine(
     timestamp({
