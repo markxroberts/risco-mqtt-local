@@ -400,7 +400,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     const partitionLabel = partition.Label;
     let armedStates: ArmingModes
     logger.debug(`Partition being updated is ${partitionId}.`)
-    logger.verbose(`Currently mapped states are \n${JSON.stringify(alarmMapping, null, 2)}.`)
+    logger.verbose(`Currently mapped states are \n${JSON.stringify(alarmMapping, null, 2)}.`);
     if (partition.Alarm) {
       return 'triggered';
     } else if (!partition.Arm && !partition.HomeStay && !partition.GrpAArm && !partition.GrpBArm && !partition.GrpCArm && !partition.GrpDArm) {
@@ -409,6 +409,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       const riscoState = returnRiscoAlarmState(partition);
       logger.debug(`Risco Panel alarm state is ${riscoState}.`);
       const partitionAlarmMapping = alarmMapping.slice(partitionId,partitionIdEnd);
+      logger.verbose(`Currently mapped states are \n${JSON.stringify(partitionAlarmMapping, null, 2)}.`);
       const arm_away_value = partitionAlarmMapping[partitionLabel]['arm_away'];
       const arm_home_value = partitionAlarmMapping[partitionLabel]['arm_home'];
       const arm_night_value = partitionAlarmMapping[partitionLabel]['arm_night'];
