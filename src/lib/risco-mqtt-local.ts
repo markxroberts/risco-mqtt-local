@@ -415,11 +415,11 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       const arm_vacation_value = partitionAlarmMapping[partitionLabel].arm_vacation
       const arm_custom_bypass_value = partitionAlarmMapping[partitionLabel].arm_custom_bypass
       let armedStates = {
-        arm_away = arm_away_value,
-        arm_home = arm_home_value,
-        arm_night = arm_night_value,
-        arm_vacation = arm_vacation_value,
-        arm_custom_bypass = arm_custom_bypass_value
+        arm_away: arm_away_value,
+        arm_home: arm_home_value,
+        arm_night: arm_night_value,
+        arm_vacation: arm_vacation_value,
+        arm_custom_bypass: arm_custom_bypass_value
       }
       logger.verbose(`Partition mapping for ${partitionId} is \n${JSON.stringify(armedStates, null, 2)}.`);
 
