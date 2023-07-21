@@ -395,7 +395,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
   }
 
   function alarmPayload(partition: Partition) {
-    const partitionId = (partition.Id - 1);
+    const partitionId = partition.Id;
     const partitionIdEnd = (partitionId + 1);
     const partitionLabel = partition.Label;
     let armedStates: ArmingModes
