@@ -398,7 +398,6 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     const partitionId = (partition.Id -1);
     const partitionIdEnd = (partitionId + 1);
     const partitionLabel = partition.Label;
-    let armedStates: ArmingModes
     logger.debug(`Partition being updated is ${partitionId}.`)
     logger.verbose(`Currently mapped states are \n${JSON.stringify(alarmMapping, null, 2)}.`);
     if (partition.Alarm) {
@@ -410,30 +409,14 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       logger.debug(`Risco Panel alarm state is ${riscoState}.`);
       const partitionAlarmMapping = alarmMapping.slice(partitionId,partitionIdEnd);
       logger.verbose(`Currently mapped states are \n${JSON.stringify(partitionAlarmMapping, null, 2)}.`);
-      const arm_away_value = partitionAlarmMapping[partitionLabel]["arm_away"];
-      const arm_home_value = partitionAlarmMapping[partitionLabel]["arm_home"];
-      const arm_night_value = partitionAlarmMapping[partitionLabel]["arm_night"];
-      const arm_vacation_value = partitionAlarmMapping[partitionLabel]["arm_vacation"];
-      const arm_custom_bypass_value = partitionAlarmMapping[partitionLabel]["arm_custom_bypass"];
-      let armedStates = {
-        arm_away: arm_away_value,
-        arm_home: arm_home_value,
-        arm_night: arm_night_value,
-        arm_vacation: arm_vacation_value,
-        arm_custom_bypass: arm_custom_bypass_value
-      }
-      logger.verbose(`Partition mapping for ${partitionId} is \n${JSON.stringify(armedStates, null, 2)}.`);
-
       let alarmKey = '';
-
-      Object.entries(armedStates).find(([key, value]) => {
+      Object.entries(partitionAlarmMapping[0][partitionLabel]).find(([key, value]) => {
         if (value === riscoState) {
           alarmKey = key;
           return true;
         }
         return false;
       });
-
       return alarmKey;
       logger.debug(`HA version of alarm state is ${alarmKey}.`);
     }
