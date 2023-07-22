@@ -380,16 +380,16 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     if (partition.HomeStay) {
       return 'arm_home'
     }
-    if (partition.GrpAArmed) {
+    if (partition.GrpAArm) {
       return 'arm_groupA'
     }
-    if (partition.GrpBArmed) {
+    if (partition.GrpBArm) {
       return 'arm_groupB'
     }
-    if (partition.GrpCArmed) {
+    if (partition.GrpCArm) {
       return 'arm_groupC'
     }
-    if (partition.GrpDArmed) {
+    if (partition.GrpDArm) {
       return 'arm_groupD'
     }
   }
@@ -411,7 +411,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       logger.verbose(`Currently mapped states are \n${JSON.stringify(partitionAlarmMapping, null, 2)}.`);
       let alarmKey = '';
       Object.entries(partitionAlarmMapping[0][partitionLabel]).find(([key, value]) => {
-        if (value === riscoState) {
+        if (value === panelState) {
           alarmKey = key;
           return true;
         }
