@@ -342,13 +342,13 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
 
   function groupLetterToNumber(letter) {
     if (letter === 'A') {
-      return 0;
-    } else if (letter === 'B') {
       return 1;
-    } else if (letter === 'C') {
+    } else if (letter === 'B') {
       return 2;
-    } else if (letter === 'D') {
+    } else if (letter === 'C') {
       return 3;
+    } else if (letter === 'D') {
+      return 4;
     }
   };
 
