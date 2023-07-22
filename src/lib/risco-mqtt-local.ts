@@ -412,11 +412,10 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       let alarmKey = '';
       Object.entries(partitionAlarmMapping[0][partitionLabel]).find(([key, value]) => {
         if (value === panelState) {
-          alarmKey = key;
-          return alarmKey;
-          logger.debug(`Mapped alarm state is ${alarmkey}.  Mapped panel state is ${value}.`)
+          return key;
+          logger.debug(`Mapped alarm state is ${key}.  Mapped panel state is ${value}.`)
         } else {
-          logger.debug(`Couldn't map alarm state ${alarmkey}.`)
+          logger.debug(`Couldn't map alarm state ${key}.`)
         };
       });
       return alarmKey;
