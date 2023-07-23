@@ -409,11 +409,11 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       logger.debug(`Panel alarm state for partition ${partition.Label} is ${panelState}.`);
       const partitionAlarmMapping = alarmMapping.slice(partitionId,partitionIdEnd);
       logger.verbose(`Currently mapped states are \n${JSON.stringify(partitionAlarmMapping, null, 2)}.`);
+      logger.verbose(`Currently mapped keys are \n${JSON.stringify(partitionAlarmMapping[0][partitionLabel], null, 2)}.`);
       const mappedKey = (Object.keys(partitionAlarmMapping[0][partitionLabel]) as (keyof ArmingModes)[]).find((key) => {
         return partitionAlarmMapping[0][partitionLabel][key] === panelState;
-      logger.debug(`Mapped key = ${mappedKey}`)
-      return mappedKey
-      });
+        logger.debug(`Mapped key = ${mappedKey}`)});
+      return mappedKey;
       //let mappedKey = ''
       //Object.entries(partitionAlarmMapping[0][partitionLabel]).find(([key, value]) => {
       //  logger.debug(`Mapped alarm state is ${key}.  Mapped panel state is ${value}.`)
@@ -426,7 +426,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       //  };
       //});
     }
-  }
+  };
   function outputState(output: Output, EventStr: string) {
     if (EventStr !== '0') {
       if (EventStr === 'Activated' || EventStr === 'Pulsed') {
