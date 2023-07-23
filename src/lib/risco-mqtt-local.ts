@@ -141,11 +141,11 @@ const CONFIG_DEFAULTS: RiscoMQTTConfig = {
   arming_modes: {
     partition: {
       default: {
-        armed_away: 'arm_away',
-        armed_home: 'arm_home',
-        armed_night: 'arm_home',
-        armed_vacation: 'arm_away',
-        armed_custom_bypass: 'arm_home',
+        armed_away: 'armed_away',
+        armed_home: 'armed_home',
+        armed_night: 'armed_home',
+        armed_vacation: 'armed_away',
+        armed_custom_bypass: 'armed_home',
       },
     },
   },
@@ -364,21 +364,21 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     switch (code) {
       case 'disarm':
         return await panel.disarmPart(partId);
-      case 'arm_home':
+      case 'armed_home':
         return await panel.armHome(partId);
-      case 'arm_away':
+      case 'armed_away':
         return await panel.armAway(partId);
-      case 'arm_group':
+      case 'armed_group':
         return await panel.armGroup(partId,group);
     }
   }
 
   function returnPanelAlarmState(partition: Partition) {
     if (partition.Arm) {
-      return 'arm_away'
+      return 'armed_away'
     }
     if (partition.HomeStay) {
-      return 'arm_home'
+      return 'armed_home'
     }
     if (partition.GrpAArm) {
       return 'arm_groupA'
@@ -409,17 +409,20 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       logger.debug(`Panel alarm state for partition ${partition.Label} is ${panelState}.`);
       const partitionAlarmMapping = alarmMapping.slice(partitionId,partitionIdEnd);
       logger.verbose(`Currently mapped states are \n${JSON.stringify(partitionAlarmMapping, null, 2)}.`);
-      let mappedKey = ''
-      Object.entries(partitionAlarmMapping[0][partitionLabel]).find(([key, value]) => {
-        logger.debug(`Mapped alarm state is ${key}.  Mapped panel state is ${value}.`)
-        if (value === panelState) {
-          mappedKey = value;
-          return true;
-        } else {
-          logger.debug(`Couldn't map alarm state ${key}.`)
-          return false
-        };
+      const mappedKey = (Object.keys(partitionAlarmMapping[0][partitionLabel]) as (keyof typeof ArmedStates)[]).find((key) => {
+        return obj[key] === panelState;
       });
+      //let mappedKey = ''
+      //Object.entries(partitionAlarmMapping[0][partitionLabel]).find(([key, value]) => {
+      //  logger.debug(`Mapped alarm state is ${key}.  Mapped panel state is ${value}.`)
+      //  if (value === panelState) {
+      //    mappedKey = value;
+      //    return true;
+      //  } else {
+      //    logger.debug(`Couldn't map alarm state ${key}.`)
+      //    return false
+      //  };
+      //});
     }
   }
   function outputState(output: Output, EventStr: string) {
