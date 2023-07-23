@@ -687,11 +687,11 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       let alarmRemap: PartitionArmingModes;
       alarmRemap = {
         [partitionLabel]: {
-          arm_away: armingConfig.armed_away,
-          arm_home: armingConfig.armed_home,
-          arm_night: armingConfig.armed_night,
-          arm_vacation: armingConfig.armed_vacation,
-          arm_custom_bypass: armingConfig.armed_custom_bypass
+          armed_away: armingConfig.armed_away,
+          armed_home: armingConfig.armed_home,
+          armed_night: armingConfig.armed_night,
+          armed_vacation: armingConfig.armed_vacation,
+          armed_custom_bypass: armingConfig.armed_custom_bypass
         }};
       alarmMapping.push(alarmRemap);
       logger.info(`Added alarm state mapping for partition ${partitionLabel}.`)
