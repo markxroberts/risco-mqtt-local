@@ -687,11 +687,11 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       let alarmRemap: PartitionArmingModes;
       alarmRemap = {
         [partitionLabel]: {
-          arm_away: armingConfig.arm_away,
-          arm_home: armingConfig.arm_home,
-          arm_night: armingConfig.arm_night,
-          arm_vacation: armingConfig.arm_vacation,
-          arm_custom_bypass: armingConfig.arm_custom_bypass
+          arm_away: armingConfig.armed_away,
+          arm_home: armingConfig.armed_home,
+          arm_night: armingConfig.armed_night,
+          arm_vacation: armingConfig.armed_vacation,
+          arm_custom_bypass: armingConfig.armed_custom_bypass
         }};
       alarmMapping.push(alarmRemap);
       logger.info(`Added alarm state mapping for partition ${partitionLabel}.`)
@@ -707,11 +707,11 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
           topic: `${config.risco_node_id}/alarm/status`,
         },
         payload_disarm: 'disarm',
-        payload_arm_away: armingConfig.arm_away,
-        payload_arm_home: armingConfig.arm_home,
-        payload_arm_night: armingConfig.arm_night,
-        payload_arm_vacation: armingConfig.arm_vacation,
-        payload_arm_custom_bypass: armingConfig.arm_custom_bypass,
+        payload_arm_away: armingConfig.armed_away,
+        payload_arm_home: armingConfig.armed_home,
+        payload_arm_night: armingConfig.armed_night,
+        payload_arm_vacation: armingConfig.armed_vacation,
+        payload_arm_custom_bypass: armingConfig.armed_custom_bypass,
         device: getDeviceInfo(),
         command_topic: `${config.risco_node_id}/alarm/partition/${partition.Id}/set`,
       };
