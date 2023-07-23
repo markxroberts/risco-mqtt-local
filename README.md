@@ -27,6 +27,7 @@ This project is a fork of [Johann Vanackere](https://github.com/vanackej/risco-m
 - Bypass zones in Home Assistant (additional switch created for each zone).
 - Multiple systems with configurable alarm topic for each.
 - Outputs supported.  Non-user-usable outputs represented as binary sensors (system outputs in configuration).  User-usable outputs represented as switches or button.  Note that pulsed switches are represented as buttons.  Refer to https://www.home-assistant.io/integrations/button/ and https://www.home-assistant.io/integrations/binary_sensor/ for acceptable device classes.
+- Supports mapping of group arming via config file.
 - Wireless zones now show battery status as additional binary sensors (this is the only information the panel gives).
 - Separate binary sensors are provided that are only triggered in an alarm state. This permits automations based only on alarm-triggers.
 - Cloud proxy status sensor supported.
@@ -114,6 +115,14 @@ Create a file config.json in your project directory.  I suggest using config-sam
       "name_prefix": "" 
     }
   }
+  "arming_modes": {
+    "House": { // Name of partition to remap
+      "armed_away": "armed_away",  //optional - default shown
+      "armed_home": "armed_home",  //optional - default shown
+      "armed_night": "armed_home",  //optional - default shown
+      "armed_vacation": "armed_away",  //optional - default shown
+      "armed_custom_bypass: "armed_group_A" // Optional.  Example of group arming (takes A/B/C/D).  Default here is "armed_away"
+  }
 }
 
 ```
@@ -151,6 +160,8 @@ Battery-powered zones have separate sensors for the battery.   These are publish
 Outputs are published as `<risco_node_id/alarm>/<output_id>/status` for sensor outputs.  For outputs where interaction is possible, these are published as `<risco_node_id>/alarm/<output_id>/status` unless buttons, which are stateless.  Switches are published to `<risco_node_id>/alarm/<output_id>/set` as subscribed topics.
 
 The cloud proxy status is published at `<risco_node_id>/alarm/cloudstatus` if the cloud proxy is enabled.
+
+Arming modes are shown in the configuration example above.  All of these are optional.  Defaults are shown.  The syntax shown here must be used for mappings to work.
 
 ## Home Assistant Auto Discovery
 

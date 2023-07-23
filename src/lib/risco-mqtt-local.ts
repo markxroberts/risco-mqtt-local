@@ -42,11 +42,17 @@ export interface RiscoMQTTConfig {
   user_outputs?: {
     default?: OutputUserConfig
     [label: string]: OutputUserConfig
-  }
+  },
   system_outputs?: {
     default?: OutputSystemConfig
     [label: string]: OutputSystemConfig
-  }
+  },
+  arming_modes?: {
+    partition?: {
+      default?: ArmingConfig
+      [label: string]: ArmingConfig
+    },
+  },
   panel: PanelOptions,
   mqtt?: MQTTConfig
 }
@@ -77,6 +83,26 @@ export interface OutputSystemConfig {
   device_class?: string,
   name?: string
   name_prefix?: string
+}
+
+export interface ArmingConfig {
+  armed_away?: string
+  armed_home?: string
+  armed_night?: string
+  armed_vacation?: string
+  armed_custom_bypass?: string
+}
+
+export interface PartitionArmingModes {
+  [partition: string]: ArmingModes
+}
+
+export interface ArmingModes {
+    armed_away: string
+    armed_home: string
+    armed_night: string
+    armed_vacation: string
+    armed_custom_bypass: string
 }
 
 const CONFIG_DEFAULTS: RiscoMQTTConfig = {
@@ -112,6 +138,17 @@ const CONFIG_DEFAULTS: RiscoMQTTConfig = {
       name_prefix: '',
     },
   },
+  arming_modes: {
+    partition: {
+      default: {
+        armed_away: 'armed_away',
+        armed_home: 'armed_home',
+        armed_night: 'armed_home',
+        armed_vacation: 'armed_away',
+        armed_custom_bypass: 'armed_home',
+      },
+    },
+  },
   mqtt: {
     url: null,
     username: null,
@@ -129,6 +166,8 @@ const CONFIG_DEFAULTS: RiscoMQTTConfig = {
 export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
 
   const config = merge(CONFIG_DEFAULTS, userConfig);
+  const panel = new RiscoPanel(config.panel);
+  let alarmMapping: PartitionArmingModes[] = [];
 
   let format = combine(
     timestamp({
@@ -173,8 +212,6 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
   let initialized = false;
 
   if (!config.mqtt?.url) throw new Error('mqtt url option is required');
-
-  const panel = new RiscoPanel(config.panel);
 
   panel.on('SystemInitComplete', () => {
     panel.riscoComm.tcpSocket.on('Disconnected', () => {
@@ -303,32 +340,82 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     }
   });
 
-  async function changeAlarmStatus(code: string, partitionId: number) {
+  function groupLetterToNumber(letter) {
+    if (letter === 'A') {
+      return 1;
+    } else if (letter === 'B') {
+      return 2;
+    } else if (letter === 'C') {
+      return 3;
+    } else if (letter === 'D') {
+      return 4;
+    }
+  };
+
+  async function changeAlarmStatus(code: string, partId: number) {
+    let letter = 'A';
+    if (code.includes('group')) {
+      letter = code.substr(code.length - 1);
+      logger.debug(`Group arming initiated.  Code is ${code}.`)
+      code = 'armed_group'
+    }
+    const group = groupLetterToNumber(letter);
+    logger.debug(`Changing code for letter.  Letter is ${letter}.  Group is ${group}.`)
     switch (code) {
-      case 'DISARM':
-        return await panel.disarmPart(partitionId);
-      case 'ARM_HOME':
-        return await panel.armHome(partitionId);
-      case 'ARM_NIGHT':
-        return await panel.armHome(partitionId);
-      case 'ARM_AWAY':
-        return await panel.armAway(partitionId);
+      case 'disarmed':
+        return await panel.disarmPart(partId);
+      case 'armed_home':
+        return await panel.armHome(partId);
+      case 'armed_away':
+        return await panel.armAway(partId);
+      case 'armed_group':
+        return await panel.armGroup(partId,group);
+    }
+  }
+
+  function returnPanelAlarmState(partition: Partition) {
+    if (partition.Arm) {
+      return 'armed_away'
+    }
+    if (partition.HomeStay) {
+      return 'armed_home'
+    }
+    if (partition.GrpAArm) {
+      return 'armed_group_A'
+    }
+    if (partition.GrpBArm) {
+      return 'armed_group_B'
+    }
+    if (partition.GrpCArm) {
+      return 'armed_group_C'
+    }
+    if (partition.GrpDArm) {
+      return 'armed_group_D'
     }
   }
 
   function alarmPayload(partition: Partition) {
+    const partitionId = (partition.Id -1);
+    const partitionIdEnd = (partitionId + 1);
+    const partitionLabel = partition.Label;
+    logger.debug(`Partition being updated is ${partitionId}.`)
+    logger.verbose(`Currently mapped states are \n${JSON.stringify(alarmMapping, null, 2)}.`);
     if (partition.Alarm) {
       return 'triggered';
-    } else if (!partition.Arm && !partition.HomeStay) {
+    } else if (!partition.Arm && !partition.HomeStay && !partition.GrpAArm && !partition.GrpBArm && !partition.GrpCArm && !partition.GrpDArm) {
       return 'disarmed';
     } else {
-      if (partition.HomeStay) {
-        return 'armed_home';
-      } else {
-        return 'armed_away';
-      }
+      const panelState = returnPanelAlarmState(partition);
+      logger.debug(`Panel alarm state for partition ${partition.Label} is ${panelState}.`);
+      const partitionAlarmMapping = alarmMapping.slice(partitionId,partitionIdEnd);
+      logger.verbose(`Currently mapped states are \n${JSON.stringify(partitionAlarmMapping, null, 2)}.`);
+      logger.verbose(`Currently mapped keys are \n${JSON.stringify(partitionAlarmMapping[0][partitionLabel], null, 2)}.`);
+      const mappedKey = (Object.keys(partitionAlarmMapping[0][partitionLabel]) as (keyof ArmingModes)[]).find((key) => {
+        return partitionAlarmMapping[0][partitionLabel][key] === panelState;
+        logger.debug(`Mapped key = ${mappedKey}`)});
+      return mappedKey;
     }
-  }
+  };
   function outputState(output: Output, EventStr: string) {
     if (EventStr !== '0') {
       if (EventStr === 'Activated' || EventStr === 'Pulsed') {
@@ -469,7 +556,6 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     });
     logger.verbose(`[Panel => MQTT] Published zone bypass status ${zone.Bypass} on zone ${zone.Label}`);
   }
-
   function activePartitions(partitions: PartitionList): Partition[] {
     return partitions.values.filter(p => p.Exist);
   }
@@ -589,6 +675,25 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       const partitionConf = cloneDeep(config.partitions.default);
       merge(partitionConf, config.partitions?.[partition.Label]);
 
+      const armingConfig = cloneDeep(config.arming_modes.partition.default);
+      merge(armingConfig, config.arming_modes?.[partition.Label]);
+
+      const partitionLabel = partition.Label
+
+      let alarmRemap: PartitionArmingModes;
+      alarmRemap = {
+        [partitionLabel]: {
+          armed_away: armingConfig.armed_away,
+          armed_home: armingConfig.armed_home,
+          armed_night: armingConfig.armed_night,
+          armed_vacation: armingConfig.armed_vacation,
+          armed_custom_bypass: armingConfig.armed_custom_bypass
+        }};
+      alarmMapping.push(alarmRemap);
+      logger.info(`Added alarm state mapping for partition ${partitionLabel}.`)
+      logger.verbose(`Added alarm state mappings for parition ${partitionLabel} as \n${JSON.stringify(alarmRemap, null, 2)}.`)
+      logger.verbose(`Alarm mappings updated as \n${JSON.stringify(alarmMapping, null, 2)}.`)
+      
       const payload = {
         name: partition.Label,
         object_id: `${config.risco_node_id}-${partition.Id}`,
@@ -597,6 +702,12 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
         availability: {
           topic: `${config.risco_node_id}/alarm/status`,
         },
+        payload_disarm: 'disarmed',
+        payload_arm_away: armingConfig.armed_away,
+        payload_arm_home: armingConfig.armed_home,
+        payload_arm_night: armingConfig.armed_night,
+        payload_arm_vacation: armingConfig.armed_vacation,
+        payload_arm_custom_bypass: armingConfig.armed_custom_bypass,
         device: getDeviceInfo(),
         command_topic: `${config.risco_node_id}/alarm/partition/${partition.Id}/set`,
       };
@@ -936,7 +1047,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       }
       logger.info(`Subscribing to panel partitions events`);
       panel.partitions.on('PStatusChanged', (Id, EventStr) => {
-        if (['Armed', 'Disarmed', 'HomeStay', 'HomeDisarmed', 'Alarm', 'StandBy'].includes(EventStr)) {
+        if (['Armed', 'Disarmed', 'HomeStay', 'HomeDisarmed', 'Alarm', 'StandBy', 'GrpAArmed', 'GrpBArmed', 'GrpCArmed', 'GrpDArmed'].includes(EventStr)) {
           publishPartitionStateChanged(panel.partitions.byId(Id));
         }
       });
