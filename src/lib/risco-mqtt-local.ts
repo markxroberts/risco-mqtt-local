@@ -362,7 +362,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     const group = groupLetterToNumber(letter);
     logger.debug(`Changing code for letter.  Letter is ${letter}.  Group is ${group}.`)
     switch (code) {
-      case 'disarm':
+      case 'disarmed':
         return await panel.disarmPart(partId);
       case 'armed_home':
         return await panel.armHome(partId);
@@ -702,7 +702,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
         availability: {
           topic: `${config.risco_node_id}/alarm/status`,
         },
-        payload_disarm: 'disarm',
+        payload_disarm: 'disarmed',
         payload_arm_away: armingConfig.armed_away,
         payload_arm_home: armingConfig.armed_home,
         payload_arm_night: armingConfig.armed_night,
