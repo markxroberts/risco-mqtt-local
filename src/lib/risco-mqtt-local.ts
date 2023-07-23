@@ -418,8 +418,6 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
           logger.debug(`Couldn't map alarm state ${key}.`)
         };
       });
-      return alarmKey;
-      logger.debug(`HA version of alarm state is ${alarmKey}.`);
     }
   }
   function outputState(output: Output, EventStr: string) {
@@ -709,11 +707,11 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
           topic: `${config.risco_node_id}/alarm/status`,
         },
         payload_disarm: 'disarm',
-        payload_armed_away: armingConfig.arm_away,
-        payload_armed_home: armingConfig.arm_home,
-        payload_armed_night: armingConfig.arm_night,
-        payload_armed_vacation: armingConfig.arm_vacation,
-        payload_armed_custom_bypass: armingConfig.arm_custom_bypass,
+        payload_arm_away: armingConfig.arm_away,
+        payload_arm_home: armingConfig.arm_home,
+        payload_arm_night: armingConfig.arm_night,
+        payload_arm_vacation: armingConfig.arm_vacation,
+        payload_arm_custom_bypass: armingConfig.arm_custom_bypass,
         device: getDeviceInfo(),
         command_topic: `${config.risco_node_id}/alarm/partition/${partition.Id}/set`,
       };
