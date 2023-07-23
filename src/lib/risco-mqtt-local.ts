@@ -357,7 +357,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     if (code.includes('group')) {
       letter = code.substr(code.length - 1);
       logger.debug(`Group arming initiated.  Code is ${code}.`)
-      code = 'arm_group'
+      code = 'armed_group'
     }
     const group = groupLetterToNumber(letter);
     logger.debug(`Changing code for letter.  Letter is ${letter}.  Group is ${group}.`)
@@ -381,16 +381,16 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       return 'armed_home'
     }
     if (partition.GrpAArm) {
-      return 'arm_groupA'
+      return 'armed_group_A'
     }
     if (partition.GrpBArm) {
-      return 'arm_groupB'
+      return 'armed_group_B'
     }
     if (partition.GrpCArm) {
-      return 'arm_groupC'
+      return 'armed_group_C'
     }
     if (partition.GrpDArm) {
-      return 'arm_groupD'
+      return 'armed_group_D'
     }
   }
 
@@ -414,17 +414,6 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
         return partitionAlarmMapping[0][partitionLabel][key] === panelState;
         logger.debug(`Mapped key = ${mappedKey}`)});
       return mappedKey;
-      //let mappedKey = ''
-      //Object.entries(partitionAlarmMapping[0][partitionLabel]).find(([key, value]) => {
-      //  logger.debug(`Mapped alarm state is ${key}.  Mapped panel state is ${value}.`)
-      //  if (value === panelState) {
-      //    mappedKey = value;
-      //    return true;
-      //  } else {
-      //    logger.debug(`Couldn't map alarm state ${key}.`)
-      //    return false
-      //  };
-      //});
     }
   };
   function outputState(output: Output, EventStr: string) {
