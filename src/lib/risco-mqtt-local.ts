@@ -411,6 +411,8 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       logger.verbose(`Currently mapped states are \n${JSON.stringify(partitionAlarmMapping, null, 2)}.`);
       const mappedKey = (Object.keys(partitionAlarmMapping[0][partitionLabel]) as (keyof ArmingModes)[]).find((key) => {
         return partitionAlarmMapping[0][partitionLabel][key] === panelState;
+      logger.debug(`Mapped key = ${mappedKey}`)
+      return mappedKey
       });
       //let mappedKey = ''
       //Object.entries(partitionAlarmMapping[0][partitionLabel]).find(([key, value]) => {
