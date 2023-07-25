@@ -999,7 +999,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       publishOutputStateChange(systemoutput, '0');
     }
     if (config.panel.socketMode === 'proxy') {
-      publishCloudStatus(panel.tcpSocket.cloudConnected);
+      publishCloudStatus(panel.riscoComm.tcpSocket.cloudConnected);
     }
     publishPanelStatus(panelReady);
     logger.info(`Finished publishing initial partitions, zones and output states to Home assistant`);
