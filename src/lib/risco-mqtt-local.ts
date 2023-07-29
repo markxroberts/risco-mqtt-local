@@ -210,6 +210,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
   let mqttReady = false;
   let listenerInstalled = false;
   let initialized = false;
+  let haonline = false;
 
   if (!config.mqtt?.url) throw new Error('mqtt url option is required');
 
@@ -330,9 +331,11 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
           logger.info(`Delay 30 seconds before publishing initial states`);
           let t: any;
           t = setTimeout(() => publishInitialStates(),30000);
-          initialized = false;
+          initialized = true;
+          haonline = true;
         } else {
           publishInitialStates();
+          haonline = true;
         }
       } else {
         logger.info('Home Assistant has gone offline');
@@ -725,7 +728,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       mqttClient.publish(`${config.ha_discovery_prefix_topic}/alarm_control_panel/${config.risco_node_id}/${partitionIdSegment}/config`, JSON.stringify(payload), {
         qos: 1, retain: true,
       });
-      logger.info(`[Panel => MQTT][Discovery] Published alarm_control_panel to HA Output label = ${partition.Label}, HA name = ${payload.name} on partition ${partition.Id}`);
+      logger.info(`[Panel => MQTT][Discovery] Published alarm_control_panel to HA Partition label = ${partition.Label}, HA name = ${payload.name} on partition ${partition.Id}`);
       logger.verbose(`[Panel => MQTT][Discovery] Alarm discovery payload\n${JSON.stringify(payload, null, 2)}`);
     }
 
@@ -1006,6 +1009,12 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     publishSystemStateChange('System initialized')
   }
 
+  function publishInitialStatesIfNoHAonlineMessage() {
+    if (!haonline) {
+      publishInitialStates();
+    }
+  }
+
   function panelOrMqttConnected() {
     if (!panelReady) {
       logger.info(`Panel is not connected, waiting`);
@@ -1021,6 +1030,8 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     if (!initialized) {
       publishHomeAssistantDiscoveryInfo();
       publishOnline();
+      let t: any;
+      t = setTimeout(() => publishInitialStatesIfNoHAonlineMessage(), 45000);
     }
 
     if (!listenerInstalled) {
@@ -1047,7 +1058,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       }
       logger.info(`Subscribing to panel partitions events`);
       panel.partitions.on('PStatusChanged', (Id, EventStr) => {
-        if (['Armed', 'Disarmed', 'HomeStay', 'HomeDisarmed', 'Alarm', 'StandBy', 'GrpAArmed', 'GrpBArmed', 'GrpCArmed', 'GrpDArmed'].includes(EventStr)) {
+        if (['Armed', 'Disarmed', 'HomeStay', 'HomeDisarmed', 'Alarm', 'StandBy', 'GrpAArmed', 'GrpBArmed', 'GrpCArmed', 'GrpDArmed', 'GrpADisarmed', 'GrpBDisarmed', 'GrpCDisarmed', 'GrpDDisarmed'].includes(EventStr)) {
           publishPartitionStateChanged(panel.partitions.byId(Id));
         }
       });
