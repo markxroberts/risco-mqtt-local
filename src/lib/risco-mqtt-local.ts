@@ -1097,7 +1097,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
           logger.info(`${granted[0].topic} was subscribed`);
         }
       });
-      panel.riscoComm.on('Clock', publishOnline);
+      panel.riscoComm.on('Clock', (data) => {publishOnline});
       panel.riscoComm.tcpSocket.on('Disconnected', (data) => {publishOffline()});
       panel.riscoComm.on('PanelCommReady', (data) => {publishOnline()});
       panel.riscoComm.tcpSocket.on('CloudConnected', () => {publishCloudStatus(true)});
