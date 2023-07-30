@@ -338,6 +338,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
         }
       } else {
         logger.info('Home Assistant has gone offline');
+        haonline = false;
       }
     }
   });
@@ -564,15 +565,12 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     mqttClient.publish(`${config.risco_node_id}/alarm/status`, 'online', {
       qos: 1, retain: true,
     });
-    mqttClient.publish(`${config.risco_node_id}/alarm/panelstatus`, '1', {
-      qos: 1, retain: true,
-    });
     logger.verbose('[Panel => MQTT] Published alarm online');
   }
 
   function publishOffline() {
     if (mqttReady) {
-      mqttClient.publish(`${config.risco_node_id}/alarm/panelstatus`, '0', {
+      mqttClient.publish(`${config.risco_node_id}/alarm/status`, 'offline', {
         qos: 1, retain: true,
       });
       logger.verbose('[Panel => MQTT] Published alarm offline');
