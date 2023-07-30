@@ -164,8 +164,6 @@ const CONFIG_DEFAULTS: RiscoMQTTConfig = {
 export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
 
   const config = merge(CONFIG_DEFAULTS, userConfig);
-  const panel = new RiscoPanel(config.panel);
-  let alarmMapping: PartitionArmingModes[] = [];
 
   let format = combine(
     timestamp({
@@ -211,6 +209,9 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
   let haonline = false;
 
   if (!config.mqtt?.url) throw new Error('mqtt url option is required');
+
+  const panel = new RiscoPanel(config.panel);
+  let alarmMapping: PartitionArmingModes[] = [];
 
   panel.on('SystemInitComplete', () => {
     panel.riscoComm.tcpSocket.on('Disconnected', () => {
