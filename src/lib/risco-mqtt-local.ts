@@ -98,11 +98,11 @@ export interface PartitionArmingModes {
 }
 
 export interface ArmingModes {
-    armed_away: string
-    armed_home: string
-    armed_night: string
-    armed_vacation: string
-    armed_custom_bypass: string
+  armed_away: string
+  armed_home: string
+  armed_night: string
+  armed_vacation: string
+  armed_custom_bypass: string
 }
 
 const CONFIG_DEFAULTS: RiscoMQTTConfig = {
@@ -111,9 +111,7 @@ const CONFIG_DEFAULTS: RiscoMQTTConfig = {
   ha_discovery_prefix_topic: 'homeassistant',
   ha_discovery_include_nodeId: false,
   risco_node_id: 'risco-alarm-panel',
-  panel: {
-    socketMode: 'direct',
-  },
+  panel: {},
   partitions: {
     default: {
       name_prefix: 'risco alarm panel',
@@ -166,8 +164,6 @@ const CONFIG_DEFAULTS: RiscoMQTTConfig = {
 export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
 
   const config = merge(CONFIG_DEFAULTS, userConfig);
-  const panel = new RiscoPanel(config.panel);
-  let alarmMapping: PartitionArmingModes[] = [];
 
   let format = combine(
     timestamp({
@@ -210,8 +206,12 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
   let mqttReady = false;
   let listenerInstalled = false;
   let initialized = false;
+  let haonline = false;
 
   if (!config.mqtt?.url) throw new Error('mqtt url option is required');
+
+  const panel = new RiscoPanel(config.panel);
+  let alarmMapping: PartitionArmingModes[] = [];
 
   panel.on('SystemInitComplete', () => {
     panel.riscoComm.tcpSocket.on('Disconnected', () => {
@@ -330,12 +330,15 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
           logger.info(`Delay 30 seconds before publishing initial states`);
           let t: any;
           t = setTimeout(() => publishInitialStates(),30000);
-          initialized = false;
+          initialized = true;
+          haonline = true;
         } else {
           publishInitialStates();
+          haonline = true;
         }
       } else {
         logger.info('Home Assistant has gone offline');
+        haonline = false;
       }
     }
   });
@@ -445,26 +448,6 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     } else {
       return '0';
     }
-  }
-
-  function cloudStatus(state) {
-    if (state) {
-      return '1';
-    } else {
-      return '0';
-    }
-  }
-
-  function publishCloudStatus(state) {
-    if (config.panel.socketMode === 'proxy') {
-      mqttClient.publish(`${config.risco_node_id}/alarm/cloudstatus`, cloudStatus(state), { qos: 1, retain: true });
-      logger.verbose(`[Panel => MQTT] Published cloud connection status ${cloudStatus(state)}`);
-    }
-  }
-
-  function publishPanelStatus(state) {
-    mqttClient.publish(`${config.risco_node_id}/alarm/panelstatus`, cloudStatus(state), { qos: 1, retain: true });
-    logger.verbose(`[Panel => MQTT] Published panel connection status ${cloudStatus(state)}`);
   }
 
   function publishSystemStateChange(message) {
@@ -606,52 +589,6 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
 
   function publishHomeAssistantDiscoveryInfo() {
 
-    if (config.panel.socketMode === 'proxy') {
-      const cloudPayload = {
-        name: `Cloud connection status`,
-        object_id: `${config.risco_node_id}-cloud-connection-status`,
-        state_topic: `${config.risco_node_id}/alarm/cloudstatus`,
-        unique_id: `${config.risco_node_id}-cloudstatus`,
-        availability: {
-          topic: `${config.risco_node_id}/alarm/status`,
-        },
-        payload_on: '1',
-        payload_off: '0',
-        device_class: 'connectivity',
-        entity_category: 'diagnostic',
-        device: getDeviceInfo(),
-      }
-
-      mqttClient.publish(`${config.ha_discovery_prefix_topic}/binary_sensor/${config.risco_node_id}/cloudstatus/config`, JSON.stringify(cloudPayload), {
-        qos: 1, retain: true,
-      });
-      logger.info(`[Panel => MQTT][Discovery] Published cloud status sensor, HA name = ${cloudPayload.name}`);
-      logger.verbose(`[Panel => MQTT][Discovery] Cloud status payload\n${JSON.stringify(cloudPayload, null, 2)}`);
-    };
-
-    const panelPayload = {
-      name: `Panel connection status`,
-      object_id: `${config.risco_node_id}-panel-connection-status`,
-      state_topic: `${config.risco_node_id}/alarm/panelstatus`,
-      unique_id: `${config.risco_node_id}-panelstatus`,
-      availability: {
-        topic: `${config.risco_node_id}/alarm/panelstatus`,
-        payload_available: '1',
-        payload_not_available: '0',
-      },
-      payload_on: '1',
-      payload_off: '0',
-      device_class: 'connectivity',
-      entity_category: 'diagnostic',
-      device: getDeviceInfo(),
-    };
-
-    mqttClient.publish(`${config.ha_discovery_prefix_topic}/binary_sensor/${config.risco_node_id}/panelstatus/config`, JSON.stringify(panelPayload), {
-      qos: 1, retain: true,
-    });
-    logger.info(`[Panel => MQTT][Discovery] Published panel status sensor, HA name = ${panelPayload.name}`);
-    logger.verbose(`[Panel => MQTT][Discovery] Panel status payload\n${JSON.stringify(panelPayload, null, 2)}`);
-
     const systemPayload = {
       name: `System message`,
       object_id: `${config.risco_node_id}-system-message`,
@@ -725,7 +662,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       mqttClient.publish(`${config.ha_discovery_prefix_topic}/alarm_control_panel/${config.risco_node_id}/${partitionIdSegment}/config`, JSON.stringify(payload), {
         qos: 1, retain: true,
       });
-      logger.info(`[Panel => MQTT][Discovery] Published alarm_control_panel to HA Output label = ${partition.Label}, HA name = ${payload.name} on partition ${partition.Id}`);
+      logger.info(`[Panel => MQTT][Discovery] Published alarm_control_panel to HA Partition label = ${partition.Label}, HA name = ${payload.name} on partition ${partition.Id}`);
       logger.verbose(`[Panel => MQTT][Discovery] Alarm discovery payload\n${JSON.stringify(payload, null, 2)}`);
     }
 
@@ -998,12 +935,14 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     for (const systemoutput of activeSystemOutputs(panel.outputs)) {
       publishOutputStateChange(systemoutput, '0');
     }
-    if (config.panel.socketMode === 'proxy') {
-      publishCloudStatus(panel.proxy.cloudConnected);
-    }
-    publishPanelStatus(panelReady);
     logger.info(`Finished publishing initial partitions, zones and output states to Home assistant`);
     publishSystemStateChange('System initialized')
+  }
+
+  function publishInitialStatesIfNoHAonlineMessage() {
+    if (!haonline) {
+      publishInitialStates();
+    }
   }
 
   function panelOrMqttConnected() {
@@ -1021,6 +960,9 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     if (!initialized) {
       publishHomeAssistantDiscoveryInfo();
       publishOnline();
+      let t: any;
+      t = setTimeout(() => publishInitialStatesIfNoHAonlineMessage(), 45000);
+      initialized = true;
     }
 
     if (!listenerInstalled) {
@@ -1047,7 +989,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       }
       logger.info(`Subscribing to panel partitions events`);
       panel.partitions.on('PStatusChanged', (Id, EventStr) => {
-        if (['Armed', 'Disarmed', 'HomeStay', 'HomeDisarmed', 'Alarm', 'StandBy', 'GrpAArmed', 'GrpBArmed', 'GrpCArmed', 'GrpDArmed'].includes(EventStr)) {
+        if (['Armed', 'Disarmed', 'HomeStay', 'HomeDisarmed', 'Alarm', 'StandBy', 'GrpAArmed', 'GrpBArmed', 'GrpCArmed', 'GrpDArmed', 'GrpADisarmed', 'GrpBDisarmed', 'GrpCDisarmed', 'GrpDDisarmed'].includes(EventStr)) {
           publishPartitionStateChanged(panel.partitions.byId(Id));
         }
       });
@@ -1091,10 +1033,6 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
         }
       });
       panel.riscoComm.on('Clock', publishOnline);
-      panel.riscoComm.tcpSocket.on('Disconnected', (data) => {publishPanelStatus(false)});
-      panel.riscoComm.on('PanelCommReady', (data) => {publishPanelStatus(true)});
-      panel.riscoComm.tcpSocket.on('CloudConnected', () => {publishCloudStatus(true)});
-      panel.riscoComm.tcpSocket.on('CloudDisconnected', () => {publishCloudStatus(false)});
 
       listenerInstalled = true;
     } else {
@@ -1103,5 +1041,4 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
 
     logger.info(`Initialization completed`);
   }
-
 }
