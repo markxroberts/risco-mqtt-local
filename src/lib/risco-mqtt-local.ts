@@ -326,16 +326,8 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     } else if (topic == `${config.ha_discovery_prefix_topic}/status`) {
       if (message.toString() === 'online') {
         logger.info('Home Assistant is online');
-        if (!initialized) {
-          logger.info(`Delay 30 seconds before publishing initial states`);
-          let t: any;
-          t = setTimeout(() => publishInitialStates(),30000);
-          initialized = true;
-          haonline = true;
-        } else {
-          publishInitialStates();
-          haonline = true;
-        }
+        publishInitialStates();
+        haonline = true;
       } else {
         logger.info('Home Assistant has gone offline');
         haonline = false;
@@ -939,12 +931,6 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     publishSystemStateChange('System initialized')
   }
 
-  function publishInitialStatesIfNoHAonlineMessage() {
-    if (!haonline) {
-      publishInitialStates();
-    }
-  }
-
   function panelOrMqttConnected() {
     if (!panelReady) {
       logger.info(`Panel is not connected, waiting`);
@@ -960,9 +946,9 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     if (!initialized) {
       publishHomeAssistantDiscoveryInfo();
       publishOnline();
+      logger.info(`Waiting 30 seconds before publishing initial states to allow autodiscovery to complete.`)
       let t: any;
-      t = setTimeout(() => publishInitialStatesIfNoHAonlineMessage(), 45000);
-      initialized = true;
+      t = setTimeout(() => publishInitialStates(), 30000);
     }
 
     if (!listenerInstalled) {
