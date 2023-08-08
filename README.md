@@ -61,7 +61,9 @@ Create a file config.json in your project directory.  I suggest using config-sam
     "commandsLog": false // If enabled, dump all commands in a file named risco-commands-${date}.csv
   },
   "ha_discovery_prefix_topic": "homeassistant" //Optional
-  "risco_node_id": "risco-alarm-panel" //Optional - topic to which state changes are published for multiple instances
+  "risco_node_id": "risco-alarm-panel", //Optional - topic to which state changes are published for multiple instances
+  "filter_bypass_zones: true, // Optional - system filters out non-functional bypasses (usually entry and exit zones)
+  "alarm_system_name": "Risco Alarm", //Optional - Device name and therefore prefix for HA sensor name
   "mqtt": {
     "url": "mqtt://192.168.1.10:1883",
     "username": "MQTT_USERNAME",

@@ -30,8 +30,9 @@ export interface RiscoMQTTConfig {
   logColorize?: boolean,
   ha_discovery_prefix_topic?: string,
   ha_discovery_include_nodeId?: boolean,
-  risco_node_id?: string,
+  risco_mqtt_topic?: string,
   filter_bypass_zones: boolean,
+  alarm_system_name: string,
   partitions?: {
     default?: PartitionConfig
     [label: string]: PartitionConfig
@@ -111,7 +112,8 @@ const CONFIG_DEFAULTS: RiscoMQTTConfig = {
   logColorize: false,
   ha_discovery_prefix_topic: 'homeassistant',
   ha_discovery_include_nodeId: false,
-  risco_node_id: 'risco-alarm-panel',
+  risco_mqtt_topic: 'risco-alarm-panel',
+  alarm_system_name: 'Risco Alarm',
   filter_bypass_zones: true,
   panel: {},
   partitions: {
@@ -232,7 +234,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     username: `${config.mqtt.username}`,
     password: `${config.mqtt.password}`,
     will: {
-      topic: `${config.risco_node_id}/alarm/status`,
+      topic: `${config.risco_mqtt_topic}/alarm/status`,
     }
   }
   const mqtt_merge = merge(config.mqtt, mqtt_options);
@@ -449,18 +451,18 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
   }
 
   function publishSystemStateChange(message) {
-    mqttClient.publish(`${config.risco_node_id}/alarm/systemmessage`, `${message}`, { qos: 1, retain: true });
+    mqttClient.publish(`${config.risco_mqtt_topic}/alarm/systemmessage`, `${message}`, { qos: 1, retain: true });
     logger.verbose(`[Panel => MQTT] Published system message ${message}`);
   }
 
   function publishPartitionStateChanged(partition: Partition) {
-    mqttClient.publish(`${config.risco_node_id}/alarm/partition/${partition.Id}/status`, alarmPayload(partition), { qos: 1, retain: true });
+    mqttClient.publish(`${config.risco_mqtt_topic}/alarm/partition/${partition.Id}/status`, alarmPayload(partition), { qos: 1, retain: true });
     logger.verbose(`[Panel => MQTT] Published alarm status ${alarmPayload(partition)} on partition ${partition.Id}`);
   }
 
   function publishZoneStateChange(zone: Zone, publishAttributes: boolean) {
     if (publishAttributes) {
-      mqttClient.publish(`${config.risco_node_id}/alarm/zone/${zone.Id}`, JSON.stringify({
+      mqttClient.publish(`${config.risco_mqtt_topic}/alarm/zone/${zone.Id}`, JSON.stringify({
         id: zone.Id,
         alarm: zone.Alarm,
         arm: zone.Arm,
@@ -475,14 +477,14 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       }), { qos: 1, retain: true });
     }
     let zoneStatus = zone.Open ? '1' : '0';
-    mqttClient.publish(`${config.risco_node_id}/alarm/zone/${zone.Id}/status`, zoneStatus, {
+    mqttClient.publish(`${config.risco_mqtt_topic}/alarm/zone/${zone.Id}/status`, zoneStatus, {
       qos: 1, retain: false,
     });
     logger.verbose(`[Panel => MQTT] Published zone status ${zoneStatus} on zone ${zone.Label}`);
   }
   function publishZoneBatteryStateChange(zone: Zone, publishAttributes: boolean) {
     if (publishAttributes) {
-      mqttClient.publish(`${config.risco_node_id}/alarm/zone/${zone.Id}/battery`, JSON.stringify({
+      mqttClient.publish(`${config.risco_mqtt_topic}/alarm/zone/${zone.Id}/battery`, JSON.stringify({
         id: zone.Id,
         label: zone.Label,
         type: zone.type,
@@ -494,14 +496,14 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       }), { qos: 1, retain: true });
     }
     let zoneBattery = zone.LowBattery ? '1' : '0';
-    mqttClient.publish(`${config.risco_node_id}/alarm/zone/${zone.Id}/battery/status`, zoneBattery, {
+    mqttClient.publish(`${config.risco_mqtt_topic}/alarm/zone/${zone.Id}/battery/status`, zoneBattery, {
       qos: 1, retain: false,
     });
     logger.verbose(`[Panel => MQTT] Published zone battery status ${zoneBattery} on zone ${zone.Label}`);
   }
   function publishZoneAlarmStateChange(zone: Zone, publishAttributes: boolean) {
     if (publishAttributes) {
-      mqttClient.publish(`${config.risco_node_id}/alarm/zone/${zone.Id}/battery`, JSON.stringify({
+      mqttClient.publish(`${config.risco_mqtt_topic}/alarm/zone/${zone.Id}/battery`, JSON.stringify({
         id: zone.Id,
         arm: zone.Arm,
         label: zone.Label,
@@ -516,7 +518,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     }
   
     const zoneAlarm = alarmSensorState(zone)  
-    mqttClient.publish(`${config.risco_node_id}/alarm/zone/${zone.Id}/alarm/status`, zoneAlarm, {
+    mqttClient.publish(`${config.risco_mqtt_topic}/alarm/zone/${zone.Id}/alarm/status`, zoneAlarm, {
       qos: 1, retain: false,
     });
     logger.verbose(`[Panel => MQTT] Published zone alarm status ${zoneAlarm} on zone ${zone.Label}`);
@@ -525,14 +527,14 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
   function publishOutputStateChange(output: Output, EventStr: string) {
     const outputStatus = outputState(output, EventStr)
     const outputId = output.Id
-    mqttClient.publish(`${config.risco_node_id}/alarm/output/${output.Id}/status`, outputStatus.output, {
+    mqttClient.publish(`${config.risco_mqtt_topic}/alarm/output/${output.Id}/status`, outputStatus.output, {
       qos: 1, retain: false,
     });
     logger.verbose(`[Panel => MQTT] Published output status ${outputStatus.text} on output ${output.Label}`);
   }
 
   function publishZoneBypassStateChange(zone: Zone) {
-    mqttClient.publish(`${config.risco_node_id}/alarm/zone/${zone.Id}-bypass/status`, zone.Bypass ? '1' : '0', {
+    mqttClient.publish(`${config.risco_mqtt_topic}/alarm/zone/${zone.Id}-bypass/status`, zone.Bypass ? '1' : '0', {
       qos: 1, retain: false,
     });
     logger.verbose(`[Panel => MQTT] Published zone bypass status ${zone.Bypass} on zone ${zone.Label}`);
@@ -564,7 +566,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
   }
 
   function publishOnline() {
-    mqttClient.publish(`${config.risco_node_id}/alarm/status`, 'online', {
+    mqttClient.publish(`${config.risco_mqtt_topic}/alarm/status`, 'online', {
       qos: 1, retain: true,
     });
     logger.verbose('[Panel => MQTT] Published alarm online');
@@ -572,7 +574,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
 
   function publishOffline() {
     if (mqttReady) {
-      mqttClient.publish(`${config.risco_node_id}/alarm/status`, 'offline', {
+      mqttClient.publish(`${config.risco_mqtt_topic}/alarm/status`, 'offline', {
         qos: 1, retain: true,
       });
       logger.verbose('[Panel => MQTT] Published alarm offline');
@@ -583,9 +585,9 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     return {
       manufacturer: 'Risco',
       model: `${panel.riscoComm.panelInfo.PanelModel}/${panel.riscoComm.panelInfo.PanelType}`,
-      name: panel.riscoComm.panelInfo.PanelModel,
+      name: config.alarm_system_name,
       sw_version: panel.riscoComm.panelInfo.PanelFW,
-      identifiers: `${config.risco_node_id}`,
+      identifiers: config.risco_mqtt_topic,
     };
   }
 
@@ -593,17 +595,17 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
 
     const systemPayload = {
       name: `System message`,
-      object_id: `${config.risco_node_id}-system-message`,
-      state_topic: `${config.risco_node_id}/alarm/systemmessage`,
-      unique_id: `${config.risco_node_id}-system-message`,
+      object_id: `${config.risco_mqtt_topic}-system-message`,
+      state_topic: `${config.risco_mqtt_topic}/alarm/systemmessage`,
+      unique_id: `${config.risco_mqtt_topic}-system-message`,
       availability: {
-        topic: `${config.risco_node_id}/alarm/status`,
+        topic: `${config.risco_mqtt_topic}/alarm/status`,
       },
       entity_category: 'diagnostic',
       device: getDeviceInfo(),
     };
 
-    mqttClient.publish(`${config.ha_discovery_prefix_topic}/sensor/${config.risco_node_id}/systemmessage/config`, JSON.stringify(systemPayload), {
+    mqttClient.publish(`${config.ha_discovery_prefix_topic}/sensor/${config.risco_mqtt_topic}/systemmessage/config`, JSON.stringify(systemPayload), {
       qos: 1, retain: true,
     });
     logger.info(`[Panel => MQTT][Discovery] Published System message sensor, HA name = ${systemPayload.name}`);
@@ -635,11 +637,11 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       
       const payload = {
         name: partition.Label,
-        object_id: `${config.risco_node_id}-${partition.Id}`,
-        state_topic: `${config.risco_node_id}/alarm/partition/${partition.Id}/status`,
-        unique_id: `${config.risco_node_id}-partition-${partition.Id}`,
+        object_id: `${config.risco_mqtt_topic}-${partition.Id}`,
+        state_topic: `${config.risco_mqtt_topic}/alarm/partition/${partition.Id}/status`,
+        unique_id: `${config.risco_mqtt_topic}-partition-${partition.Id}`,
         availability: {
-          topic: `${config.risco_node_id}/alarm/status`,
+          topic: `${config.risco_mqtt_topic}/alarm/status`,
         },
         payload_disarm: 'disarmed',
         payload_arm_away: armingConfig.armed_away,
@@ -648,7 +650,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
         payload_arm_vacation: armingConfig.armed_vacation,
         payload_arm_custom_bypass: armingConfig.armed_custom_bypass,
         device: getDeviceInfo(),
-        command_topic: `${config.risco_node_id}/alarm/partition/${partition.Id}/set`,
+        command_topic: `${config.risco_mqtt_topic}/alarm/partition/${partition.Id}/set`,
       };
 
       const partitionName = partitionConf.name || partition.Label;
@@ -661,7 +663,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
         partitionIdSegment = `${partition.Id}`;
       }
 
-      mqttClient.publish(`${config.ha_discovery_prefix_topic}/alarm_control_panel/${config.risco_node_id}/${partitionIdSegment}/config`, JSON.stringify(payload), {
+      mqttClient.publish(`${config.ha_discovery_prefix_topic}/alarm_control_panel/${config.risco_mqtt_topic}/${partitionIdSegment}/config`, JSON.stringify(payload), {
         qos: 1, retain: true,
       });
       logger.info(`[Panel => MQTT][Discovery] Published alarm_control_panel to HA Partition label = ${partition.Label}, HA name = ${payload.name} on partition ${partition.Id}`);
@@ -675,9 +677,9 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
 
       const payload = {
         name: output.Label,
-        unique_id: `${config.risco_node_id}-output-${output.Id}`,
+        unique_id: `${config.risco_mqtt_topic}-output-${output.Id}`,
         availability: {
-          topic: `${config.risco_node_id}/alarm/status`,
+          topic: `${config.risco_mqtt_topic}/alarm/status`,
         },
         payload_on: '1',
         payload_off: '0',
@@ -687,8 +689,8 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
         icon: 'mdi:toggle-switch-off',
         device: getDeviceInfo(),
         qos: 1,
-        state_topic: `${config.risco_node_id}/alarm/output/${output.Id}/status`,
-        command_topic: `${config.risco_node_id}/alarm/output/${output.Id}/trigger`,
+        state_topic: `${config.risco_mqtt_topic}/alarm/output/${output.Id}/status`,
+        command_topic: `${config.risco_mqtt_topic}/alarm/output/${output.Id}/trigger`,
       };
 
       const useroutputName = useroutputConf.name || output.Label;
@@ -701,7 +703,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
         useroutputIdSegment = `${output.Id}`;
       }
 
-      mqttClient.publish(`${config.ha_discovery_prefix_topic}/switch/${config.risco_node_id}/${useroutputIdSegment}-output/config`, JSON.stringify(payload), {
+      mqttClient.publish(`${config.ha_discovery_prefix_topic}/switch/${config.risco_mqtt_topic}/${useroutputIdSegment}-output/config`, JSON.stringify(payload), {
         qos: 1, retain: true,
       });
       logger.info(`[Panel => MQTT][Discovery] Published switch to HA: Output label = ${output.Label}, HA name = ${payload.name}`);
@@ -714,15 +716,15 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
 
       const payload = {
         name: output.Label,
-        unique_id: `${config.risco_node_id}-output-${output.Id}`,
+        unique_id: `${config.risco_mqtt_topic}-output-${output.Id}`,
         availability: {
-          topic: `${config.risco_node_id}/alarm/status`,
+          topic: `${config.risco_mqtt_topic}/alarm/status`,
         },
         payload_press: '1',
         icon: 'mdi:gesture-tap-button',
         device: getDeviceInfo(),
         qos: 1,
-        command_topic: `${config.risco_node_id}/alarm/output/${output.Id}/trigger`,
+        command_topic: `${config.risco_mqtt_topic}/alarm/output/${output.Id}/trigger`,
       };
 
       const useroutputName = useroutputConf.name || output.Label;
@@ -735,7 +737,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
         useroutputIdSegment = `${output.Id}`;
       }
 
-      mqttClient.publish(`${config.ha_discovery_prefix_topic}/button/${config.risco_node_id}/${useroutputIdSegment}-output/config`, JSON.stringify(payload), {
+      mqttClient.publish(`${config.ha_discovery_prefix_topic}/button/${config.risco_mqtt_topic}/${useroutputIdSegment}-output/config`, JSON.stringify(payload), {
         qos: 1, retain: true,
       });
       logger.info(`[Panel => MQTT][Discovery] Published button to HA: Output label = ${output.Label}, HA name = ${payload.name}`);
@@ -748,16 +750,16 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
 
       const payload = {
         name: systemoutput.Label,
-        unique_id: `${config.risco_node_id}-systemoutput-${systemoutput.Id}`,
+        unique_id: `${config.risco_mqtt_topic}-systemoutput-${systemoutput.Id}`,
         availability: {
-          topic: `${config.risco_node_id}/alarm/status`,
+          topic: `${config.risco_mqtt_topic}/alarm/status`,
         },
         payload_on: '1',
         payload_off: '0',
         device_class: systemoutputConf.device_class,
         device: getDeviceInfo(),
         qos: 1,
-        state_topic: `${config.risco_node_id}/alarm/output/${systemoutput.Id}/status`,
+        state_topic: `${config.risco_mqtt_topic}/alarm/output/${systemoutput.Id}/status`,
       };
 
       const outputName = systemoutputConf.name || systemoutput.Label;
@@ -784,30 +786,30 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
 
       const payload: any = {
         availability: {
-          topic: `${config.risco_node_id}/alarm/status`,
+          topic: `${config.risco_mqtt_topic}/alarm/status`,
         },
-        unique_id: `${config.risco_node_id}-zone-${zone.Id}`,
+        unique_id: `${config.risco_mqtt_topic}-zone-${zone.Id}`,
         payload_on: '1',
         payload_off: '0',
         device_class: zoneConf.device_class,
         device: getDeviceInfo(),
         qos: 1,
-        state_topic: `${config.risco_node_id}/alarm/zone/${zone.Id}/status`,
-        json_attributes_topic: `${config.risco_node_id}/alarm/zone/${zone.Id}`,
+        state_topic: `${config.risco_mqtt_topic}/alarm/zone/${zone.Id}/status`,
+        json_attributes_topic: `${config.risco_mqtt_topic}/alarm/zone/${zone.Id}`,
       };
 
       const alarmSensorPayload: any = {
         availability: {
-          topic: `${config.risco_node_id}/alarm/status`,
+          topic: `${config.risco_mqtt_topic}/alarm/status`,
         },
-        unique_id: `${config.risco_node_id}-zone-alarm-${zone.Id}`,
+        unique_id: `${config.risco_mqtt_topic}-zone-alarm-${zone.Id}`,
         payload_on: '1',
         payload_off: '0',
         device_class: 'problem',
         device: getDeviceInfo(),
         qos: 1,
-        state_topic: `${config.risco_node_id}/alarm/zone/${zone.Id}/alarm/status`,
-        json_attributes_topic: `${config.risco_node_id}/alarm/zone/${zone.Id}`,
+        state_topic: `${config.risco_mqtt_topic}/alarm/zone/${zone.Id}/alarm/status`,
+        json_attributes_topic: `${config.risco_mqtt_topic}/alarm/zone/${zone.Id}`,
       };
 
       if (zoneConf.off_delay) {
@@ -846,9 +848,9 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
 
       const payload: any = {
         availability: {
-          topic: `${config.risco_node_id}/alarm/status`,
+          topic: `${config.risco_mqtt_topic}/alarm/status`,
         },
-        unique_id: `${config.risco_node_id}-zone-${zone.Id}-bypass`,
+        unique_id: `${config.risco_mqtt_topic}-zone-${zone.Id}-bypass`,
         payload_on: '1',
         payload_off: '0',
         state_on: '1',
@@ -856,8 +858,8 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
         icon: 'mdi:toggle-switch-off',
         device: getDeviceInfo(),
         qos: 1,
-        state_topic: `${config.risco_node_id}/alarm/zone/${zone.Id}-bypass/status`,
-        command_topic: `${config.risco_node_id}/alarm/zone/${zone.Id}-bypass/set`,
+        state_topic: `${config.risco_mqtt_topic}/alarm/zone/${zone.Id}-bypass/status`,
+        command_topic: `${config.risco_mqtt_topic}/alarm/zone/${zone.Id}-bypass/set`,
       };
 
       const zoneName = zoneConf.name || zone.Label;
@@ -885,16 +887,16 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
 
       const payload: any = {
         availability: {
-          topic: `${config.risco_node_id}/alarm/status`,
+          topic: `${config.risco_mqtt_topic}/alarm/status`,
         },
-        unique_id: `${config.risco_node_id}-zone-${zone.Id}-battery`,
+        unique_id: `${config.risco_mqtt_topic}-zone-${zone.Id}-battery`,
         payload_on: '1',
         payload_off: '0',
         device_class: 'battery',
         device: getDeviceInfo(),
         qos: 1,
-        state_topic: `${config.risco_node_id}/alarm/zone/${zone.Id}/battery/status`,
-        json_attributes_topic: `${config.risco_node_id}/alarm/zone/${zone.Id}`,
+        state_topic: `${config.risco_mqtt_topic}/alarm/zone/${zone.Id}/battery/status`,
+        json_attributes_topic: `${config.risco_mqtt_topic}/alarm/zone/${zone.Id}`,
       };
 
       const zoneName = zoneConf.name || zone.Label;
@@ -961,22 +963,22 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     if (!listenerInstalled) {
       logger.info(`Subscribing to Home assistant commands topics`);
       for (const partition of activePartitions(panel.partitions)) {
-        const partitionCommandsTopic = `${config.risco_node_id}/alarm/partition/${partition.Id}/set`;
+        const partitionCommandsTopic = `${config.risco_mqtt_topic}/alarm/partition/${partition.Id}/set`;
         logger.info(`Subscribing to ${partitionCommandsTopic} topic`);
         mqttClient.subscribe(partitionCommandsTopic);
       }
       for (const zone of activeZones(panel.zones)) {
-        const zoneBypassTopic = `${config.risco_node_id}/alarm/zone/${zone.Id}-bypass/set`;
+        const zoneBypassTopic = `${config.risco_mqtt_topic}/alarm/zone/${zone.Id}-bypass/set`;
         logger.info(`Subscribing to ${zoneBypassTopic} topic`);
         mqttClient.subscribe(zoneBypassTopic);
       }
       for (const output of activeToggleOutputs(panel.outputs)) {
-        const outputTopic = `${config.risco_node_id}/alarm/output/${output.Id}/trigger`;
+        const outputTopic = `${config.risco_mqtt_topic}/alarm/output/${output.Id}/trigger`;
         logger.info(`Subscribing to ${outputTopic} topic`);
         mqttClient.subscribe(outputTopic);
       }
       for (const output of activeButtonOutputs(panel.outputs)) {
-        const outputTopic = `${config.risco_node_id}/alarm/output/${output.Id}/trigger`;
+        const outputTopic = `${config.risco_mqtt_topic}/alarm/output/${output.Id}/trigger`;
         logger.info(`Subscribing to ${outputTopic} topic`);
         mqttClient.subscribe(outputTopic);
       }
