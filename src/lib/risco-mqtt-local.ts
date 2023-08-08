@@ -31,6 +31,7 @@ export interface RiscoMQTTConfig {
   ha_discovery_prefix_topic?: string,
   ha_discovery_include_nodeId?: boolean,
   risco_node_id?: string,
+  filter_bypass_zones: boolean,
   partitions?: {
     default?: PartitionConfig
     [label: string]: PartitionConfig
@@ -111,10 +112,11 @@ const CONFIG_DEFAULTS: RiscoMQTTConfig = {
   ha_discovery_prefix_topic: 'homeassistant',
   ha_discovery_include_nodeId: false,
   risco_node_id: 'risco-alarm-panel',
+  filter_bypass_zones: true,
   panel: {},
   partitions: {
     default: {
-      name_prefix: 'risco alarm panel',
+      name_prefix: '',
     },
   },
   zones: {
@@ -206,7 +208,6 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
   let mqttReady = false;
   let listenerInstalled = false;
   let initialized = false;
-  let haonline = false;
 
   if (!config.mqtt?.url) throw new Error('mqtt url option is required');
 
@@ -326,11 +327,16 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     } else if (topic == `${config.ha_discovery_prefix_topic}/status`) {
       if (message.toString() === 'online') {
         logger.info('Home Assistant is online');
-        publishInitialStates();
-        haonline = true;
+        if (!initialized) {
+          logger.info(`Delay 30 seconds before publishing initial states`);
+          let t: any;
+          t = setTimeout(() => publishInitialStates(),30000);
+          initialized = false;
+        } else {
+          publishInitialStates();
+        }
       } else {
         logger.info('Home Assistant has gone offline');
-        haonline = false;
       }
     }
   });
@@ -538,7 +544,11 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     return zones.values.filter(z => !z.NotUsed);
   }
   function activeBypassZones(zones: ZoneList): Zone[] {
-    return zones.values.filter(z => z.Type !== 3 && !z.NotUsed);
+    if (config.filter_bypass_zones === true) {
+      return zones.values.filter(z => z.Type !== 3 && !z.NotUsed);
+    } else {
+      return zones.values.filter(z => !z.NotUsed);
+    }
   }
   function batteryZones(zones: ZoneList): Zone[] {
     return zones.values.filter(z => z.tech === 'W');
@@ -946,9 +956,6 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     if (!initialized) {
       publishHomeAssistantDiscoveryInfo();
       publishOnline();
-      logger.info(`Waiting 30 seconds before publishing initial states to allow autodiscovery to complete.`)
-      let t: any;
-      t = setTimeout(() => publishInitialStates(), 30000);
     }
 
     if (!listenerInstalled) {
