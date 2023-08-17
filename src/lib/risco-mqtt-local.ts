@@ -268,6 +268,10 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     mqttReady = false;
   });
 
+  const ALARM_TOPIC_REGEX = new RegExp(`^${config.risco_mqtt_topic}/alarm/partition/([0-9]+)/set$`);
+  const ZONE_BYPASS_TOPIC_REGEX = new RegExp(`^${config.risco_mqtt_topic}/alarm/zone/([0-9]+)-bypass/set$`);
+  const OUTPUT_TOPIC_REGEX = new RegExp(`^${config.risco_mqtt_topic}/alarm/output/([0-9]+)/set$`);
+
   mqttClient.on('message', (topic, message) => {
     let m;
     if ((m = ALARM_TOPIC_REGEX.exec(topic)) !== null) {
