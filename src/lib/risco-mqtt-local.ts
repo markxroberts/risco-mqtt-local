@@ -19,10 +19,6 @@ import { cloneDeep } from 'lodash';
 const { createLogger, format, transports } = pkg;
 const { combine, timestamp, printf, colorize } = format;
 
-const ALARM_TOPIC_REGEX = /^\w+\/alarm\/partition\/([0-9]+)\/set$/m;
-const ZONE_BYPASS_TOPIC_REGEX = /^\w+\/alarm\/zone\/([0-9]+)-bypass\/set$/m;
-const OUTPUT_TOPIC_REGEX = /^\w+\/alarm\/output\/([0-9]+)\/trigger$/m;
-
 type LogLevel = 'error' | 'warn' | 'info' | 'verbose' | 'debug';
 
 export interface RiscoMQTTConfig {
@@ -270,7 +266,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
 
   const ALARM_TOPIC_REGEX = new RegExp(`^${config.risco_mqtt_topic}/alarm/partition/([0-9]+)/set$`);
   const ZONE_BYPASS_TOPIC_REGEX = new RegExp(`^${config.risco_mqtt_topic}/alarm/zone/([0-9]+)-bypass/set$`);
-  const OUTPUT_TOPIC_REGEX = new RegExp(`^${config.risco_mqtt_topic}/alarm/output/([0-9]+)/set$`);
+  const OUTPUT_TOPIC_REGEX = new RegExp(`^${config.risco_mqtt_topic}/alarm/output/([0-9]+)/trigger$`);
 
   mqttClient.on('message', (topic, message) => {
     let m;
