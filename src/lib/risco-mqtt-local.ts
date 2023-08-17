@@ -107,7 +107,6 @@ const CONFIG_DEFAULTS: RiscoMQTTConfig = {
   log: 'info',
   logColorize: false,
   ha_discovery_prefix_topic: 'homeassistant',
-  ha_discovery_include_nodeId: false,
   risco_mqtt_topic: 'risco-alarm-panel',
   alarm_system_name: 'Risco Alarm',
   filter_bypass_zones: true,
@@ -656,12 +655,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       const partitionName = partitionConf.name || partition.Label;
       payload.name = partitionConf.name_prefix + partitionName;
 
-      let partitionIdSegment: string;
-      if (config.ha_discovery_include_nodeId) {
-        partitionIdSegment = `${partition.Label.replace(/ /g, '-')}/${partition.Id}`;
-      } else {
-        partitionIdSegment = `${partition.Id}`;
-      }
+      let partitionIdSegment = `${partition.Id}`;
 
       mqttClient.publish(`${config.ha_discovery_prefix_topic}/alarm_control_panel/${config.risco_mqtt_topic}/${partitionIdSegment}/config`, JSON.stringify(payload), {
         qos: 1, retain: true,
@@ -696,12 +690,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       const useroutputName = useroutputConf.name || output.Label;
       payload.name = useroutputConf.name_prefix + useroutputName;
 
-      let useroutputIdSegment: string;
-      if (config.ha_discovery_include_nodeId) {
-        useroutputIdSegment = `${output.Label.replace(/ /g, '-')}/${output.Id}`;
-      } else {
-        useroutputIdSegment = `${output.Id}`;
-      }
+      let useroutputIdSegment = `${output.Id}`;
 
       mqttClient.publish(`${config.ha_discovery_prefix_topic}/switch/${config.risco_mqtt_topic}/${useroutputIdSegment}-output/config`, JSON.stringify(payload), {
         qos: 1, retain: true,
@@ -730,12 +719,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       const useroutputName = useroutputConf.name || output.Label;
       payload.name = useroutputConf.name_prefix + useroutputName;
 
-      let useroutputIdSegment: string;
-      if (config.ha_discovery_include_nodeId) {
-        useroutputIdSegment = `${output.Label.replace(/ /g, '-')}/${output.Id}`;
-      } else {
-        useroutputIdSegment = `${output.Id}`;
-      }
+      let useroutputIdSegment = `${output.Id}`;
 
       mqttClient.publish(`${config.ha_discovery_prefix_topic}/button/${config.risco_mqtt_topic}/${useroutputIdSegment}-output/config`, JSON.stringify(payload), {
         qos: 1, retain: true,
@@ -765,14 +749,9 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       const outputName = systemoutputConf.name || systemoutput.Label;
       payload.name = systemoutputConf.name_prefix + outputName;
 
-      let systemoutputIdSegment: string;
-      if (config.ha_discovery_include_nodeId) {
-        systemoutputIdSegment = `${systemoutput.Label.replace(/ /g, '-')}/${systemoutput.Id}`;
-      } else {
-        systemoutputIdSegment = `${systemoutput.Id}`;
-      }
+      let systemoutputIdSegment = `${systemoutput.Id}`;
       
-      mqttClient.publish(`${config.ha_discovery_prefix_topic}/binary_sensor/${systemoutputIdSegment}-output/config`, JSON.stringify(payload), {
+      mqttClient.publish(`${config.ha_discovery_prefix_topic}/binary_sensor/${config.risco_mqtt_topic}/${systemoutputIdSegment}-output/config`, JSON.stringify(payload), {
         qos: 1, retain: true,
       });
       logger.info(`[Panel => MQTT][Discovery] Published binary_sensor to HA: Output label = ${systemoutput.Label}, HA name = ${payload.name}`);
@@ -820,18 +799,13 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       payload.name = zoneConf.name_prefix + zoneName;
       alarmSensorPayload.name = zoneConf.name_prefix + zoneName + ' Alarm';
 
-      let nodeIdSegment: string;
-      if (config.ha_discovery_include_nodeId) {
-        nodeIdSegment = `${zone.Label.replace(/ /g, '-')}/${zone.Id}`;
-      } else {
-        nodeIdSegment = `${zone.Id}`;
-      }
+      let nodeIdSegment = `${zone.Id}`;
 
-      mqttClient.publish(`${config.ha_discovery_prefix_topic}/binary_sensor/${nodeIdSegment}/config`, JSON.stringify(payload), {
+      mqttClient.publish(`${config.ha_discovery_prefix_topic}/binary_sensor/${config.risco_mqtt_topic}/${nodeIdSegment}/config`, JSON.stringify(payload), {
         qos: 1,
         retain: true,
       });
-      mqttClient.publish(`${config.ha_discovery_prefix_topic}/binary_sensor/${nodeIdSegment}-alarm/config`, JSON.stringify(alarmSensorPayload), {
+      mqttClient.publish(`${config.ha_discovery_prefix_topic}/binary_sensor/${config.risco_mqtt_topic}/${nodeIdSegment}-alarm/config`, JSON.stringify(alarmSensorPayload), {
         qos: 1,
         retain: true,
       });
@@ -865,14 +839,9 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       const zoneName = zoneConf.name || zone.Label;
       payload.name = zoneConf.name_prefix + zoneName + ' Bypass';
 
-      let nodeIdSegment: string;
-      if (config.ha_discovery_include_nodeId) {
-        nodeIdSegment = `${zone.Label.replace(/ /g, '-')}/${zone.Id}`;
-      } else {
-        nodeIdSegment = `${zone.Id}`;
-      }
+      let nodeIdSegment = `${zone.Id}`;
 
-      mqttClient.publish(`${config.ha_discovery_prefix_topic}/switch/${nodeIdSegment}-bypass/config`, JSON.stringify(payload), {
+      mqttClient.publish(`${config.ha_discovery_prefix_topic}/switch/${config.risco_mqtt_topic}/${nodeIdSegment}-bypass/config`, JSON.stringify(payload), {
         qos: 1,
         retain: true,
       });
@@ -902,20 +871,14 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       const zoneName = zoneConf.name || zone.Label;
       payload.name = zoneConf.name_prefix + zoneName + ' Battery';
 
-      let nodeIdSegment: string;
-      if (config.ha_discovery_include_nodeId) {
-        nodeIdSegment = `${zone.Label.replace(/ /g, '-')}/${zone.Id}_battery`;
-      } else {
-        nodeIdSegment = `${zone.Id}_battery`;
-      }
+      let nodeIdSegment = `${zone.Id}_battery`;
 
-      mqttClient.publish(`${config.ha_discovery_prefix_topic}/binary_sensor/${nodeIdSegment}/config`, JSON.stringify(payload), {
+      mqttClient.publish(`${config.ha_discovery_prefix_topic}/binary_sensor/${config.risco_mqtt_topic}/${nodeIdSegment}/config`, JSON.stringify(payload), {
         qos: 1,
         retain: true,
       });
       logger.info(`[Panel => MQTT][Discovery] Published binary_sensor to HA: Zone label = ${zone.Label}, HA name = ${payload.name}`);
       logger.verbose(`[Panel => MQTT][Discovery] Sensor discovery payload\n${JSON.stringify(payload, null, 2)}`);
-
     }
   }
 
