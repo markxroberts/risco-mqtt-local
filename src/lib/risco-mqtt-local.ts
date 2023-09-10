@@ -355,7 +355,6 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
         logger.info('Message to restart everything');
         removeListeners();
         initialized = false;
-        initializing = true;
         let t: any;
         t = setTimeout(() => panel = new RiscoPanel(config.panel),5000);
       }
