@@ -208,8 +208,13 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
 
   if (!config.mqtt?.url) throw new Error('mqtt url option is required');
 
-  const panel = new RiscoPanel(config.panel);
+  let panel = new RiscoPanel(config.panel);
   let alarmMapping: PartitionArmingModes[] = [];
+
+  function restart(){
+    panel = new RiscoPanel(config.panel);
+  }
+
 
   panel.on('SystemInitComplete', () => {
     panel.riscoComm.tcpSocket.on('Disconnected', () => {
@@ -1083,9 +1088,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
         logger.info(`Subscribing to ${outputTopic} topic`);
         mqttClient.subscribe(outputTopic);
       }
-      if (config.panel.socketMode === 'proxy') {
-        publishCloudStatus(panel.proxy.cloudConnected);
-      }
+      
       publishPanelStatus(panelReady);
       logger.info(`Subscribing to panel partitions events`);
       panel.partitions.on('PStatusChanged', (Id, EventStr) => {
