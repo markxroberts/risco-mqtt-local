@@ -726,8 +726,8 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     mqttClient.publish(`${config.ha_discovery_prefix_topic}/button/${config.risco_mqtt_topic}/repubish_autodiscovery/config`, JSON.stringify(panelPayload), {
       qos: 1, retain: true,
     });
-    logger.info(`[Panel => MQTT][Discovery] Published republish autodiscovery button, HA name = ${republishStatePayload.name}`);
-    logger.verbose(`[Panel => MQTT][Discovery] Republish autodiscovery payload\n${JSON.stringify(republishStatePayload, null, 2)}`);
+    logger.info(`[Panel => MQTT][Discovery] Published republish autodiscovery button, HA name = ${republishAutodiscoveryPayload.name}`);
+    logger.verbose(`[Panel => MQTT][Discovery] Republish autodiscovery payload\n${JSON.stringify(republishAutodiscoveryPayload, null, 2)}`);
 
     const restartPayload = {
       name: `Restart everything`,
@@ -745,8 +745,8 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     mqttClient.publish(`${config.ha_discovery_prefix_topic}/button/${config.risco_mqtt_topic}/repubish_autodiscovery/config`, JSON.stringify(panelPayload), {
       qos: 1, retain: true,
     });
-    logger.info(`[Panel => MQTT][Discovery] Published restart everything button, HA name = ${republishStatePayload.name}`);
-    logger.verbose(`[Panel => MQTT][Discovery] Republish restart everything payload\n${JSON.stringify(republishStatePayload, null, 2)}`);
+    logger.info(`[Panel => MQTT][Discovery] Published restart everything button, HA name = ${restartPayload.name}`);
+    logger.verbose(`[Panel => MQTT][Discovery] Republish restart everything payload\n${JSON.stringify(restartPayload, null, 2)}`);
 
     for (const partition of activePartitions(panel.partitions)) {
 
@@ -1083,7 +1083,8 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
         logger.info(`Subscribing to ${outputTopic} topic`);
         mqttClient.subscribe(outputTopic);
       }
-      
+      mqttClient.subscribe(`${config.risco_mqtt_topic}/alarm/republish`);
+
       publishPanelStatus(panelReady);
       logger.info(`Subscribing to panel partitions events`);
       panel.partitions.on('PStatusChanged', (Id, EventStr) => {
