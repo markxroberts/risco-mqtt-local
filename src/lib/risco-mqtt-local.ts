@@ -658,9 +658,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       state_topic: `${config.risco_mqtt_topic}/alarm/panelstatus`,
       unique_id: `${config.risco_mqtt_topic}-panelstatus`,
       availability: {
-        topic: `${config.risco_mqtt_topic}/alarm/panelstatus`,
-        payload_available: '1',
-        payload_not_available: '0',
+        topic: `${config.risco_mqtt_topic}/alarm/status`,
       },
       payload_on: '1',
       payload_off: '0',
@@ -699,8 +697,6 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       unique_id: `${config.risco_mqtt_topic}-republish-state`,
       availability: {
         topic: `${config.risco_mqtt_topic}/alarm/button_status`,
-        payload_available: '1',
-        payload_not_available: '0',
       },
       payload_press: 'states',
       command_topic: `${config.risco_mqtt_topic}/republish`,
@@ -720,8 +716,6 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       unique_id: `${config.risco_mqtt_topic}-republish-autodiscovery`,
       availability: {
         topic: `${config.risco_mqtt_topic}/alarm/button_status`,
-        payload_available: '1',
-        payload_not_available: '0',
       },
       payload_press: 'autodiscovery',
       command_topic: `${config.risco_mqtt_topic}/republish`,
@@ -741,8 +735,6 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       unique_id: `${config.risco_mqtt_topic}-restart`,
       availability: {
         topic: `${config.risco_mqtt_topic}/alarm/button_status`,
-        payload_available: '1',
-        payload_not_available: '0',
       },
       payload_press: 'full',
       command_topic: `${config.risco_mqtt_topic}/republish`,
