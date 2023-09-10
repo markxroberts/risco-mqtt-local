@@ -205,6 +205,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
   let mqttReady = false;
   let listenerInstalled = false;
   let initialized = false;
+  let loop;
 
   if (!config.mqtt?.url) throw new Error('mqtt url option is required');
 
@@ -352,8 +353,11 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
         initialized = true;
       } else if (message.toString() === 'full') {
         logger.info('Message to restart everything');
-        panel = new RiscoPanel(config.panel);
-        initialized = true;
+        removeListeners();
+        initialized = false;
+        initializing = true;
+        let t: any;
+        t = setTimeout(() => panel = new RiscoPanel(config.panel),5000);
       }
     }
   });
@@ -600,6 +604,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
   }
 
   function publishOnline() {
+    clearTimeout(loop);
     mqttClient.publish(`${config.risco_mqtt_topic}/alarm/status`, 'online', {
       qos: 1, retain: true,
     });
@@ -607,6 +612,9 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       qos: 1, retain: true,
     });
     logger.verbose('[Panel => MQTT] Published alarm online');
+    loop = setTimeout(function() {
+      publishOffline();
+      publishPanelStatus(false)},6000);
   }
 
   function publishOffline() {
@@ -1047,6 +1055,49 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     publishSystemStateChange('System initialized')
   }
 
+  function partitionListener(Id, EventStr) {
+    if (['Armed', 'Disarmed', 'HomeStay', 'HomeDisarmed', 'Alarm', 'StandBy', 'GrpAArmed', 'GrpBArmed', 'GrpCArmed', 'GrpDArmed', 'GrpADisarmed', 'GrpBDisarmed', 'GrpCDisarmed', 'GrpDDisarmed'].includes(EventStr)) {
+      publishPartitionStateChanged(panel.partitions.byId(Id));
+    }
+  }
+
+  function zoneListener(Id, EventStr) {
+    if (['Closed', 'Open'].includes(EventStr)) {
+      publishZoneStateChange(panel.zones.byId(Id), false);
+    }
+    if (['Bypassed', 'UnBypassed'].includes(EventStr)) {
+      publishZoneBypassStateChange(panel.zones.byId(Id));
+      publishZoneStateChange(panel.zones.byId(Id), true);
+    }
+    if (['LowBattery', 'BatteryOK'].includes(EventStr)) {
+      publishZoneStateChange(panel.zones.byId(Id), true);
+      publishZoneBatteryStateChange(panel.zones.byId(Id), false);
+    }
+    if (['Alarm', 'StandBy'].includes(EventStr)) {
+      publishZoneStateChange(panel.zones.byId(Id), true);
+      publishZoneAlarmStateChange(panel.zones.byId(Id), false);
+    }
+  }
+
+  function outputListener(Id, EventStr) {
+    if (['Pulsed', 'Activated', 'Deactivated'].includes(EventStr)) {
+      publishOutputStateChange(panel.outputs.byId(Id), EventStr);
+    }
+  }
+
+  function removeListeners() {
+    logger.info(`Removing event subscribers`);
+    panel.partitions.removeListener('PStatusChanged', (Id, EventStr) => {partitionListener(Id, EventStr)});
+    panel.zones.removeListener('ZStatusChanged', (Id, EventStr) => {zoneListener(Id,EventStr)});
+    panel.outputs.removeListener('OStatusChanged', (Id, EventStr) => {outputListener(Id,EventStr)});
+    panel.mbSystem.removeListener('SStatusChanged', (EventStr, value) => {publishSystemStateChange(EventStr)});
+    panel.riscoComm.removeListener('Clock', publishOnline);
+    panel.riscoComm.tcpSocket.removeListener('Disconnected', (data) => {publishPanelStatus(false)});
+    panel.riscoComm.removeListener('PanelCommReady', (data) => {publishPanelStatus(true)});
+    panel.riscoComm.tcpSocket.removeListener('CloudConnected', () => {publishCloudStatus(true)});
+    panel.riscoComm.tcpSocket.removeListener('CloudDisconnected', () => {publishCloudStatus(false)});
+  }
+
   function panelOrMqttConnected() {
     if (!panelReady) {
       logger.info(`Panel is not connected, waiting`);
@@ -1090,41 +1141,16 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
 
       publishPanelStatus(panelReady);
       logger.info(`Subscribing to panel partitions events`);
-      panel.partitions.on('PStatusChanged', (Id, EventStr) => {
-        if (['Armed', 'Disarmed', 'HomeStay', 'HomeDisarmed', 'Alarm', 'StandBy', 'GrpAArmed', 'GrpBArmed', 'GrpCArmed', 'GrpDArmed', 'GrpADisarmed', 'GrpBDisarmed', 'GrpCDisarmed', 'GrpDDisarmed'].includes(EventStr)) {
-          publishPartitionStateChanged(panel.partitions.byId(Id));
-        }
-      });
+      panel.partitions.on('PStatusChanged', (Id, EventStr) => {partitionListener(Id, EventStr)});
+
       logger.info(`Subscribing to panel zones events`);
-      panel.zones.on('ZStatusChanged', (Id, EventStr) => {
-        if (['Closed', 'Open'].includes(EventStr)) {
-          publishZoneStateChange(panel.zones.byId(Id), false);
-        }
-        if (['Bypassed', 'UnBypassed'].includes(EventStr)) {
-          publishZoneBypassStateChange(panel.zones.byId(Id));
-          publishZoneStateChange(panel.zones.byId(Id), true);
-        }
-        if (['LowBattery', 'BatteryOK'].includes(EventStr)) {
-          publishZoneStateChange(panel.zones.byId(Id), true);
-          publishZoneBatteryStateChange(panel.zones.byId(Id), false);
-        }
-        if (['Alarm', 'StandBy'].includes(EventStr)) {
-          publishZoneStateChange(panel.zones.byId(Id), true);
-          publishZoneAlarmStateChange(panel.zones.byId(Id), false);
-        }
-      });
+      panel.zones.on('ZStatusChanged', (Id, EventStr) => {zoneListener(Id,EventStr)});
       
       logger.info(`Subscribing to panel outputs events`);
-      panel.outputs.on('OStatusChanged', (Id, EventStr) => {
-        if (['Pulsed', 'Activated', 'Deactivated'].includes(EventStr)) {
-          publishOutputStateChange(panel.outputs.byId(Id), EventStr);
-        }
-      });
+      panel.outputs.on('OStatusChanged', (Id, EventStr) => {outputListener(Id,EventStr)});
 
       logger.info(`Subscribing to panel system events`);
-      panel.mbSystem.on('SStatusChanged', (EventStr, value) => {
-        publishSystemStateChange(EventStr);
-      });
+      panel.mbSystem.on('SStatusChanged', (EventStr, value) => {publishSystemStateChange(EventStr)});
 
       logger.info(`Subscribing to Home Assistant online status`);
       mqttClient.subscribe(`${config.ha_discovery_prefix_topic}/status`, { qos: 0 }, function(error, granted) {
