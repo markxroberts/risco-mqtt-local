@@ -701,10 +701,11 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       payload_press: 'states',
       command_topic: `${config.risco_mqtt_topic}/republish`,
       entity_category: 'diagnostic',
+      device_class: 'restart',
       device: getDeviceInfo(),
     };
 
-    mqttClient.publish(`${config.ha_discovery_prefix_topic}/button/${config.risco_mqtt_topic}/repubish_state/config`, JSON.stringify(panelPayload), {
+    mqttClient.publish(`${config.ha_discovery_prefix_topic}/button/${config.risco_mqtt_topic}/repubish_state/config`, JSON.stringify(republishStatePayload), {
       qos: 1, retain: true,
     });
     logger.info(`[Panel => MQTT][Discovery] Published republish state button, HA name = ${republishStatePayload.name}`);
@@ -720,10 +721,11 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       payload_press: 'autodiscovery',
       command_topic: `${config.risco_mqtt_topic}/republish`,
       entity_category: 'diagnostic',
+      device_class: 'restart',
       device: getDeviceInfo(),
     };
 
-    mqttClient.publish(`${config.ha_discovery_prefix_topic}/button/${config.risco_mqtt_topic}/repubish_autodiscovery/config`, JSON.stringify(panelPayload), {
+    mqttClient.publish(`${config.ha_discovery_prefix_topic}/button/${config.risco_mqtt_topic}/repubish_autodiscovery/config`, JSON.stringify(republishAutodiscoveryPayload), {
       qos: 1, retain: true,
     });
     logger.info(`[Panel => MQTT][Discovery] Published republish autodiscovery button, HA name = ${republishAutodiscoveryPayload.name}`);
@@ -739,10 +741,11 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       payload_press: 'full',
       command_topic: `${config.risco_mqtt_topic}/republish`,
       entity_category: 'diagnostic',
+      device_class: 'restart',
       device: getDeviceInfo(),
     };
 
-    mqttClient.publish(`${config.ha_discovery_prefix_topic}/button/${config.risco_mqtt_topic}/repubish_autodiscovery/config`, JSON.stringify(panelPayload), {
+    mqttClient.publish(`${config.ha_discovery_prefix_topic}/button/${config.risco_mqtt_topic}/repubish_autodiscovery/config`, JSON.stringify(restartPayload), {
       qos: 1, retain: true,
     });
     logger.info(`[Panel => MQTT][Discovery] Published restart everything button, HA name = ${restartPayload.name}`);
