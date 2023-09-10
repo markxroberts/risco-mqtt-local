@@ -712,7 +712,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     logger.verbose(`[Panel => MQTT][Discovery] Republish state payload\n${JSON.stringify(republishStatePayload, null, 2)}`);
 
     const republishAutodiscoveryPayload = {
-      name: `Republish state payload`,
+      name: `Republish autodiscovery payload`,
       object_id: `${config.risco_mqtt_topic}-republish-autodiscovery`,
       unique_id: `${config.risco_mqtt_topic}-republish-autodiscovery`,
       availability: {
@@ -745,7 +745,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       device: getDeviceInfo(),
     };
 
-    mqttClient.publish(`${config.ha_discovery_prefix_topic}/button/${config.risco_mqtt_topic}/repubish_autodiscovery/config`, JSON.stringify(restartPayload), {
+    mqttClient.publish(`${config.ha_discovery_prefix_topic}/button/${config.risco_mqtt_topic}/restart_everything/config`, JSON.stringify(restartPayload), {
       qos: 1, retain: true,
     });
     logger.info(`[Panel => MQTT][Discovery] Published restart everything button, HA name = ${restartPayload.name}`);
