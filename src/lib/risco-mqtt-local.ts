@@ -613,7 +613,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     logger.verbose('[Panel => MQTT] Published alarm online');
     loop = setTimeout(function() {
       publishOffline();
-      publishPanelStatus(false)},6000);
+      publishPanelStatus(false)},10000);
   }
 
   function publishOffline() {
