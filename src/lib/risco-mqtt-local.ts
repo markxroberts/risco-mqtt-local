@@ -356,7 +356,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
         removeListeners();
         initialized = false;
         let t: any;
-        t = setTimeout(() => panel = new RiscoPanel(config.panel),5000);
+        t = setTimeout(() => panel = new RiscoPanel(config.panel),10000);
       }
     }
   });
