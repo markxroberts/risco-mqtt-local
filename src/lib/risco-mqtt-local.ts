@@ -211,11 +211,6 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
   let panel = new RiscoPanel(config.panel);
   let alarmMapping: PartitionArmingModes[] = [];
 
-  function restart(){
-    panel = new RiscoPanel(config.panel);
-  }
-
-
   panel.on('SystemInitComplete', () => {
     panel.riscoComm.tcpSocket.on('Disconnected', () => {
       panelReady = false;
@@ -357,7 +352,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
         initialized = true;
       } else if (message.toString() === 'full') {
         logger.info('Message to restart everything');
-        RiscoPanel(config.panel);
+        panel = new RiscoPanel(config.panel);
         initialized = true;
       }
     }
