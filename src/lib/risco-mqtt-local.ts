@@ -254,7 +254,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
   });
 
   mqttClient.on('close', () => {
-    logger.info('MQTT close');
+    logger.info('MQTT disconnected');
     mqttReady = false;
   });
 
@@ -1086,7 +1086,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
         logger.info(`Subscribing to ${outputTopic} topic`);
         mqttClient.subscribe(outputTopic);
       }
-      mqttClient.subscribe(`${config.risco_mqtt_topic}/alarm/republish`);
+      mqttClient.subscribe(`${config.risco_mqtt_topic}/republish`);
 
       publishPanelStatus(panelReady);
       logger.info(`Subscribing to panel partitions events`);
