@@ -32,6 +32,7 @@ This project is a fork of [Johann Vanackere](https://github.com/vanackej/risco-m
 - Separate binary sensors are provided that are only triggered in an alarm state. This permits automations based only on alarm-triggers.
 - Cloud proxy status sensor supported.
 - Configurable reconnection delay after dropping of Cloud connection.
+- Buttons to republish status, autodiscovery and reinitiate communications.
 
 ## Installation
 
