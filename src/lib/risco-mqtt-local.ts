@@ -745,7 +745,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       availability: {
         topic: `${config.risco_mqtt_topic}/alarm/button_status`,
       },
-      payload_press: 'full',
+      payload_press: 'communications',
       command_topic: `${config.risco_mqtt_topic}/republish`,
       entity_category: 'diagnostic',
       device_class: 'restart',
