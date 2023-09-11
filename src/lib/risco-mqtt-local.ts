@@ -351,14 +351,12 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
         logger.info('Message to republish autodiscovery data');
         publishHomeAssistantDiscoveryInfo();
         initialized = true;
-      } else if (message.toString() === 'full') {
-        logger.info('Message to restart everything');
-        removeListeners();
-        initialized = false;
-        logger.info('Waiting 30 seconds before reconnecting');
+      } else if (message.toString() === 'communications') {
+        logger.info('Message to reinitiate communications');
         panel.riscoComm.tcpSocket.disconnect(false)
+        logger.info('Waiting 30 seconds before reconnecting');
         let t: any;
-        t = setTimeout(() => panel = new RiscoPanel(config.panel),30000);
+        t = setTimeout(() => panel.riscoComm.tcpSocket.disconnect,30000);
       }
     }
   });
@@ -741,7 +739,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     logger.verbose(`[Panel => MQTT][Discovery] Republish autodiscovery payload\n${JSON.stringify(republishAutodiscoveryPayload, null, 2)}`);
 
     const restartPayload = {
-      name: `Restart everything`,
+      name: `Restart communications`,
       object_id: `${config.risco_mqtt_topic}-restart`,
       unique_id: `${config.risco_mqtt_topic}-restart`,
       availability: {
@@ -754,11 +752,11 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       device: getDeviceInfo(),
     };
 
-    mqttClient.publish(`${config.ha_discovery_prefix_topic}/button/${config.risco_mqtt_topic}/restart_everything/config`, JSON.stringify(restartPayload), {
+    mqttClient.publish(`${config.ha_discovery_prefix_topic}/button/${config.risco_mqtt_topic}/restart_communications/config`, JSON.stringify(restartPayload), {
       qos: 1, retain: true,
     });
-    logger.info(`[Panel => MQTT][Discovery] Published restart everything button, HA name = ${restartPayload.name}`);
-    logger.verbose(`[Panel => MQTT][Discovery] Republish restart everything payload\n${JSON.stringify(restartPayload, null, 2)}`);
+    logger.info(`[Panel => MQTT][Discovery] Published restart communications button, HA name = ${restartPayload.name}`);
+    logger.verbose(`[Panel => MQTT][Discovery] Republish restart communications payload\n${JSON.stringify(restartPayload, null, 2)}`);
 
     for (const partition of activePartitions(panel.partitions)) {
 
