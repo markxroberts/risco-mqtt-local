@@ -1084,19 +1084,6 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     }
   }
 
-  function removeListeners() {
-    logger.info(`Removing event subscribers`);
-    panel.partitions.removeListener('PStatusChanged', (Id, EventStr) => {partitionListener(Id, EventStr)});
-    panel.zones.removeListener('ZStatusChanged', (Id, EventStr) => {zoneListener(Id,EventStr)});
-    panel.outputs.removeListener('OStatusChanged', (Id, EventStr) => {outputListener(Id,EventStr)});
-    panel.mbSystem.removeListener('SStatusChanged', (EventStr, value) => {publishSystemStateChange(EventStr)});
-    panel.riscoComm.removeListener('Clock', publishOnline);
-    panel.riscoComm.tcpSocket.removeListener('Disconnected', (data) => {publishPanelStatus(false)});
-    panel.riscoComm.removeListener('PanelCommReady', (data) => {publishPanelStatus(true)});
-    panel.riscoComm.tcpSocket.removeListener('CloudConnected', () => {publishCloudStatus(true)});
-    panel.riscoComm.tcpSocket.removeListener('CloudDisconnected', () => {publishCloudStatus(false)});
-  }
-
   function panelOrMqttConnected() {
     if (!panelReady) {
       logger.info(`Panel is not connected, waiting`);
