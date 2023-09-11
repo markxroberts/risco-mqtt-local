@@ -355,8 +355,10 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
         logger.info('Message to restart everything');
         removeListeners();
         initialized = false;
+        logger.info('Waiting 30 seconds before reconnecting');
+        panel.riscoComm.tcpsocket.disconnect(false)
         let t: any;
-        t = setTimeout(() => panel = new RiscoPanel(config.panel),10000);
+        t = setTimeout(() => panel = new RiscoPanel(config.panel),30000);
       }
     }
   });
@@ -665,7 +667,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       state_topic: `${config.risco_mqtt_topic}/alarm/panelstatus`,
       unique_id: `${config.risco_mqtt_topic}-panelstatus`,
       availability: {
-        topic: `${config.risco_mqtt_topic}/alarm/status`,
+        topic: `${config.risco_mqtt_topic}/alarm/button_status`,
       },
       payload_on: '1',
       payload_off: '0',
