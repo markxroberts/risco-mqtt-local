@@ -1,5 +1,5 @@
 name: Risco local MQTT
-version: 2023.9.1
+version: 2023.9.2
 slug: risco-mqtt-local-addon
 description: Risco alarm HA integration using local TCP communication and MQTT
 url: https://ghcr.io/markxroberts/risco-mqtt-local
