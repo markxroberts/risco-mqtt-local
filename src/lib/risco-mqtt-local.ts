@@ -356,7 +356,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
         panel.riscoComm.tcpSocket.disconnect(false);
         logger.info('Waiting 30 seconds before reconnecting');
         let t: any;
-        t = setTimeout(() => panel.riscoComm.tcpSocket.connect,30000);
+        t = setTimeout(() => panel.riscoComm.tcpSocket.connect(),30000);
       }
     }
   });
