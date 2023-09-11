@@ -353,10 +353,10 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
         initialized = true;
       } else if (message.toString() === 'communications') {
         logger.info('Message to reinitiate communications');
-        panel.riscoComm.tcpSocket.disconnect(false)
+        panel.riscoComm.tcpSocket.disconnect(false);
         logger.info('Waiting 30 seconds before reconnecting');
         let t: any;
-        t = setTimeout(() => panel.riscoComm.tcpSocket.disconnect,30000);
+        t = setTimeout(() => panel.riscoComm.tcpSocket.connect,30000);
       }
     }
   });
@@ -740,8 +740,8 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
 
     const restartPayload = {
       name: `Restart communications`,
-      object_id: `${config.risco_mqtt_topic}-restart`,
-      unique_id: `${config.risco_mqtt_topic}-restart`,
+      object_id: `${config.risco_mqtt_topic}-restart-communications`,
+      unique_id: `${config.risco_mqtt_topic}-restart-communications`,
       availability: {
         topic: `${config.risco_mqtt_topic}/alarm/button_status`,
       },
