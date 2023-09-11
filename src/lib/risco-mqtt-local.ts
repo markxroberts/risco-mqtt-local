@@ -611,9 +611,15 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       qos: 1, retain: true,
     });
     logger.verbose('[Panel => MQTT] Published alarm online');
+    let reconnectDelay;
+    if (config.panel.socketMode === 'proxy') {
+      reconnectDelay = 31000
+    } else {
+      reconnectDelay = 11000
+    }
     loop = setTimeout(function() {
       publishOffline();
-      publishPanelStatus(false)},11000);
+      publishPanelStatus(false)},reconnectDelay);
   }
 
   function publishOffline() {
@@ -643,7 +649,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
         state_topic: `${config.risco_mqtt_topic}/alarm/cloudstatus`,
         unique_id: `${config.risco_mqtt_topic}-cloudstatus`,
         availability: {
-          topic: `${config.risco_mqtt_topic}/alarm/status`,
+          topic: `${config.risco_mqtt_topic}/alarm/button_status`,
         },
         payload_on: '1',
         payload_off: '0',
@@ -719,7 +725,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     logger.verbose(`[Panel => MQTT][Discovery] Republish state payload\n${JSON.stringify(republishStatePayload, null, 2)}`);
 
     const republishAutodiscoveryPayload = {
-      name: `Republish autodiscovery payload`,
+      name: `Republish autodiscovery`,
       object_id: `${config.risco_mqtt_topic}-republish-autodiscovery`,
       unique_id: `${config.risco_mqtt_topic}-republish-autodiscovery`,
       availability: {
@@ -1099,6 +1105,11 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     if (!initialized) {
       publishHomeAssistantDiscoveryInfo();
       publishOnline();
+    }
+
+    if (panelReady) {
+      publishCloudStatus(true)
+      publishPanelStatus(true)
     }
 
     if (!listenerInstalled) {
