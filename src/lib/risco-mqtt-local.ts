@@ -482,9 +482,10 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
 
   function publishPanelStatus(state) {
     if (config.auto_reconnect && state) {
-      if (reconnect !== null )
-      clearTimeout(reconnect);
-      reconnecting = false;
+      if (reconnect !== null ) {
+        clearTimeout(reconnect);
+        reconnecting = false;
+      }
     }
     if (config.panel.socketMode === 'proxy') {
       mqttClient.publish(`${config.risco_mqtt_topic}/alarm/proxystatus`, panelStatus(state), { qos: 1, retain: true });
@@ -631,9 +632,9 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     logger.verbose('[Panel => MQTT] Published alarm online');
     let reconnectDelay;
     if (config.panel.socketMode === 'proxy') {
-      reconnectDelay = 31000
+      reconnectDelay = 60000
     } else {
-      reconnectDelay = 11000
+      reconnectDelay = 30000
     }
     if (!reconnecting) {
       loop = setTimeout(function() {
