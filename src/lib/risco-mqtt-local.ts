@@ -479,17 +479,21 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
 
   function publishPanelStatus(state) {
     if (config.auto_reconnect && state) {
+      if (reconnect !== null )
       clearTimeout(reconnect);
+    }
+    if (config.panel.socketMode === 'proxy') {
+      mqttClient.publish(`${config.risco_mqtt_topic}/alarm/proxystatus`, panelStatus(state), { qos: 1, retain: true });
+      logger.verbose(`[Panel => MQTT] Published proxy connection status ${panelStatus(state)}`);
+    } else {
+      mqttClient.publish(`${config.risco_mqtt_topic}/alarm/panelstatus`, panelStatus(state), { qos: 1, retain: true });
+      logger.verbose(`[Panel => MQTT] Published panel connection status ${panelStatus(state)}`);
     }
     if (config.auto_reconnect && !state) {
       if (config.panel.socketMode === 'proxy') {
-        mqttClient.publish(`${config.risco_mqtt_topic}/alarm/proxystatus`, panelStatus(state), { qos: 1, retain: true });
-        logger.verbose(`[Panel => MQTT] Published proxy connection status ${panelStatus(state)}`);
         logger.info('Proxy server not communicating.  Auto-reconnect turned on.  Wait 30 seconds before restarting to allow socket to reset.')
       } else {
         logger.info('Panel not communicating.  Auto-reconnect turned on.  Wait 30 seconds before restarting to allow socket to reset.')
-        mqttClient.publish(`${config.risco_mqtt_topic}/alarm/panelstatus`, panelStatus(state), { qos: 1, retain: true });
-        logger.verbose(`[Panel => MQTT] Published panel connection status ${panelStatus(state)}`);
       }
       reconnect = setTimeout(() => panel.riscoComm.tcpSocket.connect(),30000);
     }
@@ -686,13 +690,14 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
         entity_category: 'diagnostic',
         device: getDeviceInfo(),
       }
-    };
 
-    mqttClient.publish(`${config.ha_discovery_prefix_topic}/binary_sensor/${config.risco_mqtt_topic}/panelstatus/config`, JSON.stringify(panelPayload), {
-      qos: 1, retain: true,
-    });
-    logger.info(`[Panel => MQTT][Discovery] Published panel status sensor, HA name = ${panelPayload.name}`);
-    logger.verbose(`[Panel => MQTT][Discovery] Panel status payload\n${JSON.stringify(panelPayload, null, 2)}`);
+      mqttClient.publish(`${config.ha_discovery_prefix_topic}/binary_sensor/${config.risco_mqtt_topic}/panelstatus/config`, JSON.stringify(panelPayload), {
+        qos: 1, retain: true,
+      });
+      logger.info(`[Panel => MQTT][Discovery] Published panel status sensor, HA name = ${panelPayload.name}`);
+      logger.verbose(`[Panel => MQTT][Discovery] Panel status payload\n${JSON.stringify(panelPayload, null, 2)}`);
+
+    };
 
     const systemPayload = {
       name: `System message`,
