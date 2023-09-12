@@ -209,6 +209,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
   let initialized = false;
   let loop;
   let reconnect;
+  let reconnecting = false;
 
   if (!config.mqtt?.url) throw new Error('mqtt url option is required');
 
@@ -357,6 +358,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       } else if (message.toString() === 'communications') {
         logger.info('Message to reinitiate communications');
         panel.riscoComm.tcpSocket.disconnect(false);
+        reconnecting = true;
         logger.info('Waiting 30 seconds before reconnecting to allow socket to reset');
         let t: any;
         t = setTimeout(() => panel.riscoComm.tcpSocket.connect(),30000);
@@ -482,6 +484,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     if (config.auto_reconnect && state) {
       if (reconnect !== null )
       clearTimeout(reconnect);
+      reconnecting = false;
     }
     if (config.panel.socketMode === 'proxy') {
       mqttClient.publish(`${config.risco_mqtt_topic}/alarm/proxystatus`, panelStatus(state), { qos: 1, retain: true });
@@ -496,6 +499,8 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       } else {
         logger.info('Panel not communicating.  Auto-reconnect turned on.  Wait 30 seconds before restarting to allow socket to reset.')
       }
+      panel.riscoComm.tcpSocket.disconnect(false);
+      reconnecting = true
       reconnect = setTimeout(() => panel.riscoComm.tcpSocket.connect(),30000);
     }
   }
@@ -626,13 +631,15 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     logger.verbose('[Panel => MQTT] Published alarm online');
     let reconnectDelay;
     if (config.panel.socketMode === 'proxy') {
-      reconnectDelay = 121000
+      reconnectDelay = 31000
     } else {
       reconnectDelay = 11000
     }
-    loop = setTimeout(function() {
+    if (!reconnecting) {
+      loop = setTimeout(function() {
       publishOffline();
       publishPanelStatus(false)},reconnectDelay);
+    }
   }
 
   function publishOffline() {
