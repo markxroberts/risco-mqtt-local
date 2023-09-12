@@ -64,7 +64,7 @@ Create a file config.json in your project directory.  I suggest using config-sam
   "ha_discovery_prefix_topic": "homeassistant" //Optional
   "risco_mqtt_topic": "risco-alarm-panel", //Optional - topic to which state changes are published for multiple instances
   "filter_bypass_zones": true, // Optional - system filters out non-functional bypasses (usually entry and exit zones)
-  "auto_reconnect": false, // Optional - reconnect when socket closes.
+  "auto_reconnect": true, // Optional - reconnect when socket closes (most useful for proxy connections).
   "alarm_system_name": "Risco Alarm", //Optional - Device name and therefore prefix for HA sensor name
 
   "mqtt": {
