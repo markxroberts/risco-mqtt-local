@@ -208,6 +208,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
   let listenerInstalled = false;
   let initialized = false;
   let loop;
+  let reconnect;
 
   if (!config.mqtt?.url) throw new Error('mqtt url option is required');
 
