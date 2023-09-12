@@ -626,7 +626,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     logger.verbose('[Panel => MQTT] Published alarm online');
     let reconnectDelay;
     if (config.panel.socketMode === 'proxy') {
-      reconnectDelay = 31000
+      reconnectDelay = 121000
     } else {
       reconnectDelay = 11000
     }
