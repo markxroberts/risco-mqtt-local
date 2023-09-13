@@ -1,2 +1,2 @@
-FROM markxroberts/risco-mqtt-local:2023.9.9
+FROM markxroberts/risco-mqtt-local:2023.9.12
 ENV RISCO_MQTT_HA_CONFIG_FILE="/config/risco-mqtt.json"
