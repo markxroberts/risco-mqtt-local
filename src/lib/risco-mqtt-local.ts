@@ -486,7 +486,6 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
         clearTimeout(reconnect);
         reconnecting = false;
       }
-    }
     if (config.panel.socketMode === 'proxy') {
       mqttClient.publish(`${config.risco_mqtt_topic}/alarm/proxystatus`, panelStatus(state), { qos: 1, retain: true });
       logger.verbose(`[Panel => MQTT] Published proxy connection status ${panelStatus(state)}`);
@@ -507,7 +506,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     } if (initialized) {
       logger.info('New state received but panel reconnection in progress.')
     }
-  
+  }
 
   function publishSystemStateChange(message) {
     mqttClient.publish(`${config.risco_mqtt_topic}/alarm/systemmessage`, `${message}`, { qos: 1, retain: true });
