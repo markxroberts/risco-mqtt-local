@@ -481,8 +481,9 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
   }
 
   function publishPanelStatus(state) {
-    if (config.auto_reconnect && state) {
+    if (config.auto_reconnect && state && !reconnecting) {
       if (reconnect !== null ) {
+        logger.verbose('Auto-reconnect enabled, but clock signal received and reconnection not initiated');
         clearTimeout(reconnect);
         reconnecting = false;
       }
