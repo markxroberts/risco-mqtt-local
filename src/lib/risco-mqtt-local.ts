@@ -625,6 +625,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
 
   function publishOnline() {
     clearTimeout(loop);
+    reconnecting = false
     mqttClient.publish(`${config.risco_mqtt_topic}/alarm/status`, 'online', {
       qos: 1, retain: true,
     });
