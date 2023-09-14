@@ -501,7 +501,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       }
       panel.riscoComm.tcpSocket.disconnect(false);
       reconnecting = true
-      if ((config.panel.socketMode === 'proxy' && config.panel.autoConnect ==='false') || config.panel.socketMode !=='proxy') {
+      if ((config.panel.socketMode === 'proxy' && !config.panel.autoConnect) || config.panel.socketMode !=='proxy') {
         reconnect = setTimeout(function() {
           panel.riscoComm.tcpSocket.connect() },30000);
         }
