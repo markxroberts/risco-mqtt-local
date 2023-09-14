@@ -1,6 +1,6 @@
 {
   "name": "@markxroberts/risco-mqtt-local",
-  "version": "2023.9.15",
+  "version": "2023.9.16",
   "description": "Node Risco Mqtt using local panel API",
   "main": "dist/main.js",
   "types": "dist/lib/index.d.ts",

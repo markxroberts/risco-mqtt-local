@@ -482,18 +482,24 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     }
   }
 
+  function publishState(state) {
+    if (config.panel.socketMode === 'proxy') {
+      mqttClient.publish(`${config.risco_mqtt_topic}/alarm/proxystatus`, panelStatus(state), { qos: 1, retain: true });
+      logger.verbose(`[Panel => MQTT] Published proxy connection status ${panelStatus(state)}`);
+    } else {
+      mqttClient.publish(`${config.risco_mqtt_topic}/alarm/panelstatus`, panelStatus(state), { qos: 1, retain: true });
+      logger.verbose(`[Panel => MQTT] Published panel connection status ${panelStatus(state)}`);
+    }
+  }
+
   function publishPanelStatus(state) {
-    if (state && !reconnecting) {
-      if (config.panel.socketMode === 'proxy') {
-        mqttClient.publish(`${config.risco_mqtt_topic}/alarm/proxystatus`, panelStatus(state), { qos: 1, retain: true });
-        logger.verbose(`[Panel => MQTT] Published proxy connection status ${panelStatus(state)}`);
-      } else {
-        mqttClient.publish(`${config.risco_mqtt_topic}/alarm/panelstatus`, panelStatus(state), { qos: 1, retain: true });
-        logger.verbose(`[Panel => MQTT] Published panel connection status ${panelStatus(state)}`);
-      }
-      if (config.auto_reconnect)
-        logger.verbose('Auto-reconnect enabled, but clock signal received and reconnection not initiated');
-        clearTimeout(reconnect);
+    if (!reconnecting) {
+      publishState(state);
+    }
+    if (config.auto_reconnect && reconnecting && state) {
+      logger.verbose('Auto-reconnect enabled, but clock signal received and reconnection not initiated');
+      clearTimeout(reconnect);
+      publishState(state);
     }
     if (config.auto_reconnect && !state && !reconnecting && initialized) {
       if (config.panel.socketMode === 'proxy') {
