@@ -485,13 +485,13 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
         logger.verbose('Auto-reconnect enabled, but clock signal received and reconnection not initiated');
         clearTimeout(reconnect);
         reconnecting = false;
+      if (config.panel.socketMode === 'proxy') {
+        mqttClient.publish(`${config.risco_mqtt_topic}/alarm/proxystatus`, panelStatus(state), { qos: 1, retain: true });
+        logger.verbose(`[Panel => MQTT] Published proxy connection status ${panelStatus(state)}`);
+      } else {
+        mqttClient.publish(`${config.risco_mqtt_topic}/alarm/panelstatus`, panelStatus(state), { qos: 1, retain: true });
+        logger.verbose(`[Panel => MQTT] Published panel connection status ${panelStatus(state)}`);
       }
-    if (config.panel.socketMode === 'proxy') {
-      mqttClient.publish(`${config.risco_mqtt_topic}/alarm/proxystatus`, panelStatus(state), { qos: 1, retain: true });
-      logger.verbose(`[Panel => MQTT] Published proxy connection status ${panelStatus(state)}`);
-    } else {
-      mqttClient.publish(`${config.risco_mqtt_topic}/alarm/panelstatus`, panelStatus(state), { qos: 1, retain: true });
-      logger.verbose(`[Panel => MQTT] Published panel connection status ${panelStatus(state)}`);
     }
     if (config.auto_reconnect && !state && !reconnecting && initialized) {
       if (config.panel.socketMode === 'proxy') {
@@ -501,9 +501,12 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       }
       panel.riscoComm.tcpSocket.disconnect(false);
       reconnecting = true
-      reconnect = setTimeout(function() {
-        panel.riscoComm.tcpSocket.connect() },30000);
-    } if (initialized) {
+      if ((config.panel.socketMode === 'proxy' && config.panel.autoConnect ==='false') || config.panel.socketMode !=='proxy') {
+        reconnect = setTimeout(function() {
+          panel.riscoComm.tcpSocket.connect() },30000);
+        }
+    }
+    if (reconnecting && initialized) {
       logger.info('New state received but panel reconnection in progress.')
     }
   }
