@@ -359,9 +359,11 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
         logger.info('Message to reinitiate communications');
         panel.riscoComm.tcpSocket.disconnect(false);
         reconnecting = true;
-        logger.info('Waiting 30 seconds before reconnecting to allow socket to reset');
-        let t: any;
-        t = setTimeout(() => panel.riscoComm.tcpSocket.connect(),30000);
+        if (!config.auto_reconnect || config.panel.socketMode !== 'proxy') {
+          logger.info('Waiting 30 seconds before reconnecting to allow socket to reset');
+          let t: any;
+          t = setTimeout(() => panel.riscoComm.tcpSocket.connect(),30000);
+        }
       }
     }
   });
@@ -481,10 +483,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
   }
 
   function publishPanelStatus(state) {
-    if (config.auto_reconnect && state && !reconnecting) {
-        logger.verbose('Auto-reconnect enabled, but clock signal received and reconnection not initiated');
-        clearTimeout(reconnect);
-        reconnecting = false;
+    if (state && !reconnecting) {
       if (config.panel.socketMode === 'proxy') {
         mqttClient.publish(`${config.risco_mqtt_topic}/alarm/proxystatus`, panelStatus(state), { qos: 1, retain: true });
         logger.verbose(`[Panel => MQTT] Published proxy connection status ${panelStatus(state)}`);
@@ -492,6 +491,9 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
         mqttClient.publish(`${config.risco_mqtt_topic}/alarm/panelstatus`, panelStatus(state), { qos: 1, retain: true });
         logger.verbose(`[Panel => MQTT] Published panel connection status ${panelStatus(state)}`);
       }
+      if (config.auto_reconnect)
+        logger.verbose('Auto-reconnect enabled, but clock signal received and reconnection not initiated');
+        clearTimeout(reconnect);
     }
     if (config.auto_reconnect && !state && !reconnecting && initialized) {
       if (config.panel.socketMode === 'proxy') {
@@ -505,6 +507,9 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
         reconnect = setTimeout(function() {
           panel.riscoComm.tcpSocket.connect() },30000);
         }
+    }
+    if (!config.auto_reconnect && !state && !reconnecting && initialized) {
+      logger.info('Panel not communicating.  Auto-reconnect turned off.  Manual reconnection can be initiated via HA switch')
     }
     if (reconnecting && initialized) {
       logger.info('New state received but panel reconnection in progress.')
