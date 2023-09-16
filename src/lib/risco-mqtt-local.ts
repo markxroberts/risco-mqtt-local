@@ -479,19 +479,26 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
   }
   function panelStatus(state) {
     if (state) {
-      return '1';
+      return {
+        state: '1',
+        text: 'online'
+      };
     } else {
-      return '0';
+      return {
+        state: '0',
+        text: 'offline'
+      };
     }
   }
 
   function publishState(state) {
+    const status = panelStatus(state)
     if (config.panel.socketMode === 'proxy') {
-      mqttClient.publish(`${config.risco_mqtt_topic}/alarm/proxystatus`, panelStatus(state), { qos: 1, retain: true });
-      logger.verbose(`[Panel => MQTT] Published proxy connection status ${panelStatus(state)}`);
+      mqttClient.publish(`${config.risco_mqtt_topic}/alarm/proxystatus`, status.state, { qos: 1, retain: true });
+      logger.verbose(`[Panel => MQTT] Published proxy connection status ${status.text}`);
     } else {
-      mqttClient.publish(`${config.risco_mqtt_topic}/alarm/panelstatus`, panelStatus(state), { qos: 1, retain: true });
-      logger.verbose(`[Panel => MQTT] Published panel connection status ${panelStatus(state)}`);
+      mqttClient.publish(`${config.risco_mqtt_topic}/alarm/panelstatus`, status.state, { qos: 1, retain: true });
+      logger.verbose(`[Panel => MQTT] Published panel connection status ${status.text}`);
     }
   }
 
@@ -506,25 +513,28 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     }
     if (config.auto_reconnect && !state && !reconnecting && initialized) {
       if (config.panel.socketMode === 'proxy') {
-        logger.info('Proxy server not communicating.  Auto-reconnect turned on.  Wait 30 seconds before restarting to allow socket to reset.')
+        logger.info('[RML] Proxy server not communicating.  Autoconnect turned on.  Disconnect socket and allow reconnect.')
+        panel.riscoComm.tcpSocket.disconnect(true);
+        logger.info('[MQTT => Panel] Disconnect socket command sent');
       } else {
-        logger.info('Panel not communicating.  Auto-reconnect turned on.  Wait 30 seconds before restarting to allow socket to reset.')
+        logger.info('[RML] Panel not communicating.  Auto-reconnect turned on.  Disconnect socket and allow reconnect.')
+        panel.riscoComm.tcpSocket.disconnect(false);
+        logger.info('[MQTT => Panel] Disconnect socket command sent');
       }
-      panel.riscoComm.tcpSocket.disconnect(false);
-      logger.info('[MQTT => Panel] Disconnect socket command sent');
       reconnecting = true
-      if ((config.panel.socketMode === 'proxy' && !config.panel.autoConnect) || config.panel.socketMode !=='proxy') {
-        logger.info('Proxy mode, auto-connect enabled or direct mode and autoreconnection enabled');
+      if (config.panel.socketMode !=='proxy') {
+        logger.info('[RML] Wait 30 seconds before restarting to allow socket to reset.');
         reconnect = setTimeout(function() {
           panel.riscoComm.tcpSocket.connect()
           logger.info('[MQTT => Panel] Reconnect socket command sent') },30000);
-        }
+      }
     }
     if (!config.auto_reconnect && !state && !reconnecting && initialized) {
-      logger.info('Panel not communicating.  Auto-reconnect turned off.  Manual reconnection can be initiated via HA button')
+      logger.info('[RML] Panel not communicating.  Auto-reconnect turned off.  Manual reconnection can be initiated via HA button')
     }
     if (reconnecting && initialized) {
-      logger.info(`[Panel => MQTT] New state (${state}) received but panel reconnection in progress.`)
+      const status = panelStatus(state)
+      logger.info(`[Panel => MQTT] New state (${status.state}) received but panel reconnection in progress.`)
     }
   }
 
