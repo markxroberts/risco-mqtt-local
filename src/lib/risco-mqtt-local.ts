@@ -357,7 +357,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
         initialized = true;
       } else if (message.toString() === 'communications') {
         logger.info('[RML] Message received via MQTT to reinitiate communications');
-        panel.riscoComm.tcpSocket.disconnect(false);
+        panel.riscoComm.tcpSocket.disconnect(true);
         logger.info('[MQTT => Panel] Disconnect socket command sent');
         reconnecting = true;
         if (!config.auto_reconnect || config.panel.socketMode !== 'proxy') {
@@ -518,7 +518,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
         logger.info('[MQTT => Panel] Disconnect socket command sent');
       } else {
         logger.info('[RML] Panel not communicating.  Auto-reconnect turned on.  Disconnect socket and allow reconnect.')
-        panel.riscoComm.tcpSocket.disconnect(false);
+        panel.riscoComm.tcpSocket.disconnect(true);
         logger.info('[MQTT => Panel] Disconnect socket command sent');
       }
       reconnecting = true
