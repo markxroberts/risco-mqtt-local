@@ -516,18 +516,20 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
         logger.info('[RML] Proxy server not communicating.  Autoconnect turned on.  Disconnect socket and allow reconnect.')
         panel.riscoComm.tcpSocket.disconnect(true);
         logger.info('[MQTT => Panel] Disconnect socket command sent');
+        logger.info('[RML] Wait 10 seconds before restarting to allow socket to reset.');
+        reconnect = setTimeout(function() {
+          panel.riscoComm.tcpSocket.connect()
+          logger.info('[MQTT => Panel] Reconnect socket command sent') },10000);
       } else {
         logger.info('[RML] Panel not communicating.  Auto-reconnect turned on.  Disconnect socket and allow reconnect.')
         panel.riscoComm.tcpSocket.disconnect(true);
         logger.info('[MQTT => Panel] Disconnect socket command sent');
-      }
-      reconnecting = true
-      if (config.panel.socketMode !=='proxy') {
         logger.info('[RML] Wait 30 seconds before restarting to allow socket to reset.');
         reconnect = setTimeout(function() {
           panel.riscoComm.tcpSocket.connect()
           logger.info('[MQTT => Panel] Reconnect socket command sent') },30000);
       }
+      reconnecting = true
     }
     if (!config.auto_reconnect && !state && !reconnecting && initialized) {
       logger.info('[RML] Panel not communicating.  Auto-reconnect turned off.  Manual reconnection can be initiated via HA button')
