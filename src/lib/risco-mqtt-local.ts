@@ -341,7 +341,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
         } else {
           logger.info(`[RML] Delay 15 seconds before republishing initial states`);
           let t: any;
-          t = setTimeout(() => publishInitialStates(),15000);
+          t = setTimeout(() => publishInitialStates(),30000);
         }
       } else {
         logger.info('[RML] Home Assistant has gone offline');
