@@ -192,6 +192,6 @@ Please use the bug issue template and fill all requested informations, including
 
 ## Credits
 
-The bulk of this work was completed by [vanackej](https;//github.com/vanackej).  I've adapted this and updated it, mainly for my purposes.
+The bulk of this work was completed by [vanackej](https://github.com/vanackej).  I've adapted this and updated it, mainly for my purposes.  Thanks to [pergolafabio](https://github.com/pergolafabio) for the proxy testing.
 
 Thanks to [TJForc](https://github.com/TJForc) for the local communication library and [Alessandro Mancini](https://github.com/mancioshell) for his initial work.
