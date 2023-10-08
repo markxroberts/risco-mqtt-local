@@ -339,7 +339,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
           t = setTimeout(() => publishInitialStates(),30000);
           initialized = true;
         } else {
-          logger.info(`[RML] Delay 15 seconds before republishing initial states`);
+          logger.info(`[RML] Delay 30 seconds before republishing initial states`);
           let t: any;
           t = setTimeout(() => publishInitialStates(),30000);
         }
