@@ -548,7 +548,8 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
 
   function socketDisconnected(err) {
     if ("EHOSTUNREACH" in err) {
-      publishState(false)
+      panelReady = false;
+      publishState(false);
       while (!panelReady) {
         reconnect = setTimeout(function() {
           panel.riscoComm.tcpSocket.connect()
