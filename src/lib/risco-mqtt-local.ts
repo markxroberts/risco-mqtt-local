@@ -362,6 +362,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
         panel.riscoComm.tcpSocket.disconnect(true);
         logger.info('[MQTT => Panel] Disconnect socket command sent');
         reconnecting = true;
+        panel.riscoComm.tcpSocket.sendCommand(`CLOCK`)
         if (!config.auto_reconnect || config.panel.socketMode !== 'proxy') {
           logger.info(`[RML] Waiting 30 seconds before reconnecting to allow socket to reset`);
           let t;
