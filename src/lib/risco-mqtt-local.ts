@@ -516,7 +516,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     if (config.auto_reconnect && !state && !reconnecting && initialized) {
       if (config.panel.socketMode === 'proxy') {
         logger.info('[RML] Proxy server not communicating.  Autoconnect turned on.  Disconnect socket and allow reconnect.')
-        panel.riscoComm.tcpSocket.disconnect(true);
+        panel.riscoComm.tcpSocket.disconnect(false);
         logger.info('[MQTT => Panel] Disconnect socket command sent');
         logger.info(`[RML] Wait ${config.comms_restart_delay} seconds before restarting to allow socket to reset.`);
         reconnect = setTimeout(function() {
@@ -525,7 +525,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
         publishState(state)
       } else {
         logger.info('[RML] Panel not communicating.  Auto-reconnect turned on.  Disconnect socket and allow reconnect.')
-        panel.riscoComm.tcpSocket.disconnect(true);
+        panel.riscoComm.tcpSocket.disconnect(false);
         logger.info('[MQTT => Panel] Disconnect socket command sent');
         logger.info(`[RML] Wait ${config.comms_restart_delay} seconds before restarting to allow socket to reset.`);
         reconnect = setTimeout(function() {
@@ -1228,6 +1228,6 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       logger.info('[RML] Listeners already installed, skipping listeners registration');
     }
 
-    logger.info(`[RML] Initialization completed`);
+    logger.info(`[RML] Panel initialization and autodiscovery completed`);
   }
 }
