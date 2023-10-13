@@ -1223,8 +1223,8 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       panel.riscoComm.on('PanelCommReady', (data) => {publishPanelStatus(true)});
 
       listenerInstalled = true;
-      reconnecting = false;
     } else {
+      reconnecting = false;
       logger.info('[RML] Listeners already installed, skipping listeners registration');
     }
 
