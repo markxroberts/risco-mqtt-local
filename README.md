@@ -65,7 +65,9 @@ Create a file config.json in your project directory.  I suggest using config-sam
   "risco_mqtt_topic": "risco-alarm-panel", //Optional - topic to which state changes are published for multiple instances
   "filter_bypass_zones": true, // Optional - system filters out non-functional bypasses (usually entry and exit zones)
   "auto_reconnect": true, // Optional - reconnect when socket closes (most useful for proxy connections).
-  "alarm_system_name": "Risco Alarm", //Optional - Device name and therefore prefix for HA sensor name
+  "alarm_system_name": "Risco Alarm", // Optional - Device name and therefore prefix for HA sensor name
+  "ha_state_publishing_delay": 30, // Option - delay between autodiscovery and publishing states.  Without this delay HA may well show unknown state for sensors
+  "comms_restart_delay": 30, // Optional - delay before restarting comms after interrupt
 
   "mqtt": {
     "url": "mqtt://192.168.1.10:1883",

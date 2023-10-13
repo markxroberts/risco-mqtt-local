@@ -29,6 +29,8 @@ export interface RiscoMQTTConfig {
   risco_mqtt_topic?: string,
   filter_bypass_zones: boolean,
   auto_reconnect: boolean,
+  ha_state_publishing_delay: number,
+  comms_restart_delay: number,
   alarm_system_name: string,
   partitions?: {
     default?: PartitionConfig
@@ -112,6 +114,8 @@ const CONFIG_DEFAULTS: RiscoMQTTConfig = {
   alarm_system_name: 'Risco Alarm',
   filter_bypass_zones: true,
   auto_reconnect: true,
+  ha_state_publishing_delay: 30,
+  comms_restart_delay: 30,
   panel: {},
   partitions: {
     default: {
@@ -271,6 +275,8 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
   const ALARM_TOPIC_REGEX = new RegExp(`^${config.risco_mqtt_topic}/alarm/partition/([0-9]+)/set$`);
   const ZONE_BYPASS_TOPIC_REGEX = new RegExp(`^${config.risco_mqtt_topic}/alarm/zone/([0-9]+)-bypass/set$`);
   const OUTPUT_TOPIC_REGEX = new RegExp(`^${config.risco_mqtt_topic}/alarm/output/([0-9]+)/trigger$`);
+  const reconnect_delay = config.comms_restart_delay * 1000
+  const republishing_delay = config.ha_state_publishing_delay * 1000
 
   mqttClient.on('message', (topic, message) => {
     let m;
@@ -333,16 +339,12 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     } else if (topic === `${config.ha_discovery_prefix_topic}/status`) {
       if (message.toString() === 'online') {
         logger.info('[RML] Home Assistant is online');
-        if (!initialized) {
-          logger.info(`[RML] Delay 30 seconds before publishing initial states`);
+          logger.info(`[RML] Delay ${config.ha_state_publishing_delay} seconds before publishing initial states`);
           let t: any;
-          t = setTimeout(() => publishInitialStates(),30000);
-          initialized = true;
-        } else {
-          logger.info(`[RML] Delay 30 seconds before republishing initial states`);
-          let t: any;
-          t = setTimeout(() => publishInitialStates(),30000);
-        }
+          t = setTimeout(() => publishInitialStates(), republishing_delay);
+          if (!initialized) {
+            initialized = true;
+          }
       } else {
         logger.info('[RML] Home Assistant has gone offline');
       }
@@ -361,11 +363,11 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
         logger.info('[MQTT => Panel] Disconnect socket command sent');
         reconnecting = true;
         if (!config.auto_reconnect || config.panel.socketMode !== 'proxy') {
-          logger.info('[RML] Waiting 30 seconds before reconnecting to allow socket to reset');
+          logger.info(`[RML] Waiting 30 seconds before reconnecting to allow socket to reset`);
           let t;
           t = setTimeout(function() {
             panel.riscoComm.tcpSocket.connect()
-            logger.info('[MQTT => Panel] Reconnect socket command sent')},30000);
+            logger.info('[MQTT => Panel] Reconnect socket command sent')}, reconnect_delay);
         }
       }
     }
@@ -506,7 +508,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     if (!reconnecting) {
       publishState(state);
     }
-    if (config.auto_reconnect && reconnecting && state) {
+    if (config.auto_reconnect && !reconnecting && state) {
       logger.verbose(`[Panel => MQTT] Auto-reconnect enabled, but clock signal received and reconnection not initiated.  Reconnection timer cleared and state ${state} published`);
       clearTimeout(reconnect);
       publishState(state);
@@ -516,18 +518,18 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
         logger.info('[RML] Proxy server not communicating.  Autoconnect turned on.  Disconnect socket and allow reconnect.')
         panel.riscoComm.tcpSocket.disconnect(true);
         logger.info('[MQTT => Panel] Disconnect socket command sent');
-        logger.info('[RML] Wait 10 seconds before restarting to allow socket to reset.');
+        logger.info(`[RML] Wait ${config.comms_restart_delay} seconds before restarting to allow socket to reset.`);
         reconnect = setTimeout(function() {
           panel.riscoComm.tcpSocket.connect()
-          logger.info('[MQTT => Panel] Reconnect socket command sent') },10000);
+          logger.info('[MQTT => Panel] Reconnect socket command sent') }, reconnect_delay);
       } else {
         logger.info('[RML] Panel not communicating.  Auto-reconnect turned on.  Disconnect socket and allow reconnect.')
         panel.riscoComm.tcpSocket.disconnect(true);
         logger.info('[MQTT => Panel] Disconnect socket command sent');
-        logger.info('[RML] Wait 30 seconds before restarting to allow socket to reset.');
+        logger.info(`[RML] Wait ${config.comms_restart_delay} seconds before restarting to allow socket to reset.`);
         reconnect = setTimeout(function() {
           panel.riscoComm.tcpSocket.connect()
-          logger.info('[MQTT => Panel] Reconnect socket command sent') },30000);
+          logger.info('[MQTT => Panel] Reconnect socket command sent') }, reconnect_delay);
       }
       reconnecting = true
     }
