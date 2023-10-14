@@ -550,11 +550,9 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     logger.info('[RML] Socket is disconnected')
     panelReady = false;
     publishState(false);
-    while (!panelReady) {
-      reconnect = setTimeout(function() {
-        panel.riscoComm.tcpSocket.connect()
-        logger.info('[RML] Will try reconnecting in 5 minutes') }, 300000);
-      }
+    logger.info('[RML] Will try reconnecting in 5 minutes') 
+    reconnect = setTimeout(function() {
+      panel.riscoComm.tcpSocket.connect()}, 300000);
   }
 
   function publishSystemStateChange(message) {
