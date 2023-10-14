@@ -546,16 +546,15 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     }
   }
 
-  function socketDisconnected(err) {
-    if ("EHOSTUNREACH" in err) {
-      panelReady = false;
-      publishState(false);
-      while (!panelReady) {
-        reconnect = setTimeout(function() {
-          panel.riscoComm.tcpSocket.connect()
-          logger.info('[RML] Socket is disconnected.  Will try reconnecting in 5 minutes') }, 300000);
-        }
-    }
+  function socketDisconnected() {
+    logger.info('[RML] Socket is disconnected')
+    panelReady = false;
+    publishState(false);
+    while (!panelReady) {
+      reconnect = setTimeout(function() {
+        panel.riscoComm.tcpSocket.connect()
+        logger.info('[RML] Will try reconnecting in 5 minutes') }, 300000);
+      }
   }
 
   function publishSystemStateChange(message) {
@@ -1165,6 +1164,12 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     }
   }
 
+  function errorListener(err) {
+    if (['EHOSTUNREACH'].includes(err)) {
+      socketDisconnected()
+    }
+  }
+
   function panelOrMqttConnected() {
     if (!panelReady) {
       logger.info(`[RML] Panel is not connected, waiting`);
@@ -1242,7 +1247,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       panel.riscoComm.on('PanelCommReady', (data) => {publishPanelStatus(true)});
 
       logger.info(`[RML] Subscribing to Socket status`);
-      panel.riscoComm.tcpSocket.on('SocketError', (err) => {socketDisconnected(err)});
+      panel.riscoComm.tcpSocket.on('SocketError', (err) => {errorListener(err)});
 
       listenerInstalled = true;
     } else {
