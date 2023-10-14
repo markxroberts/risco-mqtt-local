@@ -508,6 +508,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
   }
 
   function publishPanelStatus(state) {
+    const status = panelStatus(state)
     if (!reconnecting) {
       publishState(state);
     }
@@ -544,7 +545,6 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       publishState(state)
     }
     if (reconnecting && initialized) {
-      const status = panelStatus(state)
       logger.verbose(`[Panel => MQTT] New state (${status.text}) received but panel reconnection in progress.`)
     }
   }
