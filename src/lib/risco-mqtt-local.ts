@@ -1175,8 +1175,10 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     if ((string_error.includes('EHOSTUNREACH' || 'Cloud Socket Closed' || 'RiscoCloud Socket: close' )) && !config.auto_reconnect) {
       panelReady = false;
       socketDisconnected();
-    } else {
+    } else if (config.auto_reconnect) {
       logger.info(`[RML] Socket error ${err} received, but auto-reconnect enabled, so error ignored`)
+    } else {
+      logger.info('Unknown error')
     }
   }
   
