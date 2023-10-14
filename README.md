@@ -68,6 +68,7 @@ Create a file config.json in your project directory.  I suggest using config-sam
   "alarm_system_name": "Risco Alarm", // Optional - Device name and therefore prefix for HA sensor name
   "ha_state_publishing_delay": 30, // Option - delay between autodiscovery and publishing states.  Without this delay HA may well show unknown state for sensors
   "comms_restart_delay": 30, // Optional - delay before restarting comms after interrupt
+  "socket_retry_delay": 600, // Optional - delay retrying socket after socket disconnected
 
   "mqtt": {
     "url": "mqtt://192.168.1.10:1883",
