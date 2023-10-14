@@ -117,7 +117,7 @@ const CONFIG_DEFAULTS: RiscoMQTTConfig = {
   auto_reconnect: true,
   ha_state_publishing_delay: 30,
   comms_restart_delay: 30,
-  socket_retry_delay: 600,
+  socket_retry_delay: 300,
   panel: {},
   partitions: {
     default: {
@@ -512,9 +512,10 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       publishState(state);
     }
     if (reconnecting && state) {
-      logger.info(`[Panel => MQTT]Clock signal received and reconnection not initiated.  Reconnection timer cleared and state ${state} published`);
+      logger.info(`[Panel => MQTT] Clock signal received and reconnection not initiated.  Reconnection timer cleared and state ${status.text} published`);
       clearTimeout(reconnect);
       publishState(state);
+      reconnecting = false;
     }
     if (!state && !reconnecting && initialized) {
       if (config.panel.socketMode === 'proxy') {
@@ -1174,7 +1175,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     const string_error = err.toString()
     if (string_error.includes('EHOSTUNREACH')) {
       panelReady = false;
-      logger.info(`[RML] Panel unreachable.  Intermittent reconnection will be attempted every ${config.socket_retry_delay} seconds`)
+      logger.info(`[RML] Panel unreachable.`)
       socketDisconnected();
     } else if (string_error.includes('Cloud Socket Closed' || 'RiscoCloud Socket: close' )) {
       logger.info(`[RML] Socket error ${err} received, but auto-reconnect enabled, so error ignored`)
