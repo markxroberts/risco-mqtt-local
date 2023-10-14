@@ -551,6 +551,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
   function socketDisconnected() {
     if (panelReady) {
       clearTimeout(reconnect)
+      logger.info('[RML] Panel is connected, so reconnection not required.')
     } else {
       logger.info('[RML] Socket is disconnected')
       publishState(false);
@@ -1174,8 +1175,11 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     if ((string_error.includes('EHOSTUNREACH' || 'Cloud Socket Closed' || 'RiscoCloud Socket: close' )) && !config.auto_reconnect) {
       panelReady = false;
       socketDisconnected();
+    } else {
+      logger.info(`[RML] Socket error ${err} received, but auto-reconnect enabled, so error ignored`)
     }
   }
+  
 
   function panelOrMqttConnected() {
     if (!panelReady) {
