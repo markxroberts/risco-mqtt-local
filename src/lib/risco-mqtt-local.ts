@@ -1165,6 +1165,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
   }
 
   function errorListener(err) {
+    logger.info('[RML] Error received');
     if (['EHOSTUNREACH'].includes(err)) {
       socketDisconnected()
       logger.info('[RML] Socket disconnection error received')
