@@ -28,7 +28,6 @@ export interface RiscoMQTTConfig {
   ha_discovery_include_nodeId?: boolean,
   risco_mqtt_topic?: string,
   filter_bypass_zones: boolean,
-  auto_reconnect: boolean,
   ha_state_publishing_delay: number,
   comms_restart_delay: number,
   socket_retry_delay: number,
@@ -114,7 +113,6 @@ const CONFIG_DEFAULTS: RiscoMQTTConfig = {
   risco_mqtt_topic: 'risco-alarm-panel',
   alarm_system_name: 'Risco Alarm',
   filter_bypass_zones: true,
-  auto_reconnect: true,
   ha_state_publishing_delay: 30,
   comms_restart_delay: 30,
   socket_retry_delay: 300,
@@ -509,16 +507,11 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
 
   function publishPanelStatus(state) {
     const status = panelStatus(state)
-    if (!reconnecting) {
+    if (state && !reconnecting) {
       publishState(state);
-    }
-    if (reconnecting && state) {
-      logger.info(`[Panel => MQTT] Clock signal received and reconnection not initiated.  Reconnection timer cleared and state ${status.text} published`);
       clearTimeout(reconnect);
-      publishState(state);
-      reconnecting = false;
     }
-    if (!state && !reconnecting && initialized) {
+    if (config.panel.autoConnect && !state && !reconnecting && initialized) {
       if (config.panel.socketMode === 'proxy') {
         logger.info('[RML] Proxy server not communicating.  Disconnect socket and allow reconnect.')
         panel.riscoComm.tcpSocket.disconnect(false);
@@ -540,7 +533,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       }
       reconnecting = true
     }
-    if (!config.auto_reconnect && !state && !reconnecting && initialized) {
+    if (!config.panel.autoConnect && !state && !reconnecting && initialized) {
       logger.info('[RML] Panel not communicating.  Manual reconnection can be initiated via HA button.  Intermittent connection retries will be attempted in response to errors.')
       publishState(state)
     }
@@ -1177,7 +1170,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       panelReady = false;
       logger.info(`[RML] Panel unreachable.`)
       socketDisconnected();
-    } else if (string_error.includes('Cloud Socket Closed' || 'RiscoCloud Socket: close' )) {
+    } else if (string_error.includes('Cloud Socket Closed' || 'RiscoCloud Socket: close' || 'Panel Socket Closed')) {
       logger.info(`[RML] Socket error ${err} received, but auto-reconnect enabled, so error ignored`)
     } else if (string_error.includes('ERRCONNRESET')) {
       logger.info(`[RML] Socket error.  Connection to panel reset.`)
