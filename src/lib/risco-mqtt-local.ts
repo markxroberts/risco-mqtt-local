@@ -518,6 +518,16 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       } else {
         logger.info('[RML] Panel not communicating.  Awaiting error message.')
         publishState(state)
+        if (config.panel.socketMode !== 'proxy') {
+          logger.info(`[RML] Panel not communicating.  Will wait ${config.comms_restart_delay} seconds before reconnecting.`)
+          reconnect = setTimeout(function() {
+            panel.riscoComm.tcpSocket.disconnect(true);
+            logger.info('[MQTT => Panel] Disconnect socket command sent');
+            restart_comms = setTimeout(function() {
+              panel.riscoComm.tcpSocket.connect();
+              logger.info(`[RML] Wait 30 seconds before restarting to allow socket to reset.`) }, 30000)
+            }, reconnect_delay);
+        }
       }
     }
     if (!config.panel.autoConnect && !state && initialized) {
@@ -1251,6 +1261,9 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
 
       logger.info(`[RML] Subscribing to socket error message`);
       panel.riscoComm.tcpSocket.on('SocketError', (err) => {errorListener(err)});
+
+      logger.info(`[RML] Subscribing to communications error message`);
+      panel.riscoComm.on('SocketError', (err) => {errorListener(err)});
 
       listenerInstalled = true;
     } else {
