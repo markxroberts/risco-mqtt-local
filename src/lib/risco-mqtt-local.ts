@@ -511,44 +511,32 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       publishState(state);
       clearTimeout(reconnect);
     }
-    if (config.panel.autoConnect && !state && !reconnecting && initialized) {
+    if (config.panel.autoConnect && !state && initialized) {
       if (config.panel.socketMode === 'proxy') {
-        logger.info('[RML] Proxy server not communicating.  Disconnect socket and allow reconnect.')
-        panel.riscoComm.tcpSocket.disconnect(false);
-        logger.info('[MQTT => Panel] Disconnect socket command sent');
-        logger.info(`[RML] Wait ${config.comms_restart_delay} seconds before restarting to allow socket to reset.`);
-        reconnect = setTimeout(function() {
-          panel.riscoComm.tcpSocket.connect()
-          logger.info('[MQTT => Panel] Reconnect socket command sent') }, reconnect_delay);
+        logger.info('[RML] Proxy server not communicating.  Awaiting error message.')
         publishState(state)
       } else {
-        logger.info('[RML] Panel not communicating.  Disconnect socket and allow reconnect.')
-        panel.riscoComm.tcpSocket.disconnect(false);
-        logger.info('[MQTT => Panel] Disconnect socket command sent');
-        logger.info(`[RML] Wait ${config.comms_restart_delay} seconds before restarting to allow socket to reset.`);
-        reconnect = setTimeout(function() {
-          panel.riscoComm.tcpSocket.connect()
-          logger.info('[MQTT => Panel] Reconnect socket command sent') }, reconnect_delay);
+        logger.info('[RML] Panel not communicating.  Awaiting error message.')
         publishState(state)
       }
-      reconnecting = true
     }
-    if (!config.panel.autoConnect && !state && !reconnecting && initialized) {
-      logger.info('[RML] Panel not communicating.  Manual reconnection can be initiated via HA button.  Intermittent connection retries will be attempted in response to errors.')
+    if (!config.panel.autoConnect && !state && initialized) {
+      logger.info('[RML] Panel not communicating.  Manual reconnection can be initiated via HA button.  Intermittent connection retries may be attempted in response to errors.')
       publishState(state)
-    }
-    if (reconnecting && initialized) {
-      logger.verbose(`[Panel => MQTT] New state (${status.text}) received but panel reconnection in progress.`)
     }
   }
 
-  function socketDisconnected() {
+  function socketDisconnected(socket) {
     if (panelReady) {
-      clearTimeout(reconnect)
-      logger.info('[RML] Panel is connected, so reconnection not required.')
+      clearTimeout(reconnect);
+      logger.info('[RML] Panel is connected, so reconnection not required.');
+      reconnecting = false;
     } else {
-      logger.info('[RML] Socket is disconnected')
-      publishState(false);
+      if (socket) {
+        panel.riscoComm.tcpSocket.disconnect(false);
+        logger.info('[RML] Socket is disconnected')
+        publishState(false);
+      }
       reconnecting = true;
       logger.info(`[RML] Will try reconnecting in ${config.socket_retry_delay} seconds`) 
       reconnect = setTimeout(function() {
@@ -1169,13 +1157,18 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     if (string_error.includes('EHOSTUNREACH')) {
       panelReady = false;
       logger.info(`[RML] Panel unreachable.`)
-      socketDisconnected();
-    } else if (string_error.includes('Cloud Socket Closed' || 'RiscoCloud Socket: close' || 'Panel Socket Closed')) {
+      socketDisconnected(false);
+      reconnecting = true;
+    } else if (string_error.includes('Cloud socket Closed' || 'RiscoCloud Socket: close' || 'Panel Socket Closed')) {
       logger.info(`[RML] Socket error ${err} received, but auto-reconnect enabled, so error ignored`)
+      panelReady = false;
+      logger.info(`[RML] Cloud socket connection error.`)
+      socketDisconnected(true);
+      reconnecting = true;
     } else if (string_error.includes('ERRCONNRESET')) {
       logger.info(`[RML] Socket error.  Connection to panel reset.`)
     } else {
-      logger.info('Unknown error')
+      logger.info('[RML] Unknown error')
     }
   }
   
