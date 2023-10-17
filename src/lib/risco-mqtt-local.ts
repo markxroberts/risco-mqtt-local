@@ -517,7 +517,6 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
         logger.info('[RML] Proxy server not communicating.  Awaiting error message.')
         publishState(state)
       } else {
-        logger.info('[RML] Panel not communicating.  Awaiting error message.')
         publishState(state)
         logger.info(`[RML] Panel not communicating.  Will wait ${config.comms_restart_delay} seconds before reconnecting.`)
         reconnect = setTimeout(function() {
@@ -1160,20 +1159,20 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     }
   }
 
-  function errorListener(error) {
-    logger.info(`[RML] Error received ${error}`);
-    if (error.includes('EHOSTUNREACH')) {
+  function errorListener(err) {
+    const string_error = err.toString()
+    if (string_error.includes('EHOSTUNREACH')) {
       panelReady = false;
       logger.info(`[RML] Panel unreachable.`)
       socketDisconnected(true);
       reconnecting = true;
-    } else if (error.includes('Cloud socket Closed' || 'RiscoCloud Socket: close' || 'Panel Socket Closed')) {
-      logger.info(`[RML] Socket error ${error} received, but auto-reconnect enabled, so error ignored`)
+    } else if (string_error.includes('Cloud socket Closed' || 'RiscoCloud Socket: close' || 'Panel Socket Closed')) {
+      logger.info(`[RML] Socket error ${err} received, but auto-reconnect enabled, so error ignored`)
       panelReady = false;
       logger.info(`[RML] Cloud socket connection error.`)
       socketDisconnected(true);
       reconnecting = true;
-    } else if (error.includes('ERRCONNRESET')) {
+    } else if (string_error.includes('ERRCONNRESET')) {
       logger.info(`[RML] Socket error.  Connection to panel reset.`)
     } else {
       logger.info('[RML] Unknown error')
@@ -1258,10 +1257,10 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       panel.riscoComm.on('PanelCommReady', (data) => {publishPanelStatus(true)});
 
       logger.info(`[RML] Subscribing to socket error message`);
-      panel.riscoComm.tcpSocket.on('SocketError', (error) => {errorListener(error)});
+      panel.riscoComm.tcpSocket.on('SocketError', (err) => {errorListener(err)});
 
       logger.info(`[RML] Subscribing to communications error message`);
-      panel.riscoComm.on('CommsError', (error) => {errorListener(error)});
+      panel.riscoComm.on('SocketError', (err) => {errorListener(err)});
 
       listenerInstalled = true;
     } else {
