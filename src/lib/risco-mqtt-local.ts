@@ -1161,20 +1161,19 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
   }
 
   function errorListener(err) {
-    logger.info(`[RML] Error received ${err}`);
-    const string_error = err.toString()
-    if (string_error.includes('EHOSTUNREACH')) {
+    logger.info(`[RML] Error received ${error}`);
+    if (error.includes('EHOSTUNREACH')) {
       panelReady = false;
       logger.info(`[RML] Panel unreachable.`)
       socketDisconnected(true);
       reconnecting = true;
-    } else if (string_error.includes('Cloud socket Closed' || 'RiscoCloud Socket: close' || 'Panel Socket Closed')) {
+    } else if (error.includes('Cloud socket Closed' || 'RiscoCloud Socket: close' || 'Panel Socket Closed')) {
       logger.info(`[RML] Socket error ${err} received, but auto-reconnect enabled, so error ignored`)
       panelReady = false;
       logger.info(`[RML] Cloud socket connection error.`)
       socketDisconnected(true);
       reconnecting = true;
-    } else if (string_error.includes('ERRCONNRESET')) {
+    } else if (error.includes('ERRCONNRESET')) {
       logger.info(`[RML] Socket error.  Connection to panel reset.`)
     } else {
       logger.info('[RML] Unknown error')
@@ -1259,10 +1258,10 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       panel.riscoComm.on('PanelCommReady', (data) => {publishPanelStatus(true)});
 
       logger.info(`[RML] Subscribing to socket error message`);
-      panel.riscoComm.tcpSocket.on('SocketError', (err) => {errorListener(err)});
+      panel.riscoComm.tcpSocket.on('SocketError', (error) => {errorListener(error)});
 
       logger.info(`[RML] Subscribing to communications error message`);
-      panel.riscoComm.on('SocketError', (err) => {errorListener(err)});
+      panel.riscoComm.on('CommsError', (error) => {errorListener(error)});
 
       listenerInstalled = true;
     } else {
