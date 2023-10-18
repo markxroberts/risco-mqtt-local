@@ -1258,6 +1258,9 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       panel.riscoComm.on('PanelCommReady', (data) => {publishPanelStatus(true)});
 
       logger.info(`[RML] Subscribing to socket error message`);
+      panel.riscoComm.tcpSocket.panelSocket.on('error', (error) => {errorListener(error)});
+
+      logger.info(`[RML] Subscribing to socket error message`);
       panel.riscoComm.tcpSocket.on('SocketError', (error) => {errorListener(error)});
 
       logger.info(`[RML] Subscribing to communications error message`);
