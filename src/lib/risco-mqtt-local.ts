@@ -1258,13 +1258,13 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       panel.riscoComm.on('PanelCommReady', (data) => {publishPanelStatus(true)});
 
       logger.info(`[RML] Subscribing to socket error message`);
-      panel.riscoComm.tcpSocket.panelSocket.on('error', (error) => {errorListener(error)});
+      panel.riscoComm.tcpSocket.on('error', (data) => {errorListener(data)});
 
       logger.info(`[RML] Subscribing to socket error message`);
-      panel.riscoComm.tcpSocket.on('SocketError', (error) => {errorListener(error)});
+      panel.riscoComm.tcpSocket.on('SocketError', (data) => {errorListener(data)});
 
       logger.info(`[RML] Subscribing to communications error message`);
-      panel.riscoComm.on('CommsError', (error) => {errorListener(error)});
+      panel.riscoComm.on('CommsError', (data) => {errorListener(data)});
 
       listenerInstalled = true;
     } else {
