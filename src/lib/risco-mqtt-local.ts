@@ -1176,7 +1176,6 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     if (data.includes('EHOSTUNREACH')) {
       panelReady = false;
       logger.info(`[RML] Panel unreachable.`)
-      socketDisconnected(true);
       socketListeners = false;
       reconnecting = true;
     } else if (data.includes('Cloud socket Closed' || 'RiscoCloud Socket: close' || 'Panel Socket Closed')) {
@@ -1188,6 +1187,8 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       reconnecting = true;
     } else if (data.includes('ERRCONNRESET')) {
       logger.info(`[RML] Socket error.  Connection to panel reset.`)
+      socketListeners = false;
+      reconnecting = true;
     } else {
       logger.info('[RML] Unknown error')
     }
