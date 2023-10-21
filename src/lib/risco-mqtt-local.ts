@@ -210,9 +210,11 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
   let panelReady = false;
   let mqttReady = false;
   let listenerInstalled = false;
+  let socketListeners = false;
   let initialized = false;
   let loop;
   let reconnect;
+  let restart_comms;
   let reconnecting = false;
 
   if (!config.mqtt?.url) throw new Error('[RML] MQTT url option is required');
@@ -223,6 +225,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
   panel.on('SystemInitComplete', () => {
     panel.riscoComm.tcpSocket.on('Disconnected', () => {
       panelReady = false;
+      socketListeners = false;
       publishOffline();
     });
     if (!panelReady) {
@@ -362,6 +365,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
         logger.info('[RML] Message received via MQTT to reinitiate communications');
         panel.riscoComm.tcpSocket.disconnect(true);
         logger.info('[MQTT => Panel] Disconnect socket command sent');
+        socketListeners = false;
         reconnecting = true;
         if (config.panel.socketMode !== 'proxy') {
           logger.info(`[RML] Waiting 30 seconds before reconnecting to allow socket to reset`);
@@ -509,46 +513,34 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     const status = panelStatus(state)
     if (state && !reconnecting) {
       publishState(state);
-      clearTimeout(reconnect);
     }
-    if (config.panel.autoConnect && !state && !reconnecting && initialized) {
+    if (config.panel.autoConnect && !state && initialized) {
       if (config.panel.socketMode === 'proxy') {
-        logger.info('[RML] Proxy server not communicating.  Disconnect socket and allow reconnect.')
-        panel.riscoComm.tcpSocket.disconnect(false);
-        logger.info('[MQTT => Panel] Disconnect socket command sent');
-        logger.info(`[RML] Wait ${config.comms_restart_delay} seconds before restarting to allow socket to reset.`);
-        reconnect = setTimeout(function() {
-          panel.riscoComm.tcpSocket.connect()
-          logger.info('[MQTT => Panel] Reconnect socket command sent') }, reconnect_delay);
+        logger.info('[RML] Proxy server not communicating.  Awaiting error message.')
         publishState(state)
       } else {
-        logger.info('[RML] Panel not communicating.  Disconnect socket and allow reconnect.')
-        panel.riscoComm.tcpSocket.disconnect(false);
-        logger.info('[MQTT => Panel] Disconnect socket command sent');
-        logger.info(`[RML] Wait ${config.comms_restart_delay} seconds before restarting to allow socket to reset.`);
-        reconnect = setTimeout(function() {
-          panel.riscoComm.tcpSocket.connect()
-          logger.info('[MQTT => Panel] Reconnect socket command sent') }, reconnect_delay);
         publishState(state)
+        logger.info(`[RML] Panel not communicating.  Await error message before reconnecting.`)
       }
-      reconnecting = true
     }
-    if (!config.panel.autoConnect && !state && !reconnecting && initialized) {
-      logger.info('[RML] Panel not communicating.  Manual reconnection can be initiated via HA button.  Intermittent connection retries will be attempted in response to errors.')
+    if (!config.panel.autoConnect && !state && initialized) {
+      logger.info('[RML] Panel not communicating.  Manual reconnection can be initiated via HA button.  Intermittent connection retries may be attempted in response to errors.')
       publishState(state)
-    }
-    if (reconnecting && initialized) {
-      logger.verbose(`[Panel => MQTT] New state (${status.text}) received but panel reconnection in progress.`)
     }
   }
 
-  function socketDisconnected() {
+  function socketDisconnected(socket) {
     if (panelReady) {
-      clearTimeout(reconnect)
-      logger.info('[RML] Panel is connected, so reconnection not required.')
+      clearTimeout(reconnect);
+      logger.info('[RML] Panel is connected, so reconnection not required.');
+      reconnecting = false;
     } else {
-      logger.info('[RML] Socket is disconnected')
-      publishState(false);
+      if (socket) {
+        panel.riscoComm.tcpSocket.disconnect(true);
+        logger.info('[RML] Socket is disconnected')
+        socketListeners = false
+        publishState(false);
+      }
       reconnecting = true;
       logger.info(`[RML] Will try reconnecting in ${config.socket_retry_delay} seconds`) 
       reconnect = setTimeout(function() {
@@ -1163,22 +1155,44 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     }
   }
 
-  function errorListener(err) {
-    logger.info(`[RML] Error received ${err}`);
-    const string_error = err.toString()
-    if (string_error.includes('EHOSTUNREACH')) {
+  function errorListener(type, data) {
+    logger.info(`[RML] Error received ${type}, ${data}`);
+    if (type.includes('Comms Error')) {
+      if (data.includes('New socket being connected')) {
+      logger.info('[RML] TCP Socket disconnected, new socket being connected.  Reinitate socket listeners');
+      socketListeners = false;
+      reconnecting = true;
+      panelOrMqttConnected()
+      } if (data.includes('Disconnected')) {
+      logger.info('[RML] TCP Socket disconnected');
+      socketListeners = false;
+      publishPanelStatus(false);
+      } if (data.includes('No reconnection')){
+      logger.info('[RML] TCP Socket disconnected, no new socket to be connected');
+      socketListeners = false;
+      reconnecting = false
+      }
+    }
+    if (data.includes('EHOSTUNREACH')) {
       panelReady = false;
       logger.info(`[RML] Panel unreachable.`)
-      socketDisconnected();
-    } else if (string_error.includes('Cloud Socket Closed' || 'RiscoCloud Socket: close' || 'Panel Socket Closed')) {
-      logger.info(`[RML] Socket error ${err} received, but auto-reconnect enabled, so error ignored`)
-    } else if (string_error.includes('ERRCONNRESET')) {
+      socketListeners = false;
+      reconnecting = true;
+    } else if (data.includes('Cloud socket Closed' || 'RiscoCloud Socket: close' || 'Panel Socket Closed')) {
+      logger.info(`[RML] Socket error ${data} received, but auto-reconnect enabled, so error ignored`)
+      panelReady = false;
+      logger.info(`[RML] Cloud socket connection error.`)
+      socketDisconnected(true);
+      socketListeners = false;
+      reconnecting = true;
+    } else if (data.includes('ERRCONNRESET')) {
       logger.info(`[RML] Socket error.  Connection to panel reset.`)
+      socketListeners = false;
+      reconnecting = true;
     } else {
-      logger.info('Unknown error')
+      logger.info('[RML] Unknown error')
     }
   }
-  
 
   function panelOrMqttConnected() {
     if (!panelReady) {
@@ -1249,17 +1263,24 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
 
       logger.info(`[RML] Subscribing to system clock`);
       panel.riscoComm.on('Clock', publishOnline);
-
-      logger.info(`[RML] Subscribing to socket disconnection message`);
-      panel.riscoComm.tcpSocket.on('Disconnected', (data) => {publishPanelStatus(false)});
-
-      logger.info(`[RML] Subscribing to panel communications message`);
-      panel.riscoComm.on('PanelCommReady', (data) => {publishPanelStatus(true)});
-
-      logger.info(`[RML] Subscribing to socket error message`);
-      panel.riscoComm.tcpSocket.on('SocketError', (err) => {errorListener(err)});
+      }
 
       listenerInstalled = true;
+
+    if (!socketListeners) {
+      logger.info(`[RML] Subscribing to socket disconnection message`);
+      panel.riscoComm.tcpSocket.on('Disconnected', (data) => {publishPanelStatus(false)});
+  
+      logger.info(`[RML] Subscribing to panel communications message`);
+      panel.riscoComm.on('PanelCommReady', (data) => {publishPanelStatus(true)});
+  
+      logger.info(`[RML] Subscribing to socket error message`);
+      panel.riscoComm.tcpSocket.on('SocketError', (data) => {errorListener('SocketError', data)});
+  
+      logger.info(`[RML] Subscribing to communications error message`);
+      panel.riscoComm.on('CommsError', (data) => {errorListener('CommsError', data)});
+      socketListeners = true
+
     } else {
       reconnecting = false;
       logger.info('[RML] Listeners already installed, skipping listeners registration');
