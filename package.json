@@ -1,6 +1,6 @@
 {
   "name": "@markxroberts/risco-mqtt-local",
-  "version": "2023.10.12",
+  "version": "2023.10.13",
   "description": "Node Risco Mqtt using local panel API",
   "main": "dist/main.js",
   "types": "dist/lib/index.d.ts",
@@ -25,7 +25,7 @@
   "author": "Mark Roberts <mark.roberts30@gmail.com>",
   "license": "MIT",
   "dependencies": {
-    "@markxroberts/risco-lan-bridge": "^0.14.70",
+    "@markxroberts/risco-lan-bridge": "^0.14.72",
     "lodash": "^4.17.21",
     "mqtt": "^4.3.2",
     "winston": "^3.3.3",
