@@ -1160,33 +1160,32 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     if (type.includes('CommsError')) {
       if (data.includes('New socket being connected')) {
       logger.info('[RML] TCP Socket disconnected, new socket being connected.  Reinitate socket listeners');
-      socketListeners = false;
+      removeSocketListeners();
       reconnecting = true;
       panelOrMqttConnected()
       } else if (data.includes('Disconnected')) {
       logger.info('[RML] TCP Socket disconnected');
-      socketListeners = false;
+      removeSocketListeners();
       publishPanelStatus(false);
       } else if (data.includes('No reconnection')){
       logger.info('[RML] TCP Socket disconnected, no new socket to be connected');
-      socketListeners = false;
+      removeSocketListeners();
       reconnecting = false
       }
     } else {
     if (data.includes('EHOSTUNREACH')) {
       panelReady = false;
       logger.info(`[RML] Panel unreachable.`)
-      socketListeners = false;
+      removeSocketListeners();
       reconnecting = true;
     } else if (data.includes('Cloud socket Closed' || 'RiscoCloud Socket: close')) {
       logger.info(`[RML] Cloud socket error ${data} received.  Disconnecting socket to avoid reconnection loop.`)
       panelReady = false;
       socketDisconnected(true);
-      socketListeners = false;
       reconnecting = true;
     } else if (data.includes('ECONNRESET')) {
       logger.info(`[RML] Socket error.  Connection to panel reset.`)
-      socketListeners = false;
+      removeSocketListeners();
       reconnecting = true;
     } else {
       logger.info('[RML] Error not processed.')
@@ -1199,6 +1198,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     panel.riscoComm.removeListener('PanelCommReady', (data) => {publishPanelStatus(true)})
     panel.riscoComm.tcpSocket.removeListener('SocketError', (data) => {errorListener('SocketError', data)});
     panel.riscoComm.removeListener('CommsError', (data) => {errorListener('CommsError', data)});
+    socketListeners = false
   }
 
   function panelOrMqttConnected() {
