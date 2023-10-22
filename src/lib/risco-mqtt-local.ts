@@ -513,16 +513,16 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
 
   function publishPanelStatus(state) {
     const status = panelStatus(state)
-    if (state && !reconnecting) {
+    if (state) {
       publishState(state);
     }
     if (config.panel.autoConnect && !state && initialized) {
       if (config.panel.socketMode === 'proxy') {
-        logger.info('[RML] Proxy server not communicating.  Awaiting error message.')
+        logger.info('[RML] Proxy server not communicating.')
         publishState(state)
       } else {
         publishState(state)
-        logger.info(`[RML] Panel not communicating.  Await error message before reconnecting.`)
+        logger.info(`[RML] Panel not communicating.`)
       }
     }
     if (!config.panel.autoConnect && !state && initialized) {
@@ -1159,7 +1159,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     logger.info(`[RML] Error received ${type}, ${data}`);
     if (type.includes('CommsError')) {
       if (data.includes('New socket being connected')) {
-      logger.info('[RML] TCP Socket disconnected, new socket being connected.  Reinitate socket listeners');
+      logger.info('[RML] TCP Socket disconnected, new socket being connected.  Ensure old listeners removed.');
       removeSocketListeners();
       reconnecting = true;
       panelOrMqttConnected()
@@ -1215,6 +1215,8 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
 
     if (!initialized) {
       publishHomeAssistantDiscoveryInfo();
+      publishOnline();
+    } else {
       publishOnline();
     }
 
