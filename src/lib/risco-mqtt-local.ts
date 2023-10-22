@@ -1157,7 +1157,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
 
   function errorListener(type, data) {
     logger.info(`[RML] Error received ${type}, ${data}`);
-    if (type.includes('Comms Error')) {
+    if (type.includes('CommsError')) {
       if (data.includes('New socket being connected')) {
       logger.info('[RML] TCP Socket disconnected, new socket being connected.  Reinitate socket listeners');
       socketListeners = false;
@@ -1184,7 +1184,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       socketDisconnected(true);
       socketListeners = false;
       reconnecting = true;
-    } else if (data.includes('ERRCONNRESET')) {
+    } else if (data.includes('ECONNRESET')) {
       logger.info(`[RML] Socket error.  Connection to panel reset.`)
       socketListeners = false;
       reconnecting = true;
