@@ -369,13 +369,6 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
         logger.info('MQTT => Panel] Socket listeners removed')
         socketListeners = false;
         reconnecting = true;
-        if (config.panel.socketMode !== 'proxy') {
-          logger.info(`[RML] Waiting 30 seconds before reconnecting to allow socket to reset`);
-          let t;
-          t = setTimeout(function() {
-            panel.riscoComm.tcpSocket.connect()
-            logger.info('[MQTT => Panel] Reconnect socket command sent')}, reconnect_delay);
-        }
       }
     }
   });
