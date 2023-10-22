@@ -365,6 +365,8 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
         logger.info('[RML] Message received via MQTT to reinitiate communications');
         panel.riscoComm.tcpSocket.disconnect(true);
         logger.info('[MQTT => Panel] Disconnect socket command sent');
+        removeSocketListeners()
+        logger.info('MQTT => Panel] Socket listeners removed')
         socketListeners = false;
         reconnecting = true;
         if (config.panel.socketMode !== 'proxy') {
@@ -537,14 +539,12 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     } else {
       if (socket) {
         panel.riscoComm.tcpSocket.disconnect(true);
-        logger.info('[RML] Socket is disconnected')
+        logger.info('[MQTT => Panel] Socket disconnection command sent')
+        removeSocketListeners()
+        logger.info(['MQTT => Panel] Socket listeners removed.'])
         socketListeners = false
         publishState(false);
       }
-      reconnecting = true;
-      logger.info(`[RML] Will try reconnecting in ${config.socket_retry_delay} seconds`) 
-      reconnect = setTimeout(function() {
-        panel.riscoComm.tcpSocket.connect()}, retry_delay);
     }
   }
 
@@ -1163,25 +1163,24 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       socketListeners = false;
       reconnecting = true;
       panelOrMqttConnected()
-      } if (data.includes('Disconnected')) {
+      } else if (data.includes('Disconnected')) {
       logger.info('[RML] TCP Socket disconnected');
       socketListeners = false;
       publishPanelStatus(false);
-      } if (data.includes('No reconnection')){
+      } else if (data.includes('No reconnection')){
       logger.info('[RML] TCP Socket disconnected, no new socket to be connected');
       socketListeners = false;
       reconnecting = false
       }
-    }
+    } else {
     if (data.includes('EHOSTUNREACH')) {
       panelReady = false;
       logger.info(`[RML] Panel unreachable.`)
       socketListeners = false;
       reconnecting = true;
-    } else if (data.includes('Cloud socket Closed' || 'RiscoCloud Socket: close' || 'Panel Socket Closed')) {
-      logger.info(`[RML] Socket error ${data} received, but auto-reconnect enabled, so error ignored`)
+    } else if (data.includes('Cloud socket Closed' || 'RiscoCloud Socket: close')) {
+      logger.info(`[RML] Cloud socket error ${data} received.  Disconnecting socket to avoid reconnection loop.`)
       panelReady = false;
-      logger.info(`[RML] Cloud socket connection error.`)
       socketDisconnected(true);
       socketListeners = false;
       reconnecting = true;
@@ -1190,8 +1189,16 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       socketListeners = false;
       reconnecting = true;
     } else {
-      logger.info('[RML] Unknown error')
+      logger.info('[RML] Error not processed.')
     }
+  }
+  }
+
+  function removeSocketListeners() {
+    panel.riscoComm.tcpSocket.removeListener('Disconnected', (data) => {publishPanelStatus(false)})
+    panel.riscoComm.removeListener('PanelCommReady', (data) => {publishPanelStatus(true)})
+    panel.riscoComm.tcpSocket.removeListener('SocketError', (data) => {errorListener('SocketError', data)});
+    panel.riscoComm.removeListener('CommsError', (data) => {errorListener('CommsError', data)});
   }
 
   function panelOrMqttConnected() {
@@ -1264,7 +1271,6 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       logger.info(`[RML] Subscribing to system clock`);
       panel.riscoComm.on('Clock', publishOnline);
       }
-
       listenerInstalled = true;
 
     if (!socketListeners) {
