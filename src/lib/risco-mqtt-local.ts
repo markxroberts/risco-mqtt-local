@@ -741,9 +741,9 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       state_topic: `${config.risco_mqtt_topic}/alarm/systemmessage`,
       unique_id: `${config.risco_mqtt_topic}-system-message`,
       availability_mode: 'all',
-        availability: {
-          topic: [`${config.risco_mqtt_topic}/alarm/status`, `${config.risco_mqtt_topic}/alarm/button_status`]
-        },
+      availability: [
+        {topic: `${config.risco_mqtt_topic}/alarm/status`},
+        {topic: `${config.risco_mqtt_topic}/alarm/button_status`}],
       entity_category: 'diagnostic',
       device: getDeviceInfo(),
     };
@@ -844,9 +844,9 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
         state_topic: `${config.risco_mqtt_topic}/alarm/partition/${partition.Id}/status`,
         unique_id: `${config.risco_mqtt_topic}-partition-${partition.Id}`,
         availability_mode: 'all',
-        availability: {
-          topic: `${config.risco_mqtt_topic}/alarm/status`,
-          topic: `${config.risco_mqtt_topic}/alarm/button_status`},
+        availability: [
+          {topic: `${config.risco_mqtt_topic}/alarm/status`},
+          {topic: `${config.risco_mqtt_topic}/alarm/button_status`}],
         payload_disarm: 'disarmed',
         payload_arm_away: armingConfig.armed_away,
         payload_arm_home: armingConfig.armed_home,
@@ -878,9 +878,9 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
         name: output.Label,
         unique_id: `${config.risco_mqtt_topic}-output-${output.Id}`,
         availability_mode: 'all',
-        availability: {
-          topic: `${config.risco_mqtt_topic}/alarm/status`,
-          topic: `${config.risco_mqtt_topic}/alarm/button_status`},
+        availability: [
+          {topic: `${config.risco_mqtt_topic}/alarm/status`},
+          {topic: `${config.risco_mqtt_topic}/alarm/button_status`}],
         payload_on: '1',
         payload_off: '0',
         state_on: '1',
@@ -913,9 +913,9 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
         name: output.Label,
         unique_id: `${config.risco_mqtt_topic}-output-${output.Id}`,
         availability_mode: 'all',
-        availability: {
-          topic: `${config.risco_mqtt_topic}/alarm/status`,
-          topic: `${config.risco_mqtt_topic}/alarm/button_status`},
+        availability: [
+          {topic: `${config.risco_mqtt_topic}/alarm/status`},
+          {topic: `${config.risco_mqtt_topic}/alarm/button_status`}],
         payload_press: '1',
         icon: 'mdi:gesture-tap-button',
         device: getDeviceInfo(),
@@ -943,9 +943,9 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
         name: systemoutput.Label,
         unique_id: `${config.risco_mqtt_topic}-systemoutput-${systemoutput.Id}`,
         availability_mode: 'all',
-        availability: {
-          topic: `${config.risco_mqtt_topic}/alarm/status`,
-          topic: `${config.risco_mqtt_topic}/alarm/button_status`},
+        availability: [
+          {topic: `${config.risco_mqtt_topic}/alarm/status`},
+          {topic: `${config.risco_mqtt_topic}/alarm/button_status`}],
         payload_on: '1',
         payload_off: '0',
         device_class: systemoutputConf.device_class,
@@ -973,9 +973,9 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
 
       const payload: any = {
         availability_mode: 'all',
-        availability: {
-          topic: `${config.risco_mqtt_topic}/alarm/status`,
-          topic: `${config.risco_mqtt_topic}/alarm/button_status`},
+        availability: [
+          {topic: `${config.risco_mqtt_topic}/alarm/status`},
+          {topic: `${config.risco_mqtt_topic}/alarm/button_status`}],
         unique_id: `${config.risco_mqtt_topic}-zone-${zone.Id}`,
         payload_on: '1',
         payload_off: '0',
@@ -988,9 +988,9 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
 
       const alarmSensorPayload: any = {
         availability_mode: 'all',
-        availability: {
-          topic: `${config.risco_mqtt_topic}/alarm/status`,
-          topic: `${config.risco_mqtt_topic}/alarm/button_status`},
+        availability: [
+          {topic: `${config.risco_mqtt_topic}/alarm/status`},
+          {topic: `${config.risco_mqtt_topic}/alarm/button_status`}],
         unique_id: `${config.risco_mqtt_topic}-zone-alarm-${zone.Id}`,
         payload_on: '1',
         payload_off: '0',
@@ -1032,9 +1032,9 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
 
       const payload: any = {
         availability_mode: 'all',
-        availability: {
-          topic: `${config.risco_mqtt_topic}/alarm/status`,
-          topic: `${config.risco_mqtt_topic}/alarm/button_status`},
+        availability: [
+          {topic: `${config.risco_mqtt_topic}/alarm/status`},
+          {topic: `${config.risco_mqtt_topic}/alarm/button_status`}],
         unique_id: `${config.risco_mqtt_topic}-zone-${zone.Id}-bypass`,
         payload_on: '1',
         payload_off: '0',
@@ -1067,9 +1067,9 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
 
       const payload: any = {
         availability_mode: 'all',
-        availability: {
-          topic: `${config.risco_mqtt_topic}/alarm/status`,
-          topic: `${config.risco_mqtt_topic}/alarm/button_status`},
+        availability: [
+          {topic: `${config.risco_mqtt_topic}/alarm/status`},
+          {topic: `${config.risco_mqtt_topic}/alarm/button_status`}],
         unique_id: `${config.risco_mqtt_topic}-zone-${zone.Id}-battery`,
         payload_on: '1',
         payload_off: '0',
