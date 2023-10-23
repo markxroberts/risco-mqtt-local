@@ -241,7 +241,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     username: `${config.mqtt.username}`,
     password: `${config.mqtt.password}`,
     will: {
-      topic: `${config.risco_mqtt_topic}/alarm/status`,
+      topic: `${config.risco_mqtt_topic}/alarm/button_status`,
     }
   }
   const mqtt_merge = merge(config.mqtt, mqtt_options);
@@ -346,9 +346,6 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
           logger.info(`[RML] Delay ${config.ha_state_publishing_delay} seconds before publishing initial states`);
           let t: any;
           t = setTimeout(() => publishInitialStates(), republishing_delay);
-          if (!initialized) {
-            initialized = true;
-          }
       } else {
         logger.info('[RML] Home Assistant has gone offline');
       }
@@ -356,18 +353,14 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       if (message.toString() === 'states') {
         logger.info('[RML] Message received via MQTT to republish states');
         publishInitialStates();
-        initialized = true;
       } else if (message.toString() === 'autodiscovery') {
         logger.info('[RML] Message received via MQTT to republish autodiscovery data');
         publishHomeAssistantDiscoveryInfo();
-        initialized = true;
       } else if (message.toString() === 'communications') {
         logger.info('[RML] Message received via MQTT to reinitiate communications');
         panel.riscoComm.tcpSocket.disconnect(true);
         logger.info('[MQTT => Panel] Disconnect socket command sent');
         removeSocketListeners()
-        logger.info('MQTT => Panel] Socket listeners removed')
-        socketListeners = false;
         reconnecting = true;
       }
     }
@@ -534,8 +527,6 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
         panel.riscoComm.tcpSocket.disconnect(true);
         logger.info('[MQTT => Panel] Socket disconnection command sent')
         removeSocketListeners()
-        logger.info(['MQTT => Panel] Socket listeners removed.'])
-        socketListeners = false
         publishState(false);
       }
     }
@@ -749,9 +740,10 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       object_id: `${config.risco_mqtt_topic}-system-message`,
       state_topic: `${config.risco_mqtt_topic}/alarm/systemmessage`,
       unique_id: `${config.risco_mqtt_topic}-system-message`,
-      availability: {
-        topic: `${config.risco_mqtt_topic}/alarm/status`,
-      },
+      availability_mode: 'all',
+        availability: {
+          topic: [`${config.risco_mqtt_topic}/alarm/status`, `${config.risco_mqtt_topic}/alarm/button_status`]
+        },
       entity_category: 'diagnostic',
       device: getDeviceInfo(),
     };
@@ -851,8 +843,9 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
         object_id: `${config.risco_mqtt_topic}-${partition.Id}`,
         state_topic: `${config.risco_mqtt_topic}/alarm/partition/${partition.Id}/status`,
         unique_id: `${config.risco_mqtt_topic}-partition-${partition.Id}`,
+        availability_mode: 'all',
         availability: {
-          topic: `${config.risco_mqtt_topic}/alarm/status`,
+          topic: [`${config.risco_mqtt_topic}/alarm/status`, `${config.risco_mqtt_topic}/alarm/button_status`]
         },
         payload_disarm: 'disarmed',
         payload_arm_away: armingConfig.armed_away,
@@ -884,8 +877,9 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       const payload = {
         name: output.Label,
         unique_id: `${config.risco_mqtt_topic}-output-${output.Id}`,
+        availability_mode: 'all',
         availability: {
-          topic: `${config.risco_mqtt_topic}/alarm/status`,
+          topic: [`${config.risco_mqtt_topic}/alarm/status`, `${config.risco_mqtt_topic}/alarm/button_status`]
         },
         payload_on: '1',
         payload_off: '0',
@@ -918,8 +912,9 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       const payload = {
         name: output.Label,
         unique_id: `${config.risco_mqtt_topic}-output-${output.Id}`,
+        availability_mode: 'all',
         availability: {
-          topic: `${config.risco_mqtt_topic}/alarm/status`,
+          topic: [`${config.risco_mqtt_topic}/alarm/status`, `${config.risco_mqtt_topic}/alarm/button_status`]
         },
         payload_press: '1',
         icon: 'mdi:gesture-tap-button',
@@ -947,8 +942,9 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       const payload = {
         name: systemoutput.Label,
         unique_id: `${config.risco_mqtt_topic}-systemoutput-${systemoutput.Id}`,
+        availability_mode: 'all',
         availability: {
-          topic: `${config.risco_mqtt_topic}/alarm/status`,
+          topic: [`${config.risco_mqtt_topic}/alarm/status`, `${config.risco_mqtt_topic}/alarm/button_status`]
         },
         payload_on: '1',
         payload_off: '0',
@@ -976,8 +972,9 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       merge(zoneConf, config.zones?.[zone.Label]);
 
       const payload: any = {
+        availability_mode: 'all',
         availability: {
-          topic: `${config.risco_mqtt_topic}/alarm/status`,
+          topic: [`${config.risco_mqtt_topic}/alarm/status`, `${config.risco_mqtt_topic}/alarm/button_status`]
         },
         unique_id: `${config.risco_mqtt_topic}-zone-${zone.Id}`,
         payload_on: '1',
@@ -990,8 +987,9 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       };
 
       const alarmSensorPayload: any = {
+        availability_mode: 'all',
         availability: {
-          topic: `${config.risco_mqtt_topic}/alarm/status`,
+          topic: [`${config.risco_mqtt_topic}/alarm/status`, `${config.risco_mqtt_topic}/alarm/button_status`]
         },
         unique_id: `${config.risco_mqtt_topic}-zone-alarm-${zone.Id}`,
         payload_on: '1',
@@ -1033,8 +1031,9 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       merge(zoneConf, config.zones?.[zone.Label]);
 
       const payload: any = {
+        availability_mode: 'all',
         availability: {
-          topic: `${config.risco_mqtt_topic}/alarm/status`,
+          topic: [`${config.risco_mqtt_topic}/alarm/status`, `${config.risco_mqtt_topic}/alarm/button_status`]
         },
         unique_id: `${config.risco_mqtt_topic}-zone-${zone.Id}-bypass`,
         payload_on: '1',
@@ -1067,8 +1066,9 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       merge(zoneConf, config.zones?.[zone.Label]);
 
       const payload: any = {
+        availability_mode: 'all',
         availability: {
-          topic: `${config.risco_mqtt_topic}/alarm/status`,
+          topic: [`${config.risco_mqtt_topic}/alarm/status`, `${config.risco_mqtt_topic}/alarm/button_status`]
         },
         unique_id: `${config.risco_mqtt_topic}-zone-${zone.Id}-battery`,
         payload_on: '1',
@@ -1149,41 +1149,38 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
   }
 
   function errorListener(type, data) {
-    logger.info(`[RML] Error received ${type}, ${data}`);
+    logger.info(`[RML Error received ${type}, ${data}`);
+    logger.info('[Panel => MQTT] Panel not communicating properly.  Panel offline');
+    publishPanelStatus(false);
+    logger.info('[MQTT => Panel]  Socket listeners being removed')
+    removeSocketListeners();
     if (type.includes('CommsError')) {
       if (data.includes('New socket being connected')) {
       logger.info('[RML] TCP Socket disconnected, new socket being connected.  Ensure old listeners removed.');
-      removeSocketListeners();
       reconnecting = true;
-      panelOrMqttConnected()
       } else if (data.includes('Disconnected')) {
       logger.info('[RML] TCP Socket disconnected');
-      removeSocketListeners();
-      publishPanelStatus(false);
       } else if (data.includes('No reconnection')){
       logger.info('[RML] TCP Socket disconnected, no new socket to be connected');
-      removeSocketListeners();
       reconnecting = false
       }
     } else {
     if (data.includes('EHOSTUNREACH')) {
       panelReady = false;
       logger.info(`[RML] Panel unreachable.`)
-      removeSocketListeners();
       reconnecting = true;
-    } else if (data.includes('Cloud socket Closed' || 'RiscoCloud Socket: close')) {
-      logger.info(`[RML] Cloud socket error ${data} received.  Disconnecting socket to avoid reconnection loop.`)
-      panelReady = false;
-      socketDisconnected(true);
-      reconnecting = true;
-    } else if (data.includes('ECONNRESET')) {
-      logger.info(`[RML] Socket error.  Connection to panel reset.`)
-      removeSocketListeners();
-      reconnecting = true;
-    } else {
-      logger.info('[RML] Error not processed.')
+      } else if (data.includes('Cloud socket Closed' || 'RiscoCloud Socket: close')) {
+        logger.info(`[RML] Cloud socket error ${data} received.  Disconnecting socket to avoid reconnection loop.`)
+        panelReady = false;
+        socketDisconnected(true);
+        reconnecting = true;
+      } else if (data.includes('ECONNRESET')) {
+        logger.info(`[RML] Socket error.  Connection to panel reset.`)
+        reconnecting = true;
+      } else {
+        logger.info('[RML] Error not processed.')
+      }
     }
-  }
   }
 
   function removeSocketListeners() {
@@ -1192,6 +1189,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     panel.riscoComm.tcpSocket.removeListener('SocketError', (data) => {errorListener('SocketError', data)});
     panel.riscoComm.removeListener('CommsError', (data) => {errorListener('CommsError', data)});
     socketListeners = false
+    logger.info('[MQTT => Panel] Socket listeners removed')
   }
 
   function panelOrMqttConnected() {
@@ -1286,7 +1284,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       reconnecting = false;
       logger.info('[RML] Listeners already installed, skipping listeners registration');
     }
-
+    initialized = true
     logger.info(`[RML] Panel initialization and autodiscovery completed`);
   }
 }
