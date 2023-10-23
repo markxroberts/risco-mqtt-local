@@ -30,7 +30,7 @@ This project is a fork of [Johann Vanackere](https://github.com/vanackej/risco-m
 - Supports mapping of group arming via config file.
 - Wireless zones now show battery status as additional binary sensors (this is the only information the panel gives).
 - Separate binary sensors are provided that are only triggered in an alarm state. This permits automations based only on alarm-triggers.
-- Cloud proxy status sensor supported.
+- Panel connection status sensor supported.
 - Configurable reconnection delay after dropping of Cloud connection.
 - Buttons to republish status, autodiscovery and reinitiate communications.
 
