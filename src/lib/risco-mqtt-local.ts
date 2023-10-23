@@ -1152,16 +1152,16 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     logger.info(`[RML Error received ${type}, ${data}`);
     logger.info('[Panel => MQTT] Panel not communicating properly.  Panel offline');
     publishPanelStatus(false);
-    logger.info('[MQTT => Panel]  Socket listeners being removed')
-    removeSocketListeners();
     if (type.includes('CommsError')) {
       if (data.includes('New socket being connected')) {
       logger.info('[RML] TCP Socket disconnected, new socket being connected.  Ensure old listeners removed.');
       reconnecting = true;
       } else if (data.includes('Disconnected')) {
       logger.info('[RML] TCP Socket disconnected');
+      removeSocketListeners();
       } else if (data.includes('No reconnection')){
       logger.info('[RML] TCP Socket disconnected, no new socket to be connected');
+      removeSocketListeners();
       reconnecting = false
       }
     } else {
@@ -1173,10 +1173,12 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
         logger.info(`[RML] Cloud socket error ${data} received.  Disconnecting socket to avoid reconnection loop.`)
         panelReady = false;
         socketDisconnected(true);
+        removeSocketListeners();
         reconnecting = true;
       } else if (data.includes('ECONNRESET')) {
         logger.info(`[RML] Socket error.  Connection to panel reset.`)
         reconnecting = true;
+        removeSocketListeners();
       } else {
         logger.info('[RML] Error not processed.')
       }
