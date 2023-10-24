@@ -29,8 +29,6 @@ export interface RiscoMQTTConfig {
   risco_mqtt_topic?: string,
   filter_bypass_zones: boolean,
   ha_state_publishing_delay: number,
-  comms_restart_delay: number,
-  socket_retry_delay: number,
   alarm_system_name: string,
   partitions?: {
     default?: PartitionConfig
@@ -114,9 +112,9 @@ const CONFIG_DEFAULTS: RiscoMQTTConfig = {
   alarm_system_name: 'Risco Alarm',
   filter_bypass_zones: true,
   ha_state_publishing_delay: 30,
-  comms_restart_delay: 30,
-  socket_retry_delay: 300,
-  panel: {},
+  panel: {
+    autoConnect: true
+  },
   partitions: {
     default: {
       name_prefix: '',
@@ -214,7 +212,6 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
   let initialized = false;
   let loop;
   let reconnect;
-  let restart_comms;
   let reconnecting = false;
 
   if (!config.mqtt?.url) throw new Error('[RML] MQTT url option is required');
@@ -278,9 +275,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
   const ALARM_TOPIC_REGEX = new RegExp(`^${config.risco_mqtt_topic}/alarm/partition/([0-9]+)/set$`);
   const ZONE_BYPASS_TOPIC_REGEX = new RegExp(`^${config.risco_mqtt_topic}/alarm/zone/([0-9]+)-bypass/set$`);
   const OUTPUT_TOPIC_REGEX = new RegExp(`^${config.risco_mqtt_topic}/alarm/output/([0-9]+)/trigger$`);
-  const reconnect_delay = config.comms_restart_delay * 1000
   const republishing_delay = config.ha_state_publishing_delay * 1000
-  const retry_delay = config.socket_retry_delay * 1000
 
   mqttClient.on('message', (topic, message) => {
     let m;
@@ -1114,6 +1109,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     for (const systemoutput of activeSystemOutputs(panel.outputs)) {
       publishOutputStateChange(systemoutput, '0');
     }
+    initialized = true
     logger.info(`[RML] Finished publishing initial partitions, zones and output states to Home assistant`);
     publishSystemStateChange('System initialized')
   }
@@ -1149,7 +1145,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
   }
 
   function errorListener(type, data) {
-    logger.info(`[RML Error received ${type}, ${data}`);
+    logger.info(`[RML] Error received ${type}, ${data}`);
     logger.info('[Panel => MQTT] Panel not communicating properly.  Panel offline');
     publishPanelStatus(false);
     if (type.includes('CommsError')) {
@@ -1169,7 +1165,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       panelReady = false;
       logger.info(`[RML] Panel unreachable.`)
       reconnecting = true;
-      } else if (data.includes('Cloud socket Closed' || 'RiscoCloud Socket: close')) {
+      } else if (data.includes('Cloud socket Closed' || 'RiscoCloud Socket: close' || 'Risco command error: TIMEOUT')) {
         logger.info(`[RML] Cloud socket error ${data} received.  Disconnecting socket to avoid reconnection loop.`)
         panelReady = false;
         socketDisconnected(true);
