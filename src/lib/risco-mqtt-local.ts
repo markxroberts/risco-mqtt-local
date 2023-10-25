@@ -1112,6 +1112,8 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     initialized = true
     logger.info(`[RML] Finished publishing initial partitions, zones and output states to Home assistant`);
     publishSystemStateChange('System initialized')
+    publishPanelStatus(true)
+    
   }
 
   function partitionListener(Id, EventStr) {
@@ -1258,9 +1260,10 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
           logger.info(`[RML] ${granted[0].topic} was subscribed`);
         }
       });
-
       logger.info(`[RML] Subscribing to system clock`);
-      panel.riscoComm.on('Clock', publishOnline);
+      panel.riscoComm.on('Clock', () => {
+        publishOnline();
+        publishPanelStatus(true)});
       }
       listenerInstalled = true;
 
