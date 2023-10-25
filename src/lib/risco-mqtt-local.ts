@@ -1112,6 +1112,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     initialized = true
     logger.info(`[RML] Finished publishing initial partitions, zones and output states to Home assistant`);
     publishSystemStateChange('System initialized')
+    publishPanelStatus(true)
     
   }
 
