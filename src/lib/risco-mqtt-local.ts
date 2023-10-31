@@ -532,6 +532,11 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     logger.verbose(`[Panel => MQTT] Published system message ${message}`);
   }
 
+  function publishSystemBatteryStatus(message) {
+    mqttClient.publish(`${config.risco_mqtt_topic}/alarm/systembattery`, `${message}`, { qos: 1, retain: true });
+    logger.verbose(`[Panel => MQTT] Published system battery state ${message}`);
+  }
+
   function publishPartitionStateChanged(partition: Partition) {
     mqttClient.publish(`${config.risco_mqtt_topic}/alarm/partition/${partition.Id}/status`, alarmPayload(partition), { qos: 1, retain: true });
     logger.verbose(`[Panel => MQTT] Published alarm status ${alarmPayload(partition)} on partition ${partition.Id}`);
@@ -748,6 +753,27 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     });
     logger.info(`[Panel => MQTT][Discovery] Published System message sensor, HA name = ${systemPayload.name}`);
     logger.verbose(`[Panel => MQTT][Discovery] System message payload\n${JSON.stringify(systemPayload, null, 2)}`);
+
+    const systemBatteryPayload = {
+      name: `System battery`,
+      object_id: `${config.risco_mqtt_topic}-system-battery`,
+      state_topic: `${config.risco_mqtt_topic}/alarm/systembattery`,
+      unique_id: `${config.risco_mqtt_topic}-system-battery`,
+      availability_mode: 'all',
+      availability: [
+        {topic: `${config.risco_mqtt_topic}/alarm/status`},
+        {topic: `${config.risco_mqtt_topic}/alarm/button_status`}],
+      payload_on: 'LowBattery',
+      payload_off: 'BatteryOk',
+      device_class: 'battery',
+      device: getDeviceInfo(),
+    };
+
+    mqttClient.publish(`${config.ha_discovery_prefix_topic}/binary_sensor/${config.risco_mqtt_topic}/systembattery/config`, JSON.stringify(systemBatteryPayload), {
+      qos: 1, retain: true,
+    });
+    logger.info(`[Panel => MQTT][Discovery] Published System battery sensor, HA name = ${systemBatteryPayload.name}`);
+    logger.verbose(`[Panel => MQTT][Discovery] System battery sensor payload\n${JSON.stringify(systemBatteryPayload, null, 2)}`);
 
     const republishStatePayload = {
       name: `Republish state payload`,
@@ -1113,6 +1139,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     logger.info(`[RML] Finished publishing initial partitions, zones and output states to Home assistant`);
     publishSystemStateChange('System initialized')
     publishPanelStatus(true)
+    publishSystemBatteryStatus('BatteryOK')
     
   }
 
@@ -1143,6 +1170,14 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
   function outputListener(Id, EventStr) {
     if (['Pulsed', 'Activated', 'Deactivated'].includes(EventStr)) {
       publishOutputStateChange(panel.outputs.byId(Id), EventStr);
+    }
+  }
+
+  function statusListener(EventStr) {
+    if (['LowBattery', 'BatteryOK'].includes(EventStr)) {
+      publishSystemBatteryStatus(EventStr);
+    } else {
+      publishSystemStateChange(EventStr)
     }
   }
 
@@ -1250,7 +1285,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       panel.outputs.on('OStatusChanged', (Id, EventStr) => {outputListener(Id,EventStr)});
 
       logger.info(`[RML] Subscribing to panel system events`);
-      panel.mbSystem.on('SStatusChanged', (EventStr, value) => {publishSystemStateChange(EventStr)});
+      panel.mbSystem.on('SStatusChanged', (EventStr, value) => {statusListenere(EventStr)});
 
       logger.info(`[RML] Subscribing to Home Assistant online status`);
       mqttClient.subscribe(`${config.ha_discovery_prefix_topic}/status`, { qos: 0 }, function(error, granted) {
