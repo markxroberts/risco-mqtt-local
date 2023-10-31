@@ -1174,7 +1174,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
   }
 
   function statusListener(EventStr) {
-    if (['LowBattery', 'BatteryOK'].includes(EventStr)) {
+    if (['LowBattery', 'BatteryOk'].includes(EventStr)) {
       publishSystemBatteryStatus(EventStr);
     } else {
       publishSystemStateChange(EventStr)
