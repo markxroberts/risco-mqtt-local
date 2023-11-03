@@ -26,14 +26,15 @@ This project is a fork of [Johann Vanackere](https://github.com/vanackej/risco-m
 - RISCO multipartitions.
 - Bypass zones in Home Assistant (additional switch created for each zone).
 - Multiple systems with configurable alarm topic for each.
-- Outputs supported.  Non-user-usable outputs represented as binary sensors (system outputs in configuration).  User-usable outputs represented as switches or button.  Note that pulsed switches are represented as buttons.  Refer to https://www.home-assistant.io/integrations/button/ and https://www.home-assistant.io/integrations/binary_sensor/ for acceptable device classes.
+- Outputs supported.  Non-user-usable outputs represented as binary sensors (system outputs in configuration).  User-usable outputs represented as switches or buttons.  Note that pulsed switches are represented as buttons.  Refer to https://www.home-assistant.io/integrations/button/ and https://www.home-assistant.io/integrations/binary_sensor/ for acceptable device classes.
 - Supports mapping of group arming via config file.
 - Wireless zones now show battery status as additional binary sensors (this is the only information the panel gives).
 - Separate binary sensors are provided that are only triggered in an alarm state. This permits automations based only on alarm-triggers.
-- Panel connection status sensor supported.
+- Panel connection status/proxy status sensor supported.
 - Configurable reconnection delay after dropping of Cloud connection.
 - Buttons to republish status, autodiscovery and reinitiate communications.
-- System battery status sensor
+- System status sensor
+- System battery status binary sensor
 
 ## Installation
 
@@ -55,11 +56,11 @@ Create a file config.json in your project directory.  I suggest using config-sam
   "log": "info", // Optional, default to "info"
   "panel": {
     "panelIp": "192.168.1.150",
-    "panelPort": 1000,
-    "panelPassword": "1234",
+    "panelPort": 1000,  // Optional
+    "panelPassword": "1234",  // Optional
     "panelId": 1,
-    "watchDogInterval": 10000,
-    "socketMode": "direct" // Optional
+    "watchDogInterval": 10000,  // Optional
+    "socketMode": "direct", // Optional
     "commandsLog": false // If enabled, dump all commands in a file named risco-commands-${date}.csv
   },
   "ha_discovery_prefix_topic": "homeassistant" //Optional
@@ -67,8 +68,6 @@ Create a file config.json in your project directory.  I suggest using config-sam
   "filter_bypass_zones": true, // Optional - system filters out non-functional bypasses (usually entry and exit zones)
   "alarm_system_name": "Risco Alarm", // Optional - Device name and therefore prefix for HA sensor name
   "ha_state_publishing_delay": 30, // Option - delay between autodiscovery and publishing states.  Without this delay HA may well show unknown state for sensors
-  "comms_restart_delay": 30, // Optional - delay before restarting comms after interrupt
-  "socket_retry_delay": 600, // Optional - delay retrying socket after socket disconnected
 
   "mqtt": {
     "url": "mqtt://192.168.1.10:1883",
