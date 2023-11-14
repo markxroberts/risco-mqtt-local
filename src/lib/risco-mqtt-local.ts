@@ -449,14 +449,14 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
           text: EventStr};
       }
     } else {
-      if (output.OStatus === 'a') {
+      if (output.Active === 'Activated') {
         return {
           output: '1',
-          text: 'Activated'};
+          text: output.Active};
       } else {
         return {
           output: '0',
-          text: 'Deactivated'};
+          text: output.Active};
       }
     }  
   }
@@ -537,9 +537,29 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     logger.verbose(`[Panel => MQTT] Published system battery state ${message}`);
   }
 
+  function partitionStatus(partition: Partition) {
+    if (partition.Ready) {
+      return {
+        state: '0',
+        text: state
+      };
+    } else {
+      return {
+        state: '1',
+        text: state
+      };
+    }
+  }
+
   function publishPartitionStateChanged(partition: Partition) {
     mqttClient.publish(`${config.risco_mqtt_topic}/alarm/partition/${partition.Id}/status`, alarmPayload(partition), { qos: 1, retain: true });
     logger.verbose(`[Panel => MQTT] Published alarm status ${alarmPayload(partition)} on partition ${partition.Id}`);
+  }
+
+  function publishPartitionStatus(partition: Partition) {
+    const partitionState = partitionStatus(partition)
+    mqttClient.publish(`${config.risco_mqtt_topic}/alarm/partition/${partition.Id}-status/status`, partitionState.state, { qos: 1, retain: true });
+    logger.verbose(`[Panel => MQTT] Published partition status ${partitionState.text} on partition ${partition.Id}`);
   }
 
   function publishZoneStateChange(zone: Zone, publishAttributes: boolean) {
@@ -883,11 +903,35 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
 
       let partitionIdSegment = `${partition.Id}`;
 
+      partitionSensorName = `${partition.Label} status`
+
+      const partitionpayload = {
+        name: partitionSensorName,
+        object_id: `${config.risco_mqtt_topic}-${partition.Id}-status`,
+        state_topic: `${config.risco_mqtt_topic}/alarm/partition/${partition.Id}-status/status`,
+        unique_id: `${config.risco_mqtt_topic}-partition-${partition.Id}-status`,
+        availability_mode: 'all',
+        availability: [
+          {topic: `${config.risco_mqtt_topic}/alarm/status`},
+          {topic: `${config.risco_mqtt_topic}/alarm/button_status`}],
+        payload_on: '1',
+        payload_off: '0',
+        device_class: 'occupancy',
+        device: getDeviceInfo(),
+      };
+
+      partitionpayload.name = partitionConf.name_prefix + partitionName;
+
       mqttClient.publish(`${config.ha_discovery_prefix_topic}/alarm_control_panel/${config.risco_mqtt_topic}/${partitionIdSegment}/config`, JSON.stringify(payload), {
         qos: 1, retain: true,
       });
       logger.info(`[Panel => MQTT][Discovery] Published alarm_control_panel to HA Partition label = ${partition.Label}, HA name = ${payload.name} on partition ${partition.Id}`);
       logger.verbose(`[Panel => MQTT][Discovery] Alarm discovery payload\n${JSON.stringify(payload, null, 2)}`);
+      mqttClient.publish(`${config.ha_discovery_prefix_topic}/binary_sensor/${config.risco_mqtt_topic}/${partitionIdSegment}/config`, JSON.stringify(payload), {
+        qos: 1, retain: true,
+      });
+      logger.info(`[Panel => MQTT][Discovery] Published binary_sensor of partition status to HA label = ${partition.Label}, HA name = ${partitionpayload.name} on partition ${partition.Id}`);
+      logger.verbose(`[Panel => MQTT][Discovery] Partition status sensor discovery payload\n${JSON.stringify(payload, null, 2)}`);
     }
 
     for (const output of activeToggleOutputs(panel.outputs)) {
@@ -1119,6 +1163,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     logger.info(`[RML] Publishing initial partitions, zones and outputs states to Home assistant`);
     for (const partition of activePartitions(panel.partitions)) {
       publishPartitionStateChanged(partition);
+      publishPartitionStatus(partition);
     }
     for (const zone of activeZones(panel.zones)) {
       publishZoneStateChange(zone, true);
@@ -1146,6 +1191,9 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
   function partitionListener(Id, EventStr) {
     if (['Armed', 'Disarmed', 'HomeStay', 'HomeDisarmed', 'Alarm', 'StandBy', 'GrpAArmed', 'GrpBArmed', 'GrpCArmed', 'GrpDArmed', 'GrpADisarmed', 'GrpBDisarmed', 'GrpCDisarmed', 'GrpDDisarmed'].includes(EventStr)) {
       publishPartitionStateChanged(panel.partitions.byId(Id));
+    }
+    if (['Ready', 'NotReady'].includes(EventStr)) {
+      publishPartitionStatus(panel.partitions.byId(Id));
     }
   }
 
