@@ -876,7 +876,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
         }};
       alarmMapping.push(alarmRemap);
       logger.info(`[RML] Added alarm state mapping for partition ${partitionLabel}.`)
-      logger.verbose(`[RML] Added alarm state mappings for parition ${partitionLabel} as \n${JSON.stringify(alarmRemap, null, 2)}.`)
+      logger.verbose(`[RML] Added alarm state mappings for partition ${partitionLabel} as \n${JSON.stringify(alarmRemap, null, 2)}.`)
       logger.verbose(`[RML] Alarm mappings updated as \n${JSON.stringify(alarmMapping, null, 2)}.`)
       
       const payload = {
@@ -927,11 +927,11 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       });
       logger.info(`[Panel => MQTT][Discovery] Published alarm_control_panel to HA Partition label = ${partition.Label}, HA name = ${payload.name} on partition ${partition.Id}`);
       logger.verbose(`[Panel => MQTT][Discovery] Alarm discovery payload\n${JSON.stringify(payload, null, 2)}`);
-      mqttClient.publish(`${config.ha_discovery_prefix_topic}/binary_sensor/${config.risco_mqtt_topic}/partition-${partitionIdSegment}-status/config`, JSON.stringify(payload), {
+      mqttClient.publish(`${config.ha_discovery_prefix_topic}/binary_sensor/${config.risco_mqtt_topic}/partition-${partitionIdSegment}-status/config`, JSON.stringify(partitionpayload), {
         qos: 1, retain: true,
       });
       logger.info(`[Panel => MQTT][Discovery] Published binary_sensor of partition status to HA label = ${partition.Label}, HA name = ${partitionpayload.name} on partition ${partition.Id}`);
-      logger.verbose(`[Panel => MQTT][Discovery] Partition status sensor discovery payload\n${JSON.stringify(payload, null, 2)}`);
+      logger.verbose(`[Panel => MQTT][Discovery] Partition status sensor discovery payload\n${JSON.stringify(partitionpayload, null, 2)}`);
     }
 
     for (const output of activeToggleOutputs(panel.outputs)) {
@@ -1205,7 +1205,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       publishZoneBypassStateChange(panel.zones.byId(Id));
       publishZoneStateChange(panel.zones.byId(Id), true);
     }
-    if (['LowBattery', 'BatteryOK'].includes(EventStr)) {
+    if (['LowBattery', 'BatteryOk'].includes(EventStr)) {
       publishZoneStateChange(panel.zones.byId(Id), true);
       publishZoneBatteryStateChange(panel.zones.byId(Id), false);
     }
