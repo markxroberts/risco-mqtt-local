@@ -541,12 +541,12 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     if (partition.Ready) {
       return {
         state: '0',
-        text: state
+        text: 'Ready'
       };
     } else {
       return {
         state: '1',
-        text: state
+        text: 'Not ready'
       };
     }
   }
@@ -903,7 +903,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
 
       let partitionIdSegment = `${partition.Id}`;
 
-      partitionSensorName = `${partition.Label} status`
+      let partitionSensorName = `${partition.Label} status`
 
       const partitionpayload = {
         name: partitionSensorName,
