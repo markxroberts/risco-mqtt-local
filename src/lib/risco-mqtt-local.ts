@@ -449,7 +449,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
           text: EventStr};
       }
     } else {
-      if (output.Active === 'Activated') {
+      if (output.Active) {
         return {
           output: '1',
           text: output.Active};
