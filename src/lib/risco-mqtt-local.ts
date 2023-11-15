@@ -927,7 +927,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       });
       logger.info(`[Panel => MQTT][Discovery] Published alarm_control_panel to HA Partition label = ${partition.Label}, HA name = ${payload.name} on partition ${partition.Id}`);
       logger.verbose(`[Panel => MQTT][Discovery] Alarm discovery payload\n${JSON.stringify(payload, null, 2)}`);
-      mqttClient.publish(`${config.ha_discovery_prefix_topic}/binary_sensor/${config.risco_mqtt_topic}/${partitionIdSegment}/config`, JSON.stringify(payload), {
+      mqttClient.publish(`${config.ha_discovery_prefix_topic}/binary_sensor/${config.risco_mqtt_topic}/partition-${partitionIdSegment}-status/config`, JSON.stringify(payload), {
         qos: 1, retain: true,
       });
       logger.info(`[Panel => MQTT][Discovery] Published binary_sensor of partition status to HA label = ${partition.Label}, HA name = ${partitionpayload.name} on partition ${partition.Id}`);
