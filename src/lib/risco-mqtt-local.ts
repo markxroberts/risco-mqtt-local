@@ -383,12 +383,12 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       code = 'armed_group'
     }
     const group = groupLetterToNumber(letter);
+    const partStatus = panel.partitions.byId(partId - 1).Ready
     logger.debug(`[MQTT => Panel] Changing code for letter.  Letter is ${letter}.  Group is ${group}.`)
     switch (code) {
       case 'disarmed':
         return await panel.disarmPart(partId);
       case 'armed_home':
-        const partStatus = panel.partition[(partId - 1)].Ready
         logger.info(`Partition ${partId} ready, sending arm command`)
         if (partStatus) {
           return await panel.armHome(partId); }
@@ -401,7 +401,6 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       case 'armed_away':
         return await panel.armAway(partId);
       case 'armed_group':
-        const partStatus = panel.partition[(partId - 1)].Ready
         logger.info(`Partition ${partId} ready, sending arm command`)
         if (partStatus) {
           return await panel.armGroup(partId, group); }
@@ -1213,6 +1212,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       publishPartitionStateChanged(panel.partitions.byId(Id));
     }
     if (['Ready', 'NotReady'].includes(EventStr)) {
+      let partitionwait
       publishPartitionStatus(panel.partitions.byId(Id));
       if (awaitPanelReady) {
         clearTimeout(partitionwait);
