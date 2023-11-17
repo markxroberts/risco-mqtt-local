@@ -1215,8 +1215,11 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     if (['Ready', 'NotReady'].includes(EventStr)) {
       publishPartitionStatus(panel.partitions.byId(Id));
       if (awaitPanelReady) {
-        changeAlarmStatus(partitionDetail.type, partitionDetail.partId)
+        clearTimeout(partitionwait);
+        changeAlarmStatus(partitionDetail.type, partitionDetail.partId);
         awaitPanelReady = false
+      } else {
+        partitionwait = setTimeout(() => awaitPanelReady = false, 30000)
       }
     }
   }
