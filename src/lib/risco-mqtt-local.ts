@@ -383,7 +383,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       code = 'armed_group'
     }
     const group = groupLetterToNumber(letter);
-    const partStatus = panel.partitions.byId(partId - 1).Ready
+    const partStatus = panel.partitions.byId(partId).Ready
     logger.debug(`[MQTT => Panel] Changing code for letter.  Letter is ${letter}.  Group is ${group}.`)
     switch (code) {
       case 'disarmed':
@@ -1214,12 +1214,14 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     if (['Ready', 'NotReady'].includes(EventStr)) {
       let partitionwait
       publishPartitionStatus(panel.partitions.byId(Id));
-      if (awaitPanelReady) {
+      if (awaitPanelReady && ['Ready'].includes(EventStr)) {
+        logger.info(`Partition ${Id} now ready, so sending arming command.`)
         clearTimeout(partitionwait);
         changeAlarmStatus(partitionDetail.type, partitionDetail.partId);
         awaitPanelReady = false
       } else {
         partitionwait = setTimeout(() => awaitPanelReady = false, 30000)
+        logger.info(`Arming command timed out on partition ${Id}`)
       }
     }
   }
