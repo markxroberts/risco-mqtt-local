@@ -215,7 +215,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
   let reconnecting = false;
   let awaitPartitionReady = false;
   let partitionDetail;
-  let partitionReadyStatus;
+  let partitionReadyStatus = [];
 
   if (!config.mqtt?.url) throw new Error('[RML] MQTT url option is required');
 
@@ -882,7 +882,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
 
     for (const partition of activePartitions(panel.partitions)) {
 
-      partitionReadyStatus[partition.Id] = partition.Ready
+      partitionReadyStatus.push({[partition.Id]: partition.Ready})
       logger.debug(`Partition status on ${partition.Id} is ${partition.Ready}`)
 
       const partitionConf = cloneDeep(config.partitions.default);
@@ -1271,8 +1271,12 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
 
   function errorListener(type, data) {
     logger.info(`[RML] Error received ${type}, ${data}`);
-    logger.info('[Panel => MQTT] Panel not communicating properly.  Panel offline');
-    publishPanelStatus(false);
+    logger.info('[RML] Panel or cloud not communicating properly.');
+    if (data.includes('Cloud')) {
+      publishPanelStatus(true);
+    } else {
+      publishPanelStatus(false)
+    }
     if (type.includes('CommsError')) {
       if (data.includes('New socket being connected')) {
       logger.info('[RML] TCP Socket disconnected, new socket being connected.  Ensure old listeners removed.');
@@ -1290,7 +1294,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       panelReady = false;
       logger.info(`[RML] Panel unreachable.`)
       reconnecting = true;
-      } else if (data.includes('Cloud socket Closed' || 'RiscoCloud Socket: close' || 'Risco command error: TIMEOUT')) {
+      } else if (data.includes('Cloud socket Closed' || 'RiscoCloud Socket: closed' || 'Risco command error: TIMEOUT')) {
         logger.info(`[RML] Cloud socket error ${data} received.  Disconnecting socket to avoid reconnection loop.`)
         panelReady = false;
         socketDisconnected(true);
