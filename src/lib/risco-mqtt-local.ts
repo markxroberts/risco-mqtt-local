@@ -1230,7 +1230,8 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
         clearTimeout(partitionwait);
         changeAlarmStatus(partitionDetailType, partitionDetailId);
         awaitPartitionReady = false
-      } else {
+      }
+      if (awaitPartitionReady && ['NotReady'].includes(EventStr)) {
         partitionReadyStatus[Id] = false;
         partitionwait = setTimeout(() => awaitPartitionReady = false, 30000)
         logger.info(`Arming command timed out on partition ${Id}`)
