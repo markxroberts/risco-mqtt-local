@@ -391,14 +391,16 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       case 'disarmed':
         return await panel.disarmPart(partId);
       case 'armed_home':
-        if (partitionReadyStatus[partId]) {
-        logger.info(`Partition ${partId} ready, sending arm command`)
+        if (partitionReadyStatus[partId] === true) {
+          logger.info(`Partition ${partId} ready, sending arm command`)
+          logger.debug(`${partitionReadyStatus[partId]}`)
           return await panel.armHome(partId);
       } else {
           awaitPartitionReady = true
           partitionDetailId = partId
           partitionDetailType = code
           logger.info(`Partition ${partId} not ready.  Will await Ready status.`)
+          logger.debug(`${partitionReadyStatus[partId]}`)
         }
       case 'armed_away':
         try {
@@ -408,14 +410,16 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
           logger.info(`${error}`)
         }
       case 'armed_group':
-        if (partitionReadyStatus[partId]) {
+        if (partitionReadyStatus[partId] === true) {
           logger.info(`Partition ${partId} ready, sending arm command`)
+          logger.debug(`${partitionReadyStatus[partId]}`)
           return await panel.armGroup(partId, group);
         } else {
           awaitPartitionReady = true
           partitionDetailId = partId
           partitionDetailType = code
           logger.info(`Partition ${partId} not ready.  Will await Ready status.`)
+          logger.debug(`${partitionReadyStatus[partId]}`)
         }
     }
   }
