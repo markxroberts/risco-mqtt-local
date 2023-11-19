@@ -215,6 +215,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
   let reconnecting = false;
   let awaitPartitionReady = false;
   let partitionDetail;
+  let partitionStatus;
 
   if (!config.mqtt?.url) throw new Error('[RML] MQTT url option is required');
 
@@ -389,11 +390,10 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       case 'disarmed':
         return await panel.disarmPart(partId);
       case 'armed_home':
+        if (partitionStatus[partId]) {
         logger.info(`Partition ${partId} ready, sending arm command`)
-        try {
           return await panel.armHome(partId);
-        }
-        catch (error) {
+      } else {
           awaitPartitionReady = true
           partitionDetail.partId = partId
           partitionDetail.type = code
@@ -407,10 +407,10 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
           logger.info(`${error}`)
         }
       case 'armed_group':
-        logger.info(`Partition ${partId} ready, sending arm command`)
-        try {
-          return await panel.armGroup(partId, group); }
-        catch (error) {
+        if (partitionStatus[partId]) {
+          logger.info(`Partition ${partId} ready, sending arm command`)
+          return await panel.armGroup(partId, group);
+        } else {
           awaitPartitionReady = true
           partitionDetail.partId = partId
           partitionDetail.type = code
@@ -882,6 +882,9 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
 
     for (const partition of activePartitions(panel.partitions)) {
 
+      partitionStatus[partition.Id] = partition.Ready
+      logger.debug(`Partition status on ${partition.Id} is ${partition.Ready}`)
+
       const partitionConf = cloneDeep(config.partitions.default);
       merge(partitionConf, config.partitions?.[partition.Label]);
 
@@ -1222,10 +1225,12 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       publishPartitionStatus(panel.partitions.byId(Id));
       if (awaitPartitionReady && ['Ready'].includes(EventStr)) {
         logger.info(`Partition ${Id} now ready, so sending arming command.`)
+        partitionStatus[Id] = true
         clearTimeout(partitionwait);
         changeAlarmStatus(partitionDetail.type, partitionDetail.partId);
         awaitPartitionReady = false
       } else {
+        partitionStatus[Id] = false;
         partitionwait = setTimeout(() => awaitPartitionReady = false, 30000)
         logger.info(`Arming command timed out on partition ${Id}`)
       }
