@@ -217,6 +217,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
   let partitionDetailId;
   let partitionDetailType;
   let partitionReadyStatus = [];
+  let armingTimer = false
 
   if (!config.mqtt?.url) throw new Error('[RML] MQTT url option is required');
 
@@ -392,14 +393,14 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
         return await panel.disarmPart(partId);
       case 'armed_home':
         if (partitionReadyStatus[partId] === true) {
-          logger.info(`Partition ${partId} ready, sending arm command`)
+          logger.info(`[RML] Partition ${partId} ready, sending arm command`)
           logger.debug(`${partitionReadyStatus[partId]}`)
           return await panel.armHome(partId);
       } else {
           awaitPartitionReady = true
           partitionDetailId = partId
           partitionDetailType = code
-          logger.info(`Partition ${partId} not ready.  Will await Ready status.`)
+          logger.info(`[RML] Partition ${partId} not ready.  Will await Ready status.`)
           logger.debug(`${partitionReadyStatus[partId]}`)
         }
       case 'armed_away':
@@ -411,14 +412,14 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
         }
       case 'armed_group':
         if (partitionReadyStatus[partId] === true) {
-          logger.info(`Partition ${partId} ready, sending arm command`)
+          logger.info(`[RML] Partition ${partId} ready, sending arm command`)
           logger.debug(`${partitionReadyStatus[partId]}`)
           return await panel.armGroup(partId, group);
         } else {
           awaitPartitionReady = true
           partitionDetailId = partId
           partitionDetailType = code
-          logger.info(`Partition ${partId} not ready.  Will await Ready status.`)
+          logger.info(`[RML] Partition ${partId} not ready.  Will await Ready status.`)
           logger.debug(`${partitionReadyStatus[partId]}`)
         }
     }
@@ -1228,17 +1229,26 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     if (['Ready', 'NotReady'].includes(EventStr)) {
       let partitionwait
       publishPartitionStatus(panel.partitions.byId(Id));
-      if (awaitPartitionReady && ['Ready'].includes(EventStr)) {
-        logger.info(`Partition ${Id} now ready, so sending arming command.`)
+      if (['Ready'].includes(EventStr)) {
         partitionReadyStatus[Id] = true
-        clearTimeout(partitionwait);
-        changeAlarmStatus(partitionDetailType, partitionDetailId);
-        awaitPartitionReady = false
-      }
-      if (awaitPartitionReady && ['NotReady'].includes(EventStr)) {
+        if (awaitPartitionReady) {
+          logger.info(`[RML] Partition ${Id} now ready, so sending arming command.`)
+          clearTimeout(partitionwait);
+          changeAlarmStatus(partitionDetailType, partitionDetailId);
+          awaitPartitionReady = false
+          armingTimer = false
+        }
+      } else {
         partitionReadyStatus[Id] = false;
-        partitionwait = setTimeout(() => awaitPartitionReady = false, 30000)
-        logger.info(`Arming command timed out on partition ${Id}`)
+        if (awaitPartitionReady && !armingTimer) {
+          armingTimer = true
+          partitionwait = setTimeout(function() {
+            awaitPartitionReady = false;
+            armingTimer = false
+            logger.info(`[RML] Arming command timed out on partition ${Id}`)}, 30000)
+        } else {
+          logger.info(`[RML] Delayed arming already initiated on partition ${Id}.`)
+        }
       }
     }
   }
