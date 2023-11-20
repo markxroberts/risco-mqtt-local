@@ -582,9 +582,15 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     }
   }
 
-  function publishPartitionStateChanged(partition: Partition) {
-    mqttClient.publish(`${config.risco_mqtt_topic}/alarm/partition/${partition.Id}/status`, alarmPayload(partition), { qos: 1, retain: true });
-    logger.verbose(`[Panel => MQTT] Published alarm status ${alarmPayload(partition)} on partition ${partition.Id}`);
+  function publishPartitionStateChanged(partition: Partition, arming: boolean) {
+    if (!arming) {
+      mqttClient.publish(`${config.risco_mqtt_topic}/alarm/partition/${partition.Id}/status`, alarmPayload(partition), { qos: 1, retain: true });
+      logger.verbose(`[Panel => MQTT] Published alarm status ${alarmPayload(partition)} on partition ${partition.Id}`);
+    }
+    if (arming) {
+      mqttClient.publish(`${config.risco_mqtt_topic}/alarm/partition/${partition.Id}/status`, 'arming', { qos: 1, retain: true });
+      logger.verbose(`[Panel => MQTT] Published alarm status arming on partition ${partition.Id}`);
+    }
   }
 
   function publishPartitionStatus(partition: Partition) {
@@ -1196,7 +1202,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
   function publishInitialStates() {
     logger.info(`[RML] Publishing initial partitions, zones and outputs states to Home assistant`);
     for (const partition of activePartitions(panel.partitions)) {
-      publishPartitionStateChanged(partition);
+      publishPartitionStateChanged(partition, false);
       publishPartitionStatus(partition);
     }
     for (const zone of activeZones(panel.zones)) {
@@ -1224,7 +1230,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
 
   function partitionListener(Id, EventStr) {
     if (['Armed', 'Disarmed', 'HomeStay', 'HomeDisarmed', 'Alarm', 'StandBy', 'GrpAArmed', 'GrpBArmed', 'GrpCArmed', 'GrpDArmed', 'GrpADisarmed', 'GrpBDisarmed', 'GrpCDisarmed', 'GrpDDisarmed'].includes(EventStr)) {
-      publishPartitionStateChanged(panel.partitions.byId(Id));
+      publishPartitionStateChanged(panel.partitions.byId(Id), false);
     }
     if (['Ready', 'NotReady'].includes(EventStr)) {
       let partitionwait
@@ -1240,13 +1246,14 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
         }
       } else {
         partitionReadyStatus[Id] = false;
+        publishPartitionStateChanged(panel.partitions.byId(Id), true);
         if (awaitPartitionReady && !armingTimer) {
           armingTimer = true
           partitionwait = setTimeout(function() {
             awaitPartitionReady = false;
             armingTimer = false
             logger.info(`[RML] Arming command timed out on partition ${Id}`)}, 30000)
-        } else {
+        } if (armingTimer) {
           logger.info(`[RML] Delayed arming already initiated on partition ${Id}.`)
         }
       }
