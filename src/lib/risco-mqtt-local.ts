@@ -1246,8 +1246,8 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
         }
       } else {
         partitionReadyStatus[Id] = false;
-        publishPartitionStateChanged(panel.partitions.byId(Id), true);
         if (awaitPartitionReady && !armingTimer) {
+          publishPartitionStateChanged(panel.partitions.byId(Id), true);
           armingTimer = true
           partitionwait = setTimeout(function() {
             awaitPartitionReady = false;
