@@ -20,7 +20,7 @@ This project is a fork of [Johann Vanackere](https://github.com/vanackej/risco-m
 ## Features
 
 - Interaction with RISCO alarm control panel using local APIs.
-- Interaction with MQTT Alarm Control Panel integration in Home Assistant: maps away, home and disarmed.
+- Interaction with MQTT Alarm Control Panel integration in Home Assistant: maps away, home and disarmed by default or other states via config.
 - Interaction with MQTT Binary Sensor integration in Home Assistant: sensors for each alarm state and additional alarm triggered sensor.
 - Home Assistant MQTT Auto Discovery.
 - RISCO multipartitions.
@@ -33,8 +33,11 @@ This project is a fork of [Johann Vanackere](https://github.com/vanackej/risco-m
 - Panel connection status/proxy status sensor supported.
 - Configurable reconnection delay after dropping of Cloud connection.
 - Buttons to republish status, autodiscovery and reinitiate communications.
+- Choose whether or not to allow bypass on entry/exit zones (filter_bypass_zones config option)
 - System status sensor
 - System battery status binary sensor
+- Ready status sensor for each partition
+- For home arming and group arming, delayed arming introduced in response to partition not ready (otherwise command just fails).  This will retry for up to 30 seconds if partition not ready to arm when arming command called.  HA alarm control panel will reflect this by showing 'arming'.  This is not the same as the Risco 'arming' state which initiates delayed arming (not supported).
 
 ## Installation
 
@@ -150,9 +153,9 @@ Payload could be : **disarmed** if risco panel is in disarmed mode,**armed_home*
 
 risco-mqtt-local publishes one topic for every partition and for every zones in your risco alarm panel configuration.
 
-Partition topicsformat is `<risco_node_id>/alarm/<partition_id>/status` where **partition_id** is the id of the partition
+Partition topics format is `<risco_node_id>/alarm/<partition_id>/status` where **partition_id** is the id of the partition
 
-Payload could be : **disarmed** if risco panel is in disarmed mode,**armed_home** if risco panel is in armed at home mode and **armed_away** if risco panel is in armed away mode.
+Default payload could be: **disarmed** if risco panel is in disarmed mode,**armed_home** if risco panel is in armed at home mode and **armed_away** if risco panel is in armed away mode, **armed_custom_bypass** if another mapping has been defined.
 
 Zones topics format is `<risco_node_id>/alarm/<partition_id>/<zone_id>/status` where **partition_id** is the id of the partition and **zone_id** is the id of the zone.
 
@@ -160,11 +163,11 @@ Payload could be : **triggered** if zone is curently triggered, and **idle** if 
 
 In addition to every zone status, risco-mqtt-local publishes a topic for every zone with all the info of the zone in the payload in json format. Topics format is `<risco_node_id>/alarm/<partition_id>/<zone_id>` where **partition_id** is the id of the partition and **zone_id** is the id of the zone.
 
-Zones that may be bypassed are published as switches at: `<risco_alarm_panel>/alarm/<partition_id>/switch/<zone_id>-bypass`.  Entry/exit zones may not be bypassed and so are not published.
+Zones that may be bypassed are published as switches at: `<risco_alarm_panel>/alarm/<partition_id>/switch/<zone_id>-bypass`.  On some systems, Entry/exit zones may not be bypassed and so you can choose not to publish this by setting the filter_bypass_zones flag.
 
 Battery-powered zones have separate sensors for the battery.   These are published at: `<risco_node_id>/alarm/<partition_id>/<zone_id>/battery`.  These only have a binary state.
 
-Outputs are published as `<risco_node_id/alarm>/<output_id>/status` for sensor outputs.  For outputs where interaction is possible, these are published as `<risco_node_id>/alarm/<output_id>/status` unless buttons, which are stateless.  Switches are published to `<risco_node_id>/alarm/<output_id>/set` as subscribed topics.
+Outputs are published as `<risco_node_id/alarm>/<output_id>/status` for sensor outputs.  For outputs where interaction is possible, these are published as `<risco_node_id>/alarm/<output_id>/status` unless buttons, which are stateless.  Switches/buttons are published to `<risco_node_id>/alarm/<output_id>/set` as subscribed topics.
 
 The cloud proxy status is published at `<risco_node_id>/alarm/cloudstatus` if the cloud proxy is enabled.
 
@@ -178,7 +181,7 @@ Default `<discovery_prefix>` is **homeassistant**. You can change it by overwrit
 
 Home assistant auto discovery is republished on Home Assistant restart.
 
-For multiple partitions, change **risco_node_id** in each installation.
+For multiple partitions, change **risco_mqtt_topic** in each installation.
 
 ## Usage
 
