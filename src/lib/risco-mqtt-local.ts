@@ -934,6 +934,8 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
         payload_arm_night: armingConfig.armed_night,
         payload_arm_vacation: armingConfig.armed_vacation,
         payload_arm_custom_bypass: armingConfig.armed_custom_bypass,
+        code_arm_required: false,
+        code_disarm_required: false,
         device: getDeviceInfo(),
         command_topic: `${config.risco_mqtt_topic}/alarm/partition/${partition.Id}/set`,
       };
