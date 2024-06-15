@@ -29,7 +29,7 @@
     "lodash": "^4.17.21",
     "mqtt": "^5.7.0",
     "winston": "^3.13.0",
-    "tiny-typed-emitter": "^2.1.1"
+    "tiny-typed-emitter": "^2.1.0"
   },
   "devDependencies": {
     "@types/lodash": "^4.17.5",
