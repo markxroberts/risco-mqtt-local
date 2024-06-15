@@ -169,6 +169,7 @@ const CONFIG_DEFAULTS: RiscoMQTTConfig = {
       retain: true,
       properties: {
         willDelayInterval: 30,
+        contentType: 'string',
       },
     }
   },
