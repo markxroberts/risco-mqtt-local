@@ -74,7 +74,7 @@ Create a file config.json in your project directory.  I suggest using config-sam
   "ha_state_publishing_delay": 30, // Optional - delay between autodiscovery and publishing states.  Without this delay HA may well show unknown state for sensors
   "alarm_code_arm_required": false, // Optional
   "alarm_code_disarm_required": false, // Optional
-  "alarm_code": "0000" // Optional
+  "alarm_code": 1234 // Optional
 
   "mqtt": {
     "url": "mqtt://192.168.1.10:1883",

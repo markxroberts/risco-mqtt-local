@@ -115,7 +115,7 @@ const CONFIG_DEFAULTS: RiscoMQTTConfig = {
   alarm_system_name: 'Risco Alarm',
   alarm_code_arm_required: false,
   alarm_code_disarm_required: false,
-  alarm_code: '0000',
+  alarm_code: 1234,
   filter_bypass_zones: true,
   ha_state_publishing_delay: 30,
   panel: {
