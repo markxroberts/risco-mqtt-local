@@ -172,7 +172,7 @@ const CONFIG_DEFAULTS: RiscoMQTTConfig = {
 
 export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
 
-  const config = merge(CONFIG_DEFAULTS, userConfig);
+  const config = merge(CONFIG_DEFAULTS, userConfig.toString());
 
   let format = combine(
     timestamp({
