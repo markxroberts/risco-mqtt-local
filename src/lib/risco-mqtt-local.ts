@@ -27,9 +27,12 @@ export interface RiscoMQTTConfig {
   ha_discovery_prefix_topic?: string,
   ha_discovery_include_nodeId?: boolean,
   risco_mqtt_topic?: string,
-  filter_bypass_zones: boolean,
-  ha_state_publishing_delay: number,
-  alarm_system_name: string,
+  filter_bypass_zones?: boolean,
+  ha_state_publishing_delay?: number,
+  alarm_system_name?: string,
+  alarm_code_arm_required?: boolean,
+  alarm_code_disarm_required?: boolean,
+  alarm_code?: number,
   partitions?: {
     default?: PartitionConfig
     [label: string]: PartitionConfig
@@ -53,7 +56,7 @@ export interface RiscoMQTTConfig {
     },
   },
   panel: PanelOptions,
-  mqtt?: MQTTConfig
+  mqtt: MQTTConfig
 }
 
 export interface MQTTConfig extends IClientOptions {
@@ -110,6 +113,9 @@ const CONFIG_DEFAULTS: RiscoMQTTConfig = {
   ha_discovery_prefix_topic: 'homeassistant',
   risco_mqtt_topic: 'risco-alarm-panel',
   alarm_system_name: 'Risco Alarm',
+  alarm_code_arm_required: false,
+  alarm_code_disarm_required: false,
+  alarm_code: '0000',
   filter_bypass_zones: true,
   ha_state_publishing_delay: 30,
   panel: {
@@ -934,8 +940,9 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
         payload_arm_night: armingConfig.armed_night,
         payload_arm_vacation: armingConfig.armed_vacation,
         payload_arm_custom_bypass: armingConfig.armed_custom_bypass,
-        code_arm_required: false,
-        code_disarm_required: false,
+        code_arm_required: config.alarm_code_arm_required,
+        code_disarm_required: config.alarm_code_disarm_required,
+        code: config.alarm_code,
         device: getDeviceInfo(),
         command_topic: `${config.risco_mqtt_topic}/alarm/partition/${partition.Id}/set`,
       };
