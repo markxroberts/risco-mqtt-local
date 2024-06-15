@@ -170,6 +170,8 @@ const CONFIG_DEFAULTS: RiscoMQTTConfig = {
   },
 };
 
+const new_const = "new"
+
 export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
 
   const userConfigString = userConfig.toString()
