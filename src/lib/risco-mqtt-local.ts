@@ -161,13 +161,15 @@ const CONFIG_DEFAULTS: RiscoMQTTConfig = {
     username: null,
     password: null,
     reconnectPeriod: 5000,
-    protocolVersion: 4,
     clientId: 'risco-mqtt-' + Math.random().toString(16).substring(2, 8),
-    protocolId: 'MQTT',
     will: {
-      topic: null, payload: 'offline', qos: 1, retain: true, properties: {
+      topic: null,
+      payload: 'offline',
+      qos: 1,
+      retain: true,
+      properties: {
         willDelayInterval: 30,
-      }
+      },
     }
   },
 };
