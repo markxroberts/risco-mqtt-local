@@ -168,8 +168,8 @@ const CONFIG_DEFAULTS: RiscoMQTTConfig = {
       qos: 1,
       retain: true,
       properties: {
+        payloadFormatIndicator: true,
         willDelayInterval: 30,
-        contentType: 'string',
       },
     }
   },
