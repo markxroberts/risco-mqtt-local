@@ -164,10 +164,7 @@ const CONFIG_DEFAULTS: RiscoMQTTConfig = {
     clientId: 'risco-mqtt-' + Math.random().toString(16).substring(2, 8),
     will: {
       topic: null,
-      payload: {
-        "type": "string",
-        "data": "offline"
-      },
+      payload: Buffer.from('offline', 'utf-8'),
       qos: 1,
       retain: true,
       properties: {
