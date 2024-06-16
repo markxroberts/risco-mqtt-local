@@ -1,4 +1,4 @@
-ARG NODE_VERSION="20"
+ARG NODE_VERSION="18"
 ARG BASE_IMAGE="node:${NODE_VERSION}-alpine"
 
 FROM ${BASE_IMAGE} AS build
@@ -7,7 +7,7 @@ WORKDIR /workspace
 
 COPY package.json yarn.lock ./
 
-RUN yarn install --force
+RUN yarn install
 
 COPY . ./
 
