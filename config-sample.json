@@ -5,19 +5,31 @@
     "panelPort": 1000,
     "panelPassword": 1234,
     "panelId": "0001",
-    "watchDogInterval": 10000
+    "watchDogInterval": 10000,
+    "ha_state_publishing_delay": 0,
+    "alarm_code_arm_required": false,
+    "alarm_code_disarm_required": false,
+    "alarm_code": 1234
   },
   "mqtt": {
     "url": "mqtt://192.168.1.10:1883",
     "username": "MQTT_USERNAME",
     "password": "MQTT_PASSWORD"
   },
+  "partitions": {
+    "default": {
+      "name_prefix": ""
+    },
+    "House": {
+      "name": "House"
+    }
+  },
   "zones": {
     "default": {
       "off_delay": 30,
       "name_prefix": "Sensor - "
     },
-    "GARAGE": {
+    "Garage": {
       "off_delay": 0,
       "device_class": "garage_door",
       "name": "Garage Door",
