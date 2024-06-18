@@ -60,7 +60,7 @@ export interface MQTTConfig extends IClientOptions {
   url: string
 }
 
-export interface PartitionConfig {
+export interface PartitionConfig extends Partition {
   name?: string
   name_prefix?: string
   alarm_code_arm_required?: boolean,
