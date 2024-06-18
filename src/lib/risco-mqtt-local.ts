@@ -30,9 +30,6 @@ export interface RiscoMQTTConfig {
   filter_bypass_zones?: boolean,
   ha_state_publishing_delay?: number,
   alarm_system_name?: string,
-  alarm_code_arm_required?: boolean,
-  alarm_code_disarm_required?: boolean,
-  alarm_code?: number,
   partitions?: {
     default?: PartitionConfig
     [label: string]: PartitionConfig
@@ -66,6 +63,9 @@ export interface MQTTConfig extends IClientOptions {
 export interface PartitionConfig {
   name?: string
   name_prefix?: string
+  alarm_code_arm_required?: boolean,
+  alarm_code_disarm_required?: boolean,
+  alarm_code?: number
 }
 
 export interface ZoneConfig {
@@ -124,6 +124,9 @@ const CONFIG_DEFAULTS: RiscoMQTTConfig = {
   partitions: {
     default: {
       name_prefix: '',
+      alarm_code_arm_required: false,
+      alarm_code_disarm_required: false,
+      alarm_code: 1234,
     },
   },
   zones: {
@@ -945,9 +948,9 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
         payload_arm_night: armingConfig.armed_night,
         payload_arm_vacation: armingConfig.armed_vacation,
         payload_arm_custom_bypass: armingConfig.armed_custom_bypass,
-        code_arm_required: config.alarm_code_arm_required,
-        code_disarm_required: config.alarm_code_disarm_required,
-        code: config.alarm_code,
+        code_arm_required: partition.alarm_code_arm_required,
+        code_disarm_required: partition.alarm_code_disarm_required,
+        code: partition.alarm_code,
         device: getDeviceInfo(),
         command_topic: `${config.risco_mqtt_topic}/alarm/partition/${partition.Id}/set`,
       };
