@@ -113,9 +113,6 @@ const CONFIG_DEFAULTS: RiscoMQTTConfig = {
   ha_discovery_prefix_topic: 'homeassistant',
   risco_mqtt_topic: 'risco-alarm-panel',
   alarm_system_name: 'Risco Alarm',
-  alarm_code_arm_required: false,
-  alarm_code_disarm_required: false,
-  alarm_code: 1234,
   filter_bypass_zones: true,
   ha_state_publishing_delay: 30,
   panel: {
