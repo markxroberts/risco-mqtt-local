@@ -38,7 +38,7 @@ This project is a fork of [Johann Vanackere](https://github.com/vanackej/risco-m
 - System battery status binary sensor
 - Ready status sensor for each partition
 - For home arming and group arming, delayed arming introduced in response to partition not ready (otherwise command just fails).  This will retry for up to 30 seconds if partition not ready to arm when arming command called.  HA alarm control panel will reflect this by showing 'arming'.  This is not the same as the Risco 'arming' state which initiates delayed arming (not supported).
-- Local alarm code now supported.  This doesn't validate with the panel, but is for local validation within Home Assistant
+- Local alarm code now supported.  This doesn't validate with the panel, but is for local validation within Home Assistant.  From 20246.4 this is by partition.
 
 ## Installation
 
@@ -72,9 +72,6 @@ Create a file config.json in your project directory.  I suggest using config-sam
   "filter_bypass_zones": true, // Optional - system filters out non-functional bypasses (usually entry and exit zones)
   "alarm_system_name": "Risco Alarm", // Optional - Device name and therefore prefix for HA sensor name
   "ha_state_publishing_delay": 30, // Optional - delay between autodiscovery and publishing states.  Without this delay HA may well show unknown state for sensors
-  "alarm_code_arm_required": false, // Optional
-  "alarm_code_disarm_required": false, // Optional
-  "alarm_code": 1234 // Optional
 
   "mqtt": {
     "url": "mqtt://192.168.1.10:1883",
@@ -95,7 +92,10 @@ Create a file config.json in your project directory.  I suggest using config-sam
   }
   "partitions": {
     "default": {
-      "name_prefix": ""
+      "name_prefix": "",
+      "alarm_code_arm_required": false,  //Optional
+      "alarm_code_disarm_required": false, //Optional
+      "alarm_code": 1234 //Optional
     },
     "1": {
       "name": "House"

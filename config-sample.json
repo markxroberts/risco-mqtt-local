@@ -18,7 +18,10 @@
   },
   "partitions": {
     "default": {
-      "name_prefix": ""
+      "name_prefix": "",
+      "alarm_code_arm_required": false,
+      "alarm_code_disarm_required": false,
+      "alarm_code": 1234
     },
     "House": {
       "name": "House"
