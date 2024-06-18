@@ -60,7 +60,7 @@ export interface MQTTConfig extends IClientOptions {
   url: string
 }
 
-export interface PartitionConfig extends Partition {
+export interface PartitionConfig {
   name?: string
   name_prefix?: string
   alarm_code_arm_required?: boolean,
@@ -948,9 +948,9 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
         payload_arm_night: armingConfig.armed_night,
         payload_arm_vacation: armingConfig.armed_vacation,
         payload_arm_custom_bypass: armingConfig.armed_custom_bypass,
-        code_arm_required: partition.alarm_code_arm_required,
-        code_disarm_required: partition.alarm_code_disarm_required,
-        code: partition.alarm_code,
+        code_arm_required: partitionConf.alarm_code_arm_required,
+        code_disarm_required: partitionConf.alarm_code_disarm_required,
+        code: partitionConf.alarm_code,
         device: getDeviceInfo(),
         command_topic: `${config.risco_mqtt_topic}/alarm/partition/${partition.Id}/set`,
       };
