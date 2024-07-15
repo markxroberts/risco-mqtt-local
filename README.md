@@ -224,41 +224,41 @@ It needs to be strictly in json format.
 ||alarm_system_name|string|No|"Risco Alarm"|Device name prefix for HA entities|
 ||ha_state_publishing_delay|number|No|30|Introduces delay after publishing discovery message so that HA can process (otherwise states not shown)|
 ||log|string|No|'info'|Logging options: debug|verbose|info|
-|**"mqtt"**||||
-||url|string|Yes|none|MQTT url including port eg "mqtt://192.168.1.10:1883"|
-||username|string|No|none||
-||password|string|No|none||
-|**"partitions":{"default"**||||
-||name_prefix|string|No|""||
-|**"partitions":{"1"**||||
-||name|string|No|none||
-||alarm_code_arm_required|string|No|false||
-||alarm_code_disarm_required|string|No|false||
-|**"arming_modes":{"House"**||||
-|armed_away|string|No|"armed_away"|Mapping of HA armed_away button to Risco|
-|armed_home|string|No|"armed_home"|Mapping of HA armed_home button to Risco|
-|armed_night|string|No|"armed_home"|Mapping of HA armed_night button to Risco|
-|armed_vacation|string|No|"armed_away"|Mapping of HA armed_vacation button to Risco|
-|armed_custom_bypass|string|No|"armed_away"|Mapping of HA armed_custom_bypass button to Risco. Also takes armed_group_X (where X is A/B/C/D)|
-|**"zones":{"default"**||||
-||off_delay|number|No|30|Prevents binary sensors being permanently on|
-||name_prefix|string|No|none|Name prefixed to every sensor|
-|**"zones":{"Garage"**||||
-||off_delay|number|No|30|Prevents binary sensors being permanently on|
-||name|string|No|none|Name of sensor|
-||name_prefix|string|No|none|"" empties name prefix for this zone|
-|**"user_outputs":{"default"**||||
-||name_prefix|string|No|none|Name prefixed to every user output|
-|**"user_outputs":{"Up/Over Trigger"**||||
-||device_class|string|No|none|HA Device class of user definable output (button for pulsed, switch for toggle)|
-||name|string|No|none|Name of output|
-||name_prefix|string|No|none|"" empties name prefix for this zone|
-|**"system_outputs":{"default"**||||
-||name_prefix|string|No|none|Name prefixed to every system output|
-|**"system_outputs":{"Up/Over Trigger"**||||
-||device_class|string|No|none|HA Device class of user definable output (see binary_sensor device classes)|
-||name|string|No|none|Name of output|
-||name_prefix|string|No|none|"" empties name prefix for this zone|
+|**"mqtt":{**||||
+||"url"|string|Yes|none|MQTT url including port eg "mqtt://192.168.1.10:1883"|
+||"username"|string|No|none||
+||"password"|string|No|none||
+|**"partitions":{"default":{**||||
+||"name_prefix"|string|No|""||
+|**"partitions":{"1":{**||||
+||"name"|string|No|none||
+||"alarm_code_arm_required"|boolean|No|false||
+||"alarm_code_disarm_required"|boolean|No|false||
+|**"arming_modes":{"House":{**||||
+||"armed_away"|string|No|"armed_away"|Mapping of HA armed_away button to Risco|
+||"armed_home"|string|No|"armed_home"|Mapping of HA armed_home button to Risco|
+||"armed_night"|string|No|"armed_home"|Mapping of HA armed_night button to Risco|
+||"armed_vacation"|string|No|"armed_away"|Mapping of HA armed_vacation button to Risco|
+||"armed_custom_bypass"|string|No|"armed_away"|Mapping of HA armed_custom_bypass button to Risco. Also takes armed_group_X (where X is A/B/C/D)|
+|**"zones":{"default:{**||||
+||"off_delay"|number|No|30|Prevents binary sensors being permanently on|
+||"name_prefix"|string|No|none|Name prefixed to every sensor|
+|**"zones":{"Garage":{**||||
+||"off_delay"|number|No|30|Prevents binary sensors being permanently on|
+||"name"|string|No|none|Name of sensor|
+||"name_prefix"|string|No|none|"" empties name prefix for this zone|
+|**"user_outputs":{"default":{**||||
+||"name_prefix"|string|No|none|Name prefixed to every user output|
+|**"user_outputs":{"Up/Over Trigger":{**||||
+||"device_class"|string|No|none|HA Device class of user definable output (button for pulsed, switch for toggle)|
+||"name"|string|No|none|Name of output|
+||"name_prefix"|string|No|none|"" empties name prefix for this zone|
+|**"system_outputs":{"default":{**||||
+||"name_prefix"|string|No|none|Name prefixed to every system output|
+|**"system_outputs":{"Alarm bell":{**||||
+||"device_class"|string|No|none|HA Device class of user definable output (see binary_sensor device classes)|
+||"name"|string|No|none|Name of output|
+||"name_prefix"|string|No|none|"" empties name prefix for this zone|
 
 ## Support
 
