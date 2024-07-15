@@ -141,8 +141,6 @@ Create a file config.json in your project directory.  I suggest using config-sam
 
 ```
 
-The panel full configuration options are described here : https://github.com/markxroberts/risco-lan-bridge#configuration
-
 NB Ensure that zone description matches label stored in panel exactly (including case) to ensure that config is correctly represented.
 
 ## Subscribe Topics
@@ -193,29 +191,74 @@ First, create the `config.json` file.  Only the first part of the file with syst
 
 It needs to be strictly in json format.
 
-## Full configuration options
+## Full configuration options - under "panel" heading (risco-lan-bridge)
 |**Option**|**Type**|**Required**|**Example (default)**|**Description**|
 |:---|:---|:---|:---|:---|
 |panelIp|string|No|'192.168.0.100'|IP address of panel|
 |panelPort|number|No|1000|TCP port of panel|
-|panelPassword|string|No|5678|TCP access password for panel|
-|panelId|string|No|'0001'|Panel number (usually 0001)|
+|panelPassword|string|No|"5678"|TCP access password for panel|
+|panelId|string|No|"0001"|Panel number (usually 0001)|
 |guessPasswordAndPanelId|boolean|No|true|Autodiscover TCP access password (brute force)|
 |panelConnectionDelay|number|No|10000|Delay before panel reconnected - cloud proxy connection (ms)|
 |cloudConnectionDelay|number|No|5000|Delay before cloud reconnects (ms)|
 |autoConnect|boolean|No|true|Panel connection automatically initiated|
-|socketMode|string|No|'direct'|For single TCP socket connections should this act as a proxy for the cloud? ('direct' or 'proxy')|
+|socketMode|string|No|"direct"|For single TCP socket connections should this act as a proxy for the cloud? ('direct' or 'proxy')|
 |cloudPort|number|No|33000|Cloud port for proxy connection|
 |listeningPort|number|No|33000|Panel cloud listening port for proxy connection|
-|cloudUrl|string|No|'www.riscocloud.com'|Cloud connection URL|
-|logger|string|No|'info'|Logging options: debug|verbose|info|
+|cloudUrl|string|No|"www.riscocloud.com"|Cloud connection URL|
 |commandsLog|boolean|No|false|Log commands (for debugging)|
 |watchDogInterval|number|No|10|For HA add-on - watchdog interval|
 |encoding|string|No|utf-8||
 |reconnectDelay|number|No|10000|Delay before reconnecting panel after disconnect (needs to be longer with newer panels)|
 |badCRCLimit|number|No|10|Number of bad messages permitted (needs to be fewer with newer panels)|
-|ntpServer|string|No|'pool.ntp.org'|Timer server|
+|ntpServer|string|No|"pool.ntp.org"|Timer server|
 |ntpPort|number|No|123|Timer server port|
+
+## Full configuration options for risco-mqtt-local
+|**Subheading**|**Option**|**Type**|**Required**|**Example (default)**|**Description**|
+|:---|:---|:---|:---|:---|
+|**None**||||
+||ha_discovery_prefix_topic|string|No|"homeassistant"|Home assistant discovery prefix|
+||risco_mqtt_topic|string|No|"risco-alarm-panel"|Topic for state changes - allows multiple panels|
+||filter_bypass_zones|boolean|No|true|risco-mqtt-local filters those zones which can't be bypassed (entry/exit zones)|
+||alarm_system_name|string|No|"Risco Alarm"|Device name prefix for HA entities|
+||ha_state_publishing_delay|number|No|30|Introduces delay after publishing discovery message so that HA can process (otherwise states not shown)|
+||log|string|No|'info'|Logging options: debug|verbose|info|
+|**"mqtt"**||||
+||url|string|Yes|none|MQTT url including port eg "mqtt://192.168.1.10:1883"|
+||username|string|No|none||
+||password|string|No|none||
+|**"partitions":{"default"**||||
+||name_prefix|string|No|""||
+|**"partitions":{"1"**||||
+||name|string|No|none||
+||alarm_code_arm_required|string|No|false||
+||alarm_code_disarm_required|string|No|false||
+|**"arming_modes":{"House"**||||
+|armed_away|string|No|"armed_away"|Mapping of HA armed_away button to Risco|
+|armed_home|string|No|"armed_home"|Mapping of HA armed_home button to Risco|
+|armed_night|string|No|"armed_home"|Mapping of HA armed_night button to Risco|
+|armed_vacation|string|No|"armed_away"|Mapping of HA armed_vacation button to Risco|
+|armed_custom_bypass|string|No|"armed_away"|Mapping of HA armed_custom_bypass button to Risco. Also takes armed_group_X (where X is A/B/C/D)|
+|**"zones":{"default"**||||
+||off_delay|number|No|30|Prevents binary sensors being permanently on|
+||name_prefix|string|No|none|Name prefixed to every sensor|
+|**"zones":{"Garage"**||||
+||off_delay|number|No|30|Prevents binary sensors being permanently on|
+||name|string|No|none|Name of sensor|
+||name_prefix|string|No|none|"" empties name prefix for this zone|
+|**"user_outputs":{"default"**||||
+||name_prefix|string|No|none|Name prefixed to every user output|
+|**"user_outputs":{"Up/Over Trigger"**||||
+||device_class|string|No|none|HA Device class of user definable output (button for pulsed, switch for toggle)|
+||name|string|No|none|Name of output|
+||name_prefix|string|No|none|"" empties name prefix for this zone|
+|**"system_outputs":{"default"**||||
+||name_prefix|string|No|none|Name prefixed to every system output|
+|**"system_outputs":{"Up/Over Trigger"**||||
+||device_class|string|No|none|HA Device class of user definable output (see binary_sensor device classes)|
+||name|string|No|none|Name of output|
+||name_prefix|string|No|none|"" empties name prefix for this zone|
 
 ## Support
 
