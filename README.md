@@ -193,6 +193,27 @@ First, create the `config.json` file.  Only the first part of the file with syst
 
 It needs to be strictly in json format.
 
+## Full configuration options
+|**Option**|**Type**|**Required**|**Example (default)**|**Description**|
+|panelIp|string|No|'192.168.0.100'|IP address of panel|
+|panelPort|number|No|1000|TCP port of panel|
+|panelPassword|string|No|5678|TCP access password for panel|
+|panelId|string|No|'0001'|Panel number (usually 0001)|
+|guessPasswordAndPanelId|boolean|No|true|Autodiscover TCP access password (brute force)|
+|panelConnectionDelay|number|No|10000|Delay before panel reconnected - cloud proxy connection (ms)|
+|cloudConnectionDelay|number|No|5000|Delay before cloud reconnects (ms)|
+|autoConnect|boolean|No|true|Panel connection automatically initiated|
+|socketMode|string|No|'direct'|For single TCP socket connections should this act as a proxy for the cloud? ('direct' or 'proxy')|
+|cloudPort|number|No|33000|Cloud port for proxy connection|
+|listeningPort|number|No|33000|Panel cloud listening port for proxy connection|
+|cloudUrl|string|No|'www.riscocloud.com'|Cloud connection URL|
+|logger|string|No|'info'|Logging options: debug|verbose|info|
+|commandsLog|boolean|No|false|Log commands (for debugging)|
+|watchDogInterval|number|No|10|For HA add-on - watchdog interval|
+|encoding|string|No|utf-8||
+|reconnectDelay|number|No|10000|Delay before reconnecting panel after disconnect (needs to be longer with newer panels)|
+|badCRCLimit|number|No|10|Number of bad messages permitted (needs to be fewer with newer panels)|
+
 ## Support
 
 ### Bug reports
