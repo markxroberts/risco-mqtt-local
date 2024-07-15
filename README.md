@@ -195,7 +195,7 @@ It needs to be strictly in json format.
 
 ## Full configuration options
 |**Option**|**Type**|**Required**|**Example (default)**|**Description**|
-|:--:|:--:|:--:|:--:|:--:|
+|:---|:---|:---|:---|:---|
 |panelIp|string|No|'192.168.0.100'|IP address of panel|
 |panelPort|number|No|1000|TCP port of panel|
 |panelPassword|string|No|5678|TCP access password for panel|
@@ -214,6 +214,8 @@ It needs to be strictly in json format.
 |encoding|string|No|utf-8||
 |reconnectDelay|number|No|10000|Delay before reconnecting panel after disconnect (needs to be longer with newer panels)|
 |badCRCLimit|number|No|10|Number of bad messages permitted (needs to be fewer with newer panels)|
+|ntpServer|string|No|'pool.ntp.org'|Timer server|
+|ntpPort|number|No|123|Timer server port|
 
 ## Support
 
