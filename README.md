@@ -216,7 +216,7 @@ It needs to be strictly in json format.
 
 ## Full configuration options for risco-mqtt-local
 |**Subheading**|**Option**|**Type**|**Required**|**Example (default)**|**Description**|
-|:---|:---|:---|:---|:---|
+|:---|:---|:---|:---|:---|:---|
 |**None**||||
 ||ha_discovery_prefix_topic|string|No|"homeassistant"|Home assistant discovery prefix|
 ||risco_mqtt_topic|string|No|"risco-alarm-panel"|Topic for state changes - allows multiple panels|
