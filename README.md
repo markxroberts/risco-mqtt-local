@@ -194,7 +194,8 @@ First, create the `config.json` file.  Only the first part of the file with syst
 It needs to be strictly in json format.
 
 ## Full configuration options
-||**Option**|**Type**|**Required**|**Example (default)**|**Description**|
+|**Option**|**Type**|**Required**|**Example (default)**|**Description**|
+|:--:|:--:|:--:|:--:|:--:|
 |panelIp|string|No|'192.168.0.100'|IP address of panel|
 |panelPort|number|No|1000|TCP port of panel|
 |panelPassword|string|No|5678|TCP access password for panel|
