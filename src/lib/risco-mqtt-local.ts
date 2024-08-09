@@ -12,6 +12,7 @@ import {
   Zone,
   ZoneList,
   PanelOptions,
+  MBSystem
 } from '@markxroberts/risco-lan-bridge/dist';
 import pkg from 'winston';
 import { cloneDeep } from 'lodash';
@@ -569,14 +570,14 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     }
   }
 
-  function publishSystemStateChange(message) {
-    mqttClient.publish(`${config.risco_mqtt_topic}/alarm/systemmessage`, `${message}`, { qos: 1, retain: true });
-    logger.verbose(`[Panel => MQTT] Published system message ${message}`);
+  function publishSystemStateChange(system: MBSystem) {
+    mqttClient.publish(`${config.risco_mqtt_topic}/alarm/systemmessage`, `${system.SStatus}`, { qos: 1, retain: true });
+    logger.verbose(`[Panel => MQTT] Published system message ${system.SStatus}`);
   }
 
-  function publishSystemBatteryStatus(message) {
-    mqttClient.publish(`${config.risco_mqtt_topic}/alarm/systembattery`, `${message}`, { qos: 1, retain: true });
-    logger.verbose(`[Panel => MQTT] Published system battery state ${message}`);
+  function publishSystemBatteryStatus(system: MBSystem) {
+    mqttClient.publish(`${config.risco_mqtt_topic}/alarm/systembattery`, `${system.LowBatteryTrouble}`, { qos: 1, retain: true });
+    logger.verbose(`[Panel => MQTT] Published system battery state ${system.LowBatteryTrouble}`);
   }
 
   function partitionStatus(partition: Partition) {
@@ -831,8 +832,8 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       availability: [
         {topic: `${config.risco_mqtt_topic}/alarm/status`},
         {topic: `${config.risco_mqtt_topic}/alarm/button_status`}],
-      payload_on: 'LowBattery',
-      payload_off: 'BatteryOk',
+      payload_on: false,
+      payload_off: true,
       device_class: 'battery',
       device: getDeviceInfo(),
     };
@@ -1234,11 +1235,12 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     for (const systemoutput of activeSystemOutputs(panel.outputs)) {
       publishOutputStateChange(systemoutput, '0');
     }
+    publishSystemBatteryStatus(panel.MBSystem)
+    publishSystemStateChange(panel.MBSystem)
     initialized = true
-    logger.info(`[RML] Finished publishing initial partitions, zones and output states to Home assistant`);
-    publishSystemStateChange('System initialized')
+    logger.info(`[RML] Finished publishing initial system, partitions, zones and output states to Home assistant`);
     publishPanelStatus(true)
-    publishSystemBatteryStatus('BatteryOk')
+    
     
   }
 
@@ -1302,9 +1304,9 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
 
   function statusListener(EventStr) {
     if (['LowBattery', 'BatteryOk'].includes(EventStr)) {
-      publishSystemBatteryStatus(EventStr);
+      publishSystemBatteryStatus(panel.MBSystem);
     } else {
-      publishSystemStateChange(EventStr)
+      publishSystemStateChange(panel.MBSystem)
     }
   }
 
