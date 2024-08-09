@@ -1235,8 +1235,8 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     for (const systemoutput of activeSystemOutputs(panel.outputs)) {
       publishOutputStateChange(systemoutput, '0');
     }
-    publishSystemBatteryStatus(panel.MBSystem)
-    publishSystemStateChange(panel.MBSystem)
+    publishSystemBatteryStatus(panel.mbSystem)
+    publishSystemStateChange(panel.mbSystem)
     initialized = true
     logger.info(`[RML] Finished publishing initial system, partitions, zones and output states to Home assistant`);
     publishPanelStatus(true)
@@ -1304,9 +1304,9 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
 
   function statusListener(EventStr) {
     if (['LowBattery', 'BatteryOk'].includes(EventStr)) {
-      publishSystemBatteryStatus(panel.MBSystem);
+      publishSystemBatteryStatus(panel.mbSystem);
     } else {
-      publishSystemStateChange(panel.MBSystem)
+      publishSystemStateChange(panel.mbSystem)
     }
   }
 
