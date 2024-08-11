@@ -113,7 +113,7 @@ const CONFIG_DEFAULTS: RiscoMQTTConfig = {
   logColorize: false,
   ha_discovery_prefix_topic: 'homeassistant',
   risco_mqtt_topic: 'risco-alarm-panel',
-  alarm_system_name: 'Risco Alarm',
+  alarm_system_name: '',
   filter_bypass_zones: true,
   ha_state_publishing_delay: 30,
   panel: {
@@ -235,6 +235,11 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
 
   let panel = new RiscoPanel(config.panel);
   let alarmMapping: PartitionArmingModes[] = [];
+
+
+  if (config.alarm_system_name !='') {
+    config.alarm_system_name = panel.mbSystem.Label
+  }
 
   panel.on('SystemInitComplete', () => {
     panel.riscoComm.tcpSocket.on('Disconnected', () => {
@@ -571,13 +576,18 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
   }
 
   function publishSystemStateChange(system: MBSystem) {
-    mqttClient.publish(`${config.risco_mqtt_topic}/alarm/systemmessage`, `${system.SStatus}`, { qos: 1, retain: true });
-    logger.verbose(`[Panel => MQTT] Published system message ${system.SStatus}`);
+    mqttClient.publish(`${config.risco_mqtt_topic}/alarm/systemmessage`, `${system.Status}`, { qos: 1, retain: true });
+    logger.verbose(`[Panel => MQTT] Published system message ${system.Status}`);
   }
 
   function publishSystemBatteryStatus(system: MBSystem) {
     mqttClient.publish(`${config.risco_mqtt_topic}/alarm/systembattery`, `${system.LowBatteryTrouble}`, { qos: 1, retain: true });
     logger.verbose(`[Panel => MQTT] Published system battery state ${system.LowBatteryTrouble}`);
+  }
+
+  function publishSystemPhoneLineStatus(system: MBSystem) {
+    mqttClient.publish(`${config.risco_mqtt_topic}/alarm/systembattery`, `${system.PhoneLineTrouble}`, { qos: 1, retain: true });
+    logger.verbose(`[Panel => MQTT] Published system battery state ${system.PhoneLineTrouble}`);
   }
 
   function partitionStatus(partition: Partition) {
@@ -843,6 +853,28 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     });
     logger.info(`[Panel => MQTT][Discovery] Published System battery sensor, HA name = ${systemBatteryPayload.name}`);
     logger.verbose(`[Panel => MQTT][Discovery] System battery sensor payload\n${JSON.stringify(systemBatteryPayload, null, 2)}`);
+
+    const systemPhoneLinePayload = {
+      name: `Phone line status`,
+      object_id: `${config.risco_mqtt_topic}-system-phoneline`,
+      state_topic: `${config.risco_mqtt_topic}/alarm/systemphoneline`,
+      unique_id: `${config.risco_mqtt_topic}-system-phoneline`,
+      availability_mode: 'all',
+      availability: [
+        {topic: `${config.risco_mqtt_topic}/alarm/status`},
+        {topic: `${config.risco_mqtt_topic}/alarm/button_status`}],
+      payload_on: false,
+      payload_off: true,
+      device_class: 'connectivity',
+      device: getDeviceInfo(),
+    };
+
+    mqttClient.publish(`${config.ha_discovery_prefix_topic}/binary_sensor/${config.risco_mqtt_topic}/systemphoneline/config`, JSON.stringify(systemPhoneLinePayload), {
+      qos: 1, retain: true,
+    });
+    logger.info(`[Panel => MQTT][Discovery] Published System battery sensor, HA name = ${systemPhoneLinePayload.name}`);
+    logger.verbose(`[Panel => MQTT][Discovery] System battery sensor payload\n${JSON.stringify(systemPhoneLinePayload, null, 2)}`);
+
 
     const republishStatePayload = {
       name: `Republish state payload`,
@@ -1237,6 +1269,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     }
     publishSystemBatteryStatus(panel.mbSystem)
     publishSystemStateChange(panel.mbSystem)
+    publishSystemPhoneLineStatus(panel.mbSystem)
     initialized = true
     logger.info(`[RML] Finished publishing initial system, partitions, zones and output states to Home assistant`);
     publishPanelStatus(true)
@@ -1305,6 +1338,9 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
   function statusListener(EventStr) {
     if (['LowBattery', 'BatteryOk'].includes(EventStr)) {
       publishSystemBatteryStatus(panel.mbSystem);
+    }
+    if (['PhoneLineTrouble', 'PhoneLineOk'].includes(EventStr)) {
+      publishSystemPhoneLineStatus(panel.mbSystem);
     } else {
       publishSystemStateChange(panel.mbSystem)
     }
