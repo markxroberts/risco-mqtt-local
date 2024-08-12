@@ -862,8 +862,8 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       availability: [
         {topic: `${config.risco_mqtt_topic}/alarm/status`},
         {topic: `${config.risco_mqtt_topic}/alarm/button_status`}],
-      payload_on: 'true',
-      payload_off: 'false',
+      payload_on: 'false',
+      payload_off: 'true',
       device_class: 'connectivity',
       device: getDeviceInfo(),
     };
