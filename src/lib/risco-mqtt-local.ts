@@ -236,11 +236,6 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
   let panel = new RiscoPanel(config.panel);
   let alarmMapping: PartitionArmingModes[] = [];
 
-  logger.info(`[RML] Alarm system name from panel is ${panel.mbSystem.Label}.  Setting this as device name`)
-  if (config.alarm_system_name ==='') {
-    config.alarm_system_name = panel.mbSystem.Label
-  }
-
   panel.on('SystemInitComplete', () => {
     panel.riscoComm.tcpSocket.on('Disconnected', () => {
       panelReady = false;
@@ -252,6 +247,11 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       panelOrMqttConnected();
     }
   });
+
+  logger.info(`[RML] Alarm system name from panel is ${panel.mbSystem.Label}.  Setting this as device name`)
+  if (config.alarm_system_name ==='') {
+    config.alarm_system_name = panel.mbSystem.Label
+  }
 
   logger.info(`[RML] Connecting to mqtt server: ${config.mqtt.url}`);
   const mqtt_options = {
