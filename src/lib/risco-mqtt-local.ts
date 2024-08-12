@@ -248,11 +248,6 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     }
   });
 
-  logger.info(`[RML] Alarm system name from panel is ${panel.mbSystem.Label}.  Setting this as device name`)
-  if (config.alarm_system_name ==='') {
-    config.alarm_system_name = panel.mbSystem.Label
-  }
-
   logger.info(`[RML] Connecting to mqtt server: ${config.mqtt.url}`);
   const mqtt_options = {
     clientId: `${config.mqtt.clientId}`,
@@ -759,6 +754,10 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
   }
 
   function getDeviceInfo() {
+    logger.info(`[RML] Alarm system name from panel is ${panel.mbSystem.Label}.  Setting this as device name`)
+    if (config.alarm_system_name ==='') {
+      config.alarm_system_name = panel.mbSystem.Label
+    }
     return {
       manufacturer: 'Risco',
       model: `${panel.riscoComm.panelInfo.PanelModel}/${panel.riscoComm.panelInfo.PanelType}`,
