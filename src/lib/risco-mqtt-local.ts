@@ -236,8 +236,8 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
   let panel = new RiscoPanel(config.panel);
   let alarmMapping: PartitionArmingModes[] = [];
 
-
-  if (config.alarm_system_name !='') {
+  logger.info(`[RML] Alarm system name from panel is ${panel.mbSystem.Label}.  Setting this as device name`)
+  if (config.alarm_system_name ==='') {
     config.alarm_system_name = panel.mbSystem.Label
   }
 
@@ -587,7 +587,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
 
   function publishSystemPhoneLineStatus(system: MBSystem) {
     mqttClient.publish(`${config.risco_mqtt_topic}/alarm/systemphoneline`, `${system.PhoneLineTrouble}`, { qos: 1, retain: true });
-    logger.verbose(`[Panel => MQTT] Published system battery state ${system.PhoneLineTrouble}`);
+    logger.verbose(`[Panel => MQTT] Published system phone line state ${system.PhoneLineTrouble}`);
   }
 
   function partitionStatus(partition: Partition) {
@@ -842,8 +842,8 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       availability: [
         {topic: `${config.risco_mqtt_topic}/alarm/status`},
         {topic: `${config.risco_mqtt_topic}/alarm/button_status`}],
-      payload_on: true,
-      payload_off: false,
+      payload_on: 'true',
+      payload_off: 'false',
       device_class: 'battery',
       device: getDeviceInfo(),
     };
@@ -863,8 +863,8 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       availability: [
         {topic: `${config.risco_mqtt_topic}/alarm/status`},
         {topic: `${config.risco_mqtt_topic}/alarm/button_status`}],
-      payload_on: true,
-      payload_off: false,
+      payload_on: 'true',
+      payload_off: 'false',
       device_class: 'connectivity',
       device: getDeviceInfo(),
     };
