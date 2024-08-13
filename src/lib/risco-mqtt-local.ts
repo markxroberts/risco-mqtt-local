@@ -596,12 +596,12 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
   }
 
   function publishSystemACPowerStatus(system: MBSystem) {
-    mqttClient.publish(`${config.risco_mqtt_topic}/alarm/systemphoneline`, `${system.ACTrouble}`, { qos: 1, retain: true });
+    mqttClient.publish(`${config.risco_mqtt_topic}/alarm/systemacpowerstatus`, `${system.ACTrouble}`, { qos: 1, retain: true });
     logger.verbose(`[Panel => MQTT] Published system ac power state ${system.ACTrouble}`);
   }
 
   function publishSystemTamperStatus(system: MBSystem) {
-    mqttClient.publish(`${config.risco_mqtt_topic}/alarm/systemphoneline`, `${system.BoxTamper}`, { qos: 1, retain: true });
+    mqttClient.publish(`${config.risco_mqtt_topic}/alarm/systemtamper`, `${system.BoxTamper}`, { qos: 1, retain: true });
     logger.verbose(`[Panel => MQTT] Published system tamper state ${system.BoxTamper}`);
   }
 
@@ -1399,6 +1399,12 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
   function statusListener(EventStr) {
     if (['LowBattery', 'BatteryOk'].includes(EventStr)) {
       publishSystemBatteryStatus(panel.mbSystem);
+    }
+    if (['ACUnplugged', 'ACPlugged'].includes(EventStr)) {
+      publishSystemACPowerStatus(panel.mbSystem);
+    }
+    if (['BoxTamperOpen', 'BoxTamperClosed'].includes(EventStr)) {
+      publishSystemTamperStatus(panel.mbSystem);
     }
     if (['PhoneLineTrouble', 'PhoneLineOk'].includes(EventStr)) {
       publishSystemPhoneLineStatus(panel.mbSystem);
