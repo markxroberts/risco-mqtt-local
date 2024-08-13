@@ -230,6 +230,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
   let partitionDetailType;
   let partitionReadyStatus = [];
   let armingTimer = false
+  let firstSystemStatus = true
 
   if (!config.mqtt?.url) throw new Error('[RML] MQTT url option is required');
 
@@ -575,14 +576,14 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       mqttClient.publish(`${config.risco_mqtt_topic}/alarm/systemmessage`, `${system.Status}`, { qos: 1, retain: true });
       logger.verbose(`[Panel => MQTT] Published system message ${system.Status}`);
     }
-    if (system.Status === undefined && !initialized) {
+    if (system.Status === undefined && !firstSystemStatus) {
       mqttClient.publish(`${config.risco_mqtt_topic}/alarm/systemmessage`, `System initialized`, { qos: 1, retain: true });
       logger.verbose(`[Panel => MQTT] Published system message System initialized`);
-      initialized = true
     } else {
       mqttClient.publish(`${config.risco_mqtt_topic}/alarm/systemmessage`, `No system message`, { qos: 1, retain: true });
       logger.verbose(`[Panel => MQTT] Published system message No system message`);
     }
+    firstSystemStatus = false
   }
 
   function publishSystemBatteryStatus(system: MBSystem) {
