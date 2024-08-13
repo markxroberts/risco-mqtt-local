@@ -576,7 +576,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       mqttClient.publish(`${config.risco_mqtt_topic}/alarm/systemmessage`, `${system.Status}`, { qos: 1, retain: true });
       logger.verbose(`[Panel => MQTT] Published system message ${system.Status}`);
     }
-    if (system.Status === undefined && !firstSystemStatus) {
+    if (system.Status === undefined && firstSystemStatus) {
       mqttClient.publish(`${config.risco_mqtt_topic}/alarm/systemmessage`, `System initialized`, { qos: 1, retain: true });
       logger.verbose(`[Panel => MQTT] Published system message System initialized`);
     } else {
