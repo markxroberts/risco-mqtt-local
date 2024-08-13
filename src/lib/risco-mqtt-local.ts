@@ -774,9 +774,9 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
   }
 
   function getDeviceInfo() {
-    logger.info(`[RML] Alarm system name from panel is ${panel.mbSystem.Label}.  Setting this as device name`)
     if (config.alarm_system_name ==='') {
       config.alarm_system_name = panel.mbSystem.Label
+      logger.debug(`[RML] Alarm system name from panel is ${panel.mbSystem.Label}.  Setting this as device name`)
     }
     return {
       manufacturer: 'Risco',
@@ -903,8 +903,8 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       availability: [
         {topic: `${config.risco_mqtt_topic}/alarm/status`},
         {topic: `${config.risco_mqtt_topic}/alarm/button_status`}],
-      payload_on: 'false',
-      payload_off: 'true',
+      payload_on: 'true',
+      payload_off: 'false',
       device_class: 'tamper',
       device: getDeviceInfo(),
     };
