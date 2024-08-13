@@ -571,8 +571,18 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
   }
 
   function publishSystemStateChange(system: MBSystem) {
-    mqttClient.publish(`${config.risco_mqtt_topic}/alarm/systemmessage`, `${system.Status}`, { qos: 1, retain: true });
-    logger.verbose(`[Panel => MQTT] Published system message ${system.Status}`);
+    if (system.Status) {
+      mqttClient.publish(`${config.risco_mqtt_topic}/alarm/systemmessage`, `${system.Status}`, { qos: 1, retain: true });
+      logger.verbose(`[Panel => MQTT] Published system message ${system.Status}`);
+    }
+    if (!system.Status && !initialized) {
+      mqttClient.publish(`${config.risco_mqtt_topic}/alarm/systemmessage`, `System initialized`, { qos: 1, retain: true });
+      logger.verbose(`[Panel => MQTT] Published system message System initialized`);
+      initialized = true
+    } else {
+      mqttClient.publish(`${config.risco_mqtt_topic}/alarm/systemmessage`, `${system.Status}`, { qos: 1, retain: true });
+      logger.verbose(`[Panel => MQTT] Published system message ${system.Status}`);
+    }
   }
 
   function publishSystemBatteryStatus(system: MBSystem) {
@@ -583,6 +593,16 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
   function publishSystemPhoneLineStatus(system: MBSystem) {
     mqttClient.publish(`${config.risco_mqtt_topic}/alarm/systemphoneline`, `${system.PhoneLineTrouble}`, { qos: 1, retain: true });
     logger.verbose(`[Panel => MQTT] Published system phone line state ${system.PhoneLineTrouble}`);
+  }
+
+  function publishSystemACPowerStatus(system: MBSystem) {
+    mqttClient.publish(`${config.risco_mqtt_topic}/alarm/systemphoneline`, `${system.ACTrouble}`, { qos: 1, retain: true });
+    logger.verbose(`[Panel => MQTT] Published system ac power state ${system.ACTrouble}`);
+  }
+
+  function publishSystemTamperStatus(system: MBSystem) {
+    mqttClient.publish(`${config.risco_mqtt_topic}/alarm/systemphoneline`, `${system.BoxTamper}`, { qos: 1, retain: true });
+    logger.verbose(`[Panel => MQTT] Published system tamper state ${system.BoxTamper}`);
   }
 
   function partitionStatus(partition: Partition) {
@@ -874,6 +894,47 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     logger.info(`[Panel => MQTT][Discovery] Published System battery sensor, HA name = ${systemPhoneLinePayload.name}`);
     logger.verbose(`[Panel => MQTT][Discovery] System battery sensor payload\n${JSON.stringify(systemPhoneLinePayload, null, 2)}`);
 
+    const systemTamperPayload = {
+      name: `System tamper`,
+      object_id: `${config.risco_mqtt_topic}-system-tamper`,
+      state_topic: `${config.risco_mqtt_topic}/alarm/systemtamper`,
+      unique_id: `${config.risco_mqtt_topic}-system-tamper`,
+      availability_mode: 'all',
+      availability: [
+        {topic: `${config.risco_mqtt_topic}/alarm/status`},
+        {topic: `${config.risco_mqtt_topic}/alarm/button_status`}],
+      payload_on: 'false',
+      payload_off: 'true',
+      device_class: 'tamper',
+      device: getDeviceInfo(),
+    };
+
+    mqttClient.publish(`${config.ha_discovery_prefix_topic}/binary_sensor/${config.risco_mqtt_topic}/systemtamper/config`, JSON.stringify(systemTamperPayload), {
+      qos: 1, retain: true,
+    });
+    logger.info(`[Panel => MQTT][Discovery] Published System tamper sensor, HA name = ${systemTamperPayload.name}`);
+    logger.verbose(`[Panel => MQTT][Discovery] System tamper sensor payload\n${JSON.stringify(systemTamperPayload, null, 2)}`);
+
+    const systemACPowerPayload = {
+      name: `AC Power status`,
+      object_id: `${config.risco_mqtt_topic}-system-acpowerstatus`,
+      state_topic: `${config.risco_mqtt_topic}/alarm/systemacpowerstatus`,
+      unique_id: `${config.risco_mqtt_topic}-system-acpowerstatus`,
+      availability_mode: 'all',
+      availability: [
+        {topic: `${config.risco_mqtt_topic}/alarm/status`},
+        {topic: `${config.risco_mqtt_topic}/alarm/button_status`}],
+      payload_on: 'false',
+      payload_off: 'true',
+      device_class: 'power',
+      device: getDeviceInfo(),
+    };
+
+    mqttClient.publish(`${config.ha_discovery_prefix_topic}/binary_sensor/${config.risco_mqtt_topic}/systemacpowerstatus/config`, JSON.stringify(systemACPowerPayload), {
+      qos: 1, retain: true,
+    });
+    logger.info(`[Panel => MQTT][Discovery] Published System AC power status sensor, HA name = ${systemACPowerPayload.name}`);
+    logger.verbose(`[Panel => MQTT][Discovery] System AC power status sensor sensor payload\n${JSON.stringify(systemACPowerPayload, null, 2)}`);
 
     const republishStatePayload = {
       name: `Republish state payload`,
@@ -1267,9 +1328,10 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       publishOutputStateChange(systemoutput, '0');
     }
     publishSystemBatteryStatus(panel.mbSystem)
-    publishSystemStateChange(panel.mbSystem)
     publishSystemPhoneLineStatus(panel.mbSystem)
-    initialized = true
+    publishSystemACPowerStatus(panel.mbSystem)
+    publishSystemTamperStatus(panel.mbSystem)
+    publishSystemStateChange(panel.mbSystem)
     logger.info(`[RML] Finished publishing initial system, partitions, zones and output states to Home assistant`);
     publishPanelStatus(true)
     
