@@ -1,4 +1,9 @@
 <!-- https://developers.home-assistant.io/docs/add-ons/presentation#keeping-a-changelog -->
+## 2023.8.0
+- added system binary sensors for phone line, power and tamper status
+- system status pulled from panel at startup
+- breaking change: alarm system name acquired from system label at startup - this will relabel your sensors.
+
 ## To be releases
 - add multiple panels support (#TODO)
 
