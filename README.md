@@ -39,6 +39,9 @@ This project is a fork of [Johann Vanackere](https://github.com/vanackej/risco-m
 - Ready status sensor for each partition
 - For home arming and group arming, delayed arming introduced in response to partition not ready (otherwise command just fails).  This will retry for up to 30 seconds if partition not ready to arm when arming command called.  HA alarm control panel will reflect this by showing 'arming'.  This is not the same as the Risco 'arming' state which initiates delayed arming (not supported).
 - Local alarm code now supported.  This doesn't validate with the panel, but is for local validation within Home Assistant.  From 20246.4 this is by partition.
+- Added binary sensors for system tamper status, phone line status
+- System status now pulled directly from system at startup
+- ** Breaking change ** Alarm system name now acquired directly from panel unless ```alarm_system_name``` set
 
 ## Installation
 
