@@ -614,6 +614,10 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
   function changeLoggingLevel(logging) {
     logger.configure({
       level: logging,
+      transports: [
+        new transports.Console(),
+        new transports.File({ filename: 'risco.log' })
+      ],
     })
   }
 
