@@ -203,7 +203,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     level: config.log || 'info',
     transports: [
       new transports.Console(),
-      new transports.File({ filename: 'risco.log' })
+      new transports.File({ filename: 'risco-%DATE%.log' })
     ],
   });
 
