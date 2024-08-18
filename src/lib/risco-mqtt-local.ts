@@ -199,17 +199,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       format,
     );
   }
-  if (config.logtofile) {
-  const logger = createLogger({
-    format: format,
-    level: config.log || 'info',
-    transports: [
-      new transports.Console(),
-      new transports.File({ filename: 'risco_%DATE%.log' })
-    ],
-  });
-  logger.verbose(`Logging level is ${config.log}.  Logging to console and to file risco_%DATE%.log`)
-  } else {
+
   const logger = createLogger({
     format: format,
     level: config.log || 'info',
@@ -217,7 +207,17 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       new transports.Console()
     ],
   });
-  logger.verbose(`Logging level is ${config.log}.  Logging to console only`)
+  logger.verbose(`Logging level is ${config.log}.  Logging to console`)
+
+  if (config.logtofile) {
+    logger.configure({
+      level: config.log || 'info',
+      transports: [
+        new transports.Console(),
+        new transports.File({ filename: 'risco_%DATE%.log' })
+      ],
+    })
+  logger.verbose(`Logtofile is enabled.   Now also logging to file risco_%DATE%.log`)
   }
 
   logger.debug(`[RML] User config:\n${JSON.stringify(userConfig, null, 2)}`);
