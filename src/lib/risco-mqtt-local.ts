@@ -619,6 +619,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
         new transports.File({ filename: 'risco.log' })
       ],
     })
+    mqttClient.publish(`${config.risco_mqtt_topic}/alarm/logginglevel`, logging, { qos: 1, retain: true });
   }
 
   function partitionStatus(partition: Partition) {
@@ -1372,8 +1373,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     publishSystemStateChange(panel.mbSystem)
     logger.info(`[RML] Finished publishing initial system, partitions, zones and output states to Home assistant`);
     publishPanelStatus(true)
-    
-    
+    mqttClient.publish(`${config.risco_mqtt_topic}/alarm/logginglevel`, config.log, { qos: 1, retain: true });
   }
 
   function partitionListener(Id, EventStr) {
