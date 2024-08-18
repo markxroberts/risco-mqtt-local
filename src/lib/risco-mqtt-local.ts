@@ -203,6 +203,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     level: config.log || 'info',
     transports: [
       new transports.Console(),
+      new transports.File({ filename: 'risco.log' })
     ],
   });
 
@@ -376,6 +377,10 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
         removeSocketListeners()
         reconnecting = true;
       }
+    } else if (topic === `${config.risco_mqtt_topic}/logging`) {
+      const logging = message.toString()
+        logger.info(`[RML] Message received via MQTT to change logging level to ${logging}`);
+        changeLoggingLevel(logging);
     }
   });
 
@@ -604,6 +609,12 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
   function publishSystemTamperStatus(system: MBSystem) {
     mqttClient.publish(`${config.risco_mqtt_topic}/alarm/systemtamper`, `${system.BoxTamper}`, { qos: 1, retain: true });
     logger.verbose(`[Panel => MQTT] Published system tamper state ${system.BoxTamper}`);
+  }
+
+  function changeLoggingLevel(logging) {
+    logger.configure({
+      level: logging,
+    })
   }
 
   function partitionStatus(partition: Partition) {
@@ -852,6 +863,28 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     });
     logger.info(`[Panel => MQTT][Discovery] Published System message sensor, HA name = ${systemPayload.name}`);
     logger.verbose(`[Panel => MQTT][Discovery] System message payload\n${JSON.stringify(systemPayload, null, 2)}`);
+
+    const loggingPayload = {
+      name: `Logging level`,
+      object_id: `${config.risco_mqtt_topic}-logging-level`,
+      state_topic: `${config.risco_mqtt_topic}/alarm/logginglevel`,
+      unique_id: `${config.risco_mqtt_topic}-logging-level`,
+      availability_mode: 'all',
+      availability: [
+        {topic: `${config.risco_mqtt_topic}/alarm/status`},
+        {topic: `${config.risco_mqtt_topic}/alarm/button_status`}],
+      options:
+        [info,verbose,debug,error],
+        command_topic: `${config.risco_mqtt_topic}/logging`,
+      entity_category: 'diagnostic',
+      device: getDeviceInfo(),
+    };
+
+    mqttClient.publish(`${config.ha_discovery_prefix_topic}/select/${config.risco_mqtt_topic}/logginglevel/config`, JSON.stringify(loggingPayload), {
+      qos: 1, retain: true,
+    });
+    logger.info(`[Panel => MQTT][Discovery] Published logging selector, HA name = ${loggingPayload.name}`);
+    logger.verbose(`[Panel => MQTT][Discovery] System logging payload\n${JSON.stringify(loggingPayload, null, 2)}`);
 
     const systemBatteryPayload = {
       name: `System battery`,
@@ -1510,6 +1543,9 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
         mqttClient.subscribe(outputTopic);
       }
       mqttClient.subscribe(`${config.risco_mqtt_topic}/republish`);
+      logger.info(`[RML] Subscribing to ${config.risco_mqtt_topic}/republish topic`);
+      mqttClient.subscribe(`${config.risco_mqtt_topic}/logging`);
+      logger.info(`[RML] Subscribing to ${config.risco_mqtt_topic}/logging topic`);
 
       publishPanelStatus(panelReady);
       logger.info(`[RML] Subscribing to panel partitions events`);
