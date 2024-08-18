@@ -24,6 +24,7 @@ type LogLevel = 'error' | 'warn' | 'info' | 'verbose' | 'debug';
 
 export interface RiscoMQTTConfig {
   log?: LogLevel,
+  logtofile?: boolean,
   logColorize?: boolean,
   ha_discovery_prefix_topic?: string,
   ha_discovery_include_nodeId?: boolean,
@@ -110,6 +111,7 @@ export interface ArmingModes {
 
 const CONFIG_DEFAULTS: RiscoMQTTConfig = {
   log: 'info',
+  logtofile: false,
   logColorize: false,
   ha_discovery_prefix_topic: 'homeassistant',
   risco_mqtt_topic: 'risco-alarm-panel',
@@ -197,15 +199,26 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       format,
     );
   }
-
+  if (config.logtofile) {
   const logger = createLogger({
     format: format,
     level: config.log || 'info',
     transports: [
       new transports.Console(),
-      new transports.File({ filename: 'risco-%DATE%.log' })
+      new transports.File({ filename: 'risco_%DATE%.log' })
     ],
   });
+  logger.verbose(`Logging level is ${config.log}.  Logging to console and to file risco_%DATE%.log`)
+  } else {
+  const logger = createLogger({
+    format: format,
+    level: config.log || 'info',
+    transports: [
+      new transports.Console()
+    ],
+  });
+  logger.verbose(`Logging level is ${config.log}.  Logging to console only`)
+  }
 
   logger.debug(`[RML] User config:\n${JSON.stringify(userConfig, null, 2)}`);
   logger.debug(`[RML] Merged config:\n${JSON.stringify(config, null, 2)}`);
@@ -612,15 +625,26 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
   }
 
   function changeLoggingLevel(logging) {
+  if (config.logtofile) {
     logger.configure({
       level: logging,
       transports: [
         new transports.Console(),
-        new transports.File({ filename: 'risco.log' })
+        new transports.File({ filename: 'risco_%DATE%.log' })
       ],
     })
+    logger.verbose(`Logging level temporarily changed to ${logging}.  Logging to console and file risco_%DATE%.log`)
     mqttClient.publish(`${config.risco_mqtt_topic}/alarm/logginglevel`, logging, { qos: 1, retain: true });
-  }
+  } else {
+    logger.configure({
+      level: logging,
+      transports: [
+        new transports.Console()
+      ],
+    })
+    logger.verbose(`Logging level temporarily changed to ${logging}.  Logging to console only`)
+    mqttClient.publish(`${config.risco_mqtt_topic}/alarm/logginglevel`, logging, { qos: 1, retain: true });
+  }}
 
   function partitionStatus(partition: Partition) {
     if (partition.Ready) {
