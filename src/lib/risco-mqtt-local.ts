@@ -874,8 +874,8 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
         {topic: `${config.risco_mqtt_topic}/alarm/status`},
         {topic: `${config.risco_mqtt_topic}/alarm/button_status`}],
       options:
-        [info,verbose,debug,error],
-        command_topic: `${config.risco_mqtt_topic}/logging`,
+        ['info','verbose','debug','error'],
+      command_topic: `${config.risco_mqtt_topic}/logging`,
       entity_category: 'diagnostic',
       device: getDeviceInfo(),
     };
