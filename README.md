@@ -42,6 +42,8 @@ This project is a fork of [Johann Vanackere](https://github.com/vanackej/risco-m
 - Added binary sensors for system tamper status, phone line status
 - System status now pulled directly from system at startup
 - ** Breaking change ** Alarm system name now acquired directly from panel unless ```alarm_system_name``` set
+- Ability to temporarily change logging in live application (input select)
+- Logging to file option
 
 ## Installation
 
@@ -61,6 +63,7 @@ Create a file config.json in your project directory.  I suggest using config-sam
 ```
 {
   "log": "info", // Optional, default to "info"
+  "logtofile": true // Optional, default false
   "panel": {
     "panelIp": "192.168.1.150",
     "panelPort": 1000,  // Optional
@@ -221,12 +224,13 @@ It needs to be strictly in json format.
 |**Subheading**|**Option**|**Type**|**Required**|**Example (default)**|**Description**|
 |:---|:---|:---|:---|:---|:---|
 |**None**||||
+||log|string|No|"info"|Logging level - error/info/verbose/debug|
+||logtofile|boolean|No|false|Logs to file risco.log in config location|
 ||ha_discovery_prefix_topic|string|No|"homeassistant"|Home assistant discovery prefix|
 ||risco_mqtt_topic|string|No|"risco-alarm-panel"|Topic for state changes - allows multiple panels|
 ||filter_bypass_zones|boolean|No|true|risco-mqtt-local filters those zones which can't be bypassed (entry/exit zones)|
 ||alarm_system_name|string|No|"Risco Alarm"|Device name prefix for HA entities|
 ||ha_state_publishing_delay|number|No|30|Introduces delay after publishing discovery message so that HA can process (otherwise states not shown)|
-||log|string|No|'info'|Logging options: debug|verbose|info|
 |**"mqtt":{**||||
 ||"url"|string|Yes|none|MQTT url including port eg "mqtt://192.168.1.10:1883"|
 ||"username"|string|No|none||

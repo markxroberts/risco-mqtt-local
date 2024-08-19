@@ -1,4 +1,8 @@
 <!-- https://developers.home-assistant.io/docs/add-ons/presentation#keeping-a-changelog -->
+## 2023.8.1
+- logging option logtofile (boolean)
+- ability to temporarily change logging in live app
+
 ## 2023.8.0
 - added system binary sensors for phone line, power and tamper status
 - system status pulled from panel at startup
