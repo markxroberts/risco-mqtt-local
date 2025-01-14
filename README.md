@@ -1,9 +1,11 @@
 [![license badge](https://img.shields.io/badge/license-MIT-green.svg)](https://github.com/markxroberts/risco-mqtt-local/blob/main/LICENSE)
 [![Docker Pulls](https://img.shields.io/docker/pulls/markxroberts/risco-mqtt-local)](https://hub.docker.com/r/markxroberts/risco-mqtt-local)
-![Maintenance](https://img.shields.io/maintenance/yes/2024.svg)
+![Maintenance](https://img.shields.io/maintenance/yes/2025.svg)
 [![buy me a coffee](https://img.shields.io/badge/If%20you%20like%20it-Buy%20me%20a%20coffee-orange.svg)](https://www.buymeacoffee.com/markxr)
 
 [![Add to Home Assistant](https://my.home-assistant.io/badges/supervisor_add_addon_repository.svg)](https://my.home-assistant.io/redirect/supervisor_add_addon_repository/?repository_url=https%3A%2F%2Fgithub.com%2Fmarkxroberts%2Frisco-mqtt-local)
+
+# This integration is still maintained, but has been developed to the limits of the known API at the current time.  I will undertake updates as required to ensure it is up-to-date with HA #
 
 # Risco MQTT Local integration
 
@@ -47,10 +49,6 @@ This project is a fork of [Johann Vanackere](https://github.com/vanackej/risco-m
 
 ## Installation
 
-```
-npm install @markxroberts/risco-mqtt-local
-```
-Or 
 ```
 docker run -v $(pwd)/config.json:/data/config.json markxroberts/risco-mqtt-local:latest
 ```
