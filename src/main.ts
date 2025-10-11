@@ -2,8 +2,7 @@
 
 const fs = require('fs');
 const path = require('path');
-import {riscoMqttHomeAssistant} from './lib';
-import { RiscoMQTTConfig } from './index';
+import {riscoMqttHomeAssistant, RiscoMQTTConfig} from './lib';
 import yaml from 'js-yaml';
 
 try {
@@ -27,8 +26,8 @@ try {
             json = false;
         }
     } else {
-        configJSON = path.join(process.cwd(), 'config.json')
-        configYAML = path.join(process.cwd(), 'config.yaml')
+        const configJSON = path.join(process.cwd(), 'config.json')
+        const configYAML = path.join(process.cwd(), 'config.yaml')
         if (fs.existsSync(configJSON)) {
             configPath = configJSON
         } else {
@@ -42,7 +41,7 @@ try {
         riscoMqttHomeAssistant(config)
     }
     else if (fs.existsSync(configPath) && !json) {
-        const config = yaml.load(readFileSync(configPath, 'utf-8') as RiscoMQTTConfig)
+        const config = yaml.load(fs.readFileSync(configPath, 'utf-8') as RiscoMQTTConfig)
         riscoMqttHomeAssistant(config)
     } else {
         console.log(`[RML] File ${configPath} does not exist`)
