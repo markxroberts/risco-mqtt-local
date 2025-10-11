@@ -41,7 +41,7 @@ try {
         riscoMqttHomeAssistant(config)
     }
     else if (fs.existsSync(configPath) && !json) {
-        const config = yaml.load(fs.readFileSync(configPath, 'utf-8') as RiscoMQTTConfig)
+        const config = yaml.load(fs.readFileSync(configPath, 'utf-8')) as RiscoMQTTConfig
         riscoMqttHomeAssistant(config)
     } else {
         console.log(`[RML] File ${configPath} does not exist`)
