@@ -56,7 +56,8 @@ Or install as HA add-on.
 
 ## Configuration
 
-Create a file config.json in your project directory.  I suggest using config-sample.json in this folder rather than copying the commented version below.
+Create a file config.json in your project directory.  I suggest using ```config-sample.json``` in this folder rather than copying the commented version below.
+You may wish to try using ```config.yaml``` instead of ```config.json```.  This is as yet not fully tested.
 
 ```
 {

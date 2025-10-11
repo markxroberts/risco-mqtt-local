@@ -832,7 +832,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     if (config.panel.socketMode === 'proxy') {
       const proxyPayload = {
         name: `Proxy connection status`,
-        object_id: `${config.risco_mqtt_topic}-proxy-connection-status`,
+        default_entity_id: `${config.risco_mqtt_topic}-proxy-connection-status`,
         state_topic: `${config.risco_mqtt_topic}/alarm/proxystatus`,
         unique_id: `${config.risco_mqtt_topic}-proxystatus`,
         availability: {
@@ -853,7 +853,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     } else {
       const panelPayload = {
         name: `Panel connection status`,
-        object_id: `${config.risco_mqtt_topic}-panel-connection-status`,
+        default_entity_id: `${config.risco_mqtt_topic}-panel-connection-status`,
         state_topic: `${config.risco_mqtt_topic}/alarm/panelstatus`,
         unique_id: `${config.risco_mqtt_topic}-panelstatus`,
         availability: {
@@ -876,7 +876,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
 
     const systemPayload = {
       name: `System message`,
-      object_id: `${config.risco_mqtt_topic}-system-message`,
+      default_entity_id: `${config.risco_mqtt_topic}-system-message`,
       state_topic: `${config.risco_mqtt_topic}/alarm/systemmessage`,
       unique_id: `${config.risco_mqtt_topic}-system-message`,
       availability_mode: 'all',
@@ -895,7 +895,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
 
     const loggingPayload = {
       name: `Logging level`,
-      object_id: `${config.risco_mqtt_topic}-logging-level`,
+      default_entity_id: `${config.risco_mqtt_topic}-logging-level`,
       state_topic: `${config.risco_mqtt_topic}/alarm/logginglevel`,
       unique_id: `${config.risco_mqtt_topic}-logging-level`,
       availability_mode: 'all',
@@ -917,7 +917,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
 
     const systemBatteryPayload = {
       name: `System battery`,
-      object_id: `${config.risco_mqtt_topic}-system-battery`,
+      default_entity_id: `${config.risco_mqtt_topic}-system-battery`,
       state_topic: `${config.risco_mqtt_topic}/alarm/systembattery`,
       unique_id: `${config.risco_mqtt_topic}-system-battery`,
       availability_mode: 'all',
@@ -938,7 +938,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
 
     const systemPhoneLinePayload = {
       name: `Phone line status`,
-      object_id: `${config.risco_mqtt_topic}-system-phoneline`,
+      default_entity_id: `${config.risco_mqtt_topic}-system-phoneline`,
       state_topic: `${config.risco_mqtt_topic}/alarm/systemphoneline`,
       unique_id: `${config.risco_mqtt_topic}-system-phoneline`,
       availability_mode: 'all',
@@ -959,7 +959,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
 
     const systemTamperPayload = {
       name: `System tamper`,
-      object_id: `${config.risco_mqtt_topic}-system-tamper`,
+      default_entity_id: `${config.risco_mqtt_topic}-system-tamper`,
       state_topic: `${config.risco_mqtt_topic}/alarm/systemtamper`,
       unique_id: `${config.risco_mqtt_topic}-system-tamper`,
       availability_mode: 'all',
@@ -980,7 +980,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
 
     const systemACPowerPayload = {
       name: `AC Power status`,
-      object_id: `${config.risco_mqtt_topic}-system-acpowerstatus`,
+      default_entity_id: `${config.risco_mqtt_topic}-system-acpowerstatus`,
       state_topic: `${config.risco_mqtt_topic}/alarm/systemacpowerstatus`,
       unique_id: `${config.risco_mqtt_topic}-system-acpowerstatus`,
       availability_mode: 'all',
@@ -1001,7 +1001,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
 
     const republishStatePayload = {
       name: `Republish state payload`,
-      object_id: `${config.risco_mqtt_topic}-republish-state`,
+      default_entity_id: `${config.risco_mqtt_topic}-republish-state`,
       unique_id: `${config.risco_mqtt_topic}-republish-state`,
       availability: {
         topic: `${config.risco_mqtt_topic}/alarm/button_status`,
@@ -1021,7 +1021,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
 
     const republishAutodiscoveryPayload = {
       name: `Republish autodiscovery`,
-      object_id: `${config.risco_mqtt_topic}-republish-autodiscovery`,
+      default_entity_id: `${config.risco_mqtt_topic}-republish-autodiscovery`,
       unique_id: `${config.risco_mqtt_topic}-republish-autodiscovery`,
       availability: {
         topic: `${config.risco_mqtt_topic}/alarm/button_status`,
@@ -1041,7 +1041,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
 
     const restartPayload = {
       name: `Restart communications`,
-      object_id: `${config.risco_mqtt_topic}-restart-communications`,
+      default_entity_id: `${config.risco_mqtt_topic}-restart-communications`,
       unique_id: `${config.risco_mqtt_topic}-restart-communications`,
       availability: {
         topic: `${config.risco_mqtt_topic}/alarm/button_status`,
@@ -1088,7 +1088,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       
       const payload = {
         name: partition.Label,
-        object_id: `${config.risco_mqtt_topic}-${partition.Id}`,
+        default_entity_id: `${config.risco_mqtt_topic}-${partition.Id}`,
         state_topic: `${config.risco_mqtt_topic}/alarm/partition/${partition.Id}/status`,
         unique_id: `${config.risco_mqtt_topic}-partition-${partition.Id}`,
         availability_mode: 'all',
@@ -1117,7 +1117,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
 
       const partitionpayload = {
         name: partitionSensorName,
-        object_id: `${config.risco_mqtt_topic}-${partition.Id}-status`,
+        default_entity_id: `${config.risco_mqtt_topic}-${partition.Id}-status`,
         state_topic: `${config.risco_mqtt_topic}/alarm/partition/${partition.Id}-status/status`,
         unique_id: `${config.risco_mqtt_topic}-partition-${partition.Id}-status`,
         availability_mode: 'all',

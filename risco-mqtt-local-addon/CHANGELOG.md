@@ -1,4 +1,8 @@
 <!-- https://developers.home-assistant.io/docs/add-ons/presentation#keeping-a-changelog -->
+## 2025.10.0
+- updated MQTT autodiscovery definitions
+- ability to use config.yaml instead of config.json
+
 ## 2023.8.1
 - logging option logtofile (boolean)
 - ability to temporarily change logging in live app
