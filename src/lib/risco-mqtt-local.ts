@@ -1500,7 +1500,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       panelReady = false;
       logger.info(`[RML] Panel unreachable.`)
       reconnecting = true;
-      } else if (data.includes('Cloud socket Closed' || 'RiscoCloud Socket: closed' || 'Risco command error: TIMEOUT')) {
+      } else if (data.includes('Cloud socket Closed') || data.includes('RiscoCloud Socket: closed') || data.includes('Risco command error: TIMEOUT')) {
         logger.info(`[Panel => RML] Cloud socket error ${data} received.  Disconnecting socket to avoid reconnection loop.`)
         panelReady = false;
         socketDisconnected(true);
