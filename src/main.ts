@@ -12,7 +12,7 @@ try {
         // if this var is set, we know we are running in the addon
         configPath = process.env.RISCO_MQTT_HA_CONFIG_FILE
         if (fs.existsSync(configPath)) {
-            return configpath
+            json = true
         }
     } else if ("RISCO_MQTT_HA_CONFIG_YAML" in process.env) {
         // if this var is set, we know we are running in the addon
