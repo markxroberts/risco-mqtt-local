@@ -657,6 +657,23 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     }
   }
 
+  function armingState(key: string)
+    if (key === 'armed_away') {
+      return 'arm_away'
+    }
+    else if (key === 'armed_home') {
+      return 'arm_home'
+    }
+    else if (key === 'armed_night') {
+      return 'arm_night'
+    }
+    else if (key === 'armed_vacation') {
+      return 'arm_vacation'
+    }
+    else if (key === 'armed_custom_bypass') {
+      return 'arm_custom_bypass'
+    }
+
   function publishPartitionStateChanged(partition: Partition, arming: boolean) {
     if (!arming) {
       mqttClient.publish(`${config.risco_mqtt_topic}/alarm/partition/${partition.Id}/status`, alarmPayload(partition), { qos: 1, retain: true });
@@ -1085,7 +1102,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       let supported_features: string[] = []
       for (let key in armingConfig) {
         if (armingConfig[key] !== "")
-        {supported_features.push(key)}
+        {supported_features.push(armingState(key))}
       logger.verbose(`[RML] Supported alarm states in Home Assistant ${partitionLabel} as \n${JSON.stringify(supported_features, null, 2)}.`)
       }
 
