@@ -1074,17 +1074,17 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
         [partitionLabel]: {
           armed_away: armingConfig.armed_away,
           armed_home: armingConfig.armed_home,
+          armed_night: armingConfig.armed_night | "",
+          armed_vacation: armingConfig.armed_vacation | "",
+          armed_custom_bypass: armingConfig.armed_custom_bypass | ""
         }};
-      if (armingConfig.armed_night !== undefined) {alarmRemap.partitionLabel.armed_night = armingConfig.armed_night}
-      if (armingConfig.armed_vacation !== undefined) {alarmRemap.partitionLabel.armed_night = armingConfig.armed_night}
-      if (armingConfig.armed_custom_bypass !== undefined) {alarmRemap.partitionLabel.armed_night = armingConfig.armed_night}
       alarmMapping.push(alarmRemap);
       logger.info(`[RML] Added alarm state mapping for partition ${partitionLabel}.`)
       logger.verbose(`[RML] Added alarm state mappings for partition ${partitionLabel} as \n${JSON.stringify(alarmRemap, null, 2)}.`)
       
       let supported_features
       for (let key in armingConfig) {
-        if (armingConfig[key] !== undefined)
+        if (armingConfig[key] !== "")
         {supported_features.push(armingConfig[key])}
       logger.verbose(`[RML] Supported alarm states in Home Assistant ${partitionLabel} as \n${JSON.stringify(alarmRemap, null, 2)}.`)
       }
