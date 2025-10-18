@@ -1085,8 +1085,8 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       let supported_features: string[] = []
       for (let key in armingConfig) {
         if (armingConfig[key] !== "")
-        {supported_features.push(armingConfig[key])}
-      logger.verbose(`[RML] Supported alarm states in Home Assistant ${partitionLabel} as \n${JSON.stringify(alarmRemap, null, 2)}.`)
+        {supported_features.push(armingConfig)}
+      logger.verbose(`[RML] Supported alarm states in Home Assistant ${partitionLabel} as \n${JSON.stringify(supported_features, null, 2)}.`)
       }
 
       let payload
