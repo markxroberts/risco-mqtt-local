@@ -1082,7 +1082,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       logger.info(`[RML] Added alarm state mapping for partition ${partitionLabel}.`)
       logger.verbose(`[RML] Added alarm state mappings for partition ${partitionLabel} as \n${JSON.stringify(alarmRemap, null, 2)}.`)
       
-      let supported_features
+      let supported_features: string[]
       for (let key in armingConfig) {
         if (armingConfig[key] !== "")
         {supported_features.push(armingConfig[key])}
