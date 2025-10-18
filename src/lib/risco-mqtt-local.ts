@@ -104,9 +104,9 @@ export interface PartitionArmingModes {
 export interface ArmingModes {
   armed_away: string
   armed_home: string
-  armed_night: string
-  armed_vacation: string
-  armed_custom_bypass: string
+  armed_night?: string
+  armed_vacation?: string
+  armed_custom_bypass?: string
 }
 
 const CONFIG_DEFAULTS: RiscoMQTTConfig = {
@@ -153,9 +153,6 @@ const CONFIG_DEFAULTS: RiscoMQTTConfig = {
       default: {
         armed_away: 'armed_away',
         armed_home: 'armed_home',
-        armed_night: 'armed_home',
-        armed_vacation: 'armed_away',
-        armed_custom_bypass: 'armed_home',
       },
     },
   },
@@ -1077,16 +1074,23 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
         [partitionLabel]: {
           armed_away: armingConfig.armed_away,
           armed_home: armingConfig.armed_home,
-          armed_night: armingConfig.armed_night,
-          armed_vacation: armingConfig.armed_vacation,
-          armed_custom_bypass: armingConfig.armed_custom_bypass
         }};
+      if (armingConfig.armed_night !== undefined) {alarmRemap.partitionLabel.armed_night = armingConfig.armed_night}
+      if (armingConfig.armed_vacation !== undefined) {alarmRemap.partitionLabel.armed_night = armingConfig.armed_night}
+      if (armingConfig.armed_custom_bypass !== undefined) {alarmRemap.partitionLabel.armed_night = armingConfig.armed_night}
       alarmMapping.push(alarmRemap);
       logger.info(`[RML] Added alarm state mapping for partition ${partitionLabel}.`)
       logger.verbose(`[RML] Added alarm state mappings for partition ${partitionLabel} as \n${JSON.stringify(alarmRemap, null, 2)}.`)
-      logger.verbose(`[RML] Alarm mappings updated as \n${JSON.stringify(alarmMapping, null, 2)}.`)
       
-      const payload = {
+      let supported_features
+      for (let key in armingConfig) {
+        if (armingConfig[key] !== undefined)
+        {supported_features.push(armingConfig[key])}
+      logger.verbose(`[RML] Supported alarm states in Home Assistant ${partitionLabel} as \n${JSON.stringify(alarmRemap, null, 2)}.`)
+      }
+
+      let payload
+      payload = {
         name: partition.Label,
         default_entity_id: `${config.risco_mqtt_topic}-${partition.Id}`,
         state_topic: `${config.risco_mqtt_topic}/alarm/partition/${partition.Id}/status`,
@@ -1098,15 +1102,17 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
         payload_disarm: 'disarmed',
         payload_arm_away: armingConfig.armed_away,
         payload_arm_home: armingConfig.armed_home,
-        payload_arm_night: armingConfig.armed_night,
-        payload_arm_vacation: armingConfig.armed_vacation,
-        payload_arm_custom_bypass: armingConfig.armed_custom_bypass,
         code_arm_required: partitionConf.alarm_code_arm_required,
         code_disarm_required: partitionConf.alarm_code_disarm_required,
         code: partitionConf.alarm_code,
+        supported_features: supported_features,
         device: getDeviceInfo(),
         command_topic: `${config.risco_mqtt_topic}/alarm/partition/${partition.Id}/set`,
       };
+
+      if (armingConfig.armed_night !== undefined) {payload.payload_arm_night = armingConfig.armed_night};
+      if (armingConfig.armed_vacation !== undefined) {payload.payload_arm_vacation = armingConfig.armed_vacation};
+      if (armingConfig.armed_custom_bypass !== undefined) {payload.payload_arm_custom_bypass = armingConfig.armed_custom_bypass};
 
       const partitionName = partitionConf.name || partition.Label;
       payload.name = partitionConf.name_prefix + partitionName;
