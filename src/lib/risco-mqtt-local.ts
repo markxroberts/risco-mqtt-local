@@ -657,7 +657,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     }
   }
 
-  function armingState(key: string)
+  function armingState(key: string) {
     if (key === 'armed_away') {
       return 'arm_away'
     }
@@ -673,6 +673,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     else if (key === 'armed_custom_bypass') {
       return 'arm_custom_bypass'
     }
+  }
 
   function publishPartitionStateChanged(partition: Partition, arming: boolean) {
     if (!arming) {
