@@ -15,10 +15,11 @@ import {
   MBSystem
 } from '@markxroberts/risco-lan-bridge/dist';
 import pkg from 'winston';
-import { cloneDeep } from 'lodash';
+import { cloneDeep, replace } from 'lodash';
 
 const { createLogger, format, transports } = pkg;
 const { combine, timestamp, printf, colorize } = format;
+const replaceAll = replace;
 
 type LogLevel = 'error' | 'warn' | 'info' | 'verbose' | 'debug';
 
@@ -844,7 +845,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
   }
 
   function publishHomeAssistantDiscoveryInfo() {
-    const formattedEntityIdStem = config.risco_mqtt_topic.replaceAll("-","_")
+    const formattedEntityIdStem = replaceAll(config.risco_mqtt_topic,"-","_")
     if (config.panel.socketMode === 'proxy') {
       const proxyPayload = {
         name: `Proxy connection status`,
