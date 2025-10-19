@@ -36,7 +36,11 @@ try {
     console.log('[RML] Loading config from: ' + configPath)
     if (fs.existsSync(configPath) && json) {
         const config = require(configPath)
-        const configYAML = path.join(configPath.substring(0, configPath.length - 4), "yaml")
+        let configYAML
+        if ("RISCO_MQTT_HA_CONFIG_FILE" in process.env) {
+            configYAML = process.env.RISCO_MQTT_HA_CONFIG_YAML
+        }
+        else {configYAML = path.join(process.cwd(), 'config.yaml')};
         fs.writeFile(configYAML, yaml.dump(config), (err) => { if (err) {console.log(err);}});
         console.log(`[RML] Configuration file converted to yaml.  JSON version may be safely deleted.`)
         riscoMqttHomeAssistant(config)
