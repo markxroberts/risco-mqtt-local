@@ -954,7 +954,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
 
     const systemPhoneLinePayload = {
       name: `Phone line status`,
-      default_entity_id: `${cformattedEntityIdStem}_system_phoneline`,
+      default_entity_id: `${formattedEntityIdStem}_system_phoneline`,
       state_topic: `${config.risco_mqtt_topic}/alarm/systemphoneline`,
       unique_id: `${config.risco_mqtt_topic}-system-phoneline`,
       availability_mode: 'all',
