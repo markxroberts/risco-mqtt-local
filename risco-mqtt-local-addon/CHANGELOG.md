@@ -1,4 +1,8 @@
 <!-- https://developers.home-assistant.io/docs/add-ons/presentation#keeping-a-changelog -->
+## 2025.10.3
+- config.yaml is now default
+- HA autodiscovery now uses supported_features
+
 ## 2025.10.2
 - updated MQTT autodiscovery definitions
 - ability to use config.yaml instead of config.json
