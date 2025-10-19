@@ -2,7 +2,7 @@
 
 ## Configuration
 
-The addon cannot be configured from the addon configuration page. In order to configure the addon, you need to add/edit the `/config/risco-mqtt.json` file and restart the addon.
+The addon cannot be configured from the addon configuration page. In order to configure the addon, you need to add/edit the `/config/risco-mqtt.yaml` file and restart the addon.
 
 For editing the configuration file, use the [Studio Code Server](https://github.com/hassio-addons/addon-vscode#readme) addon.
 

@@ -15,7 +15,7 @@ This project is a fork of [Johann Vanackere](https://github.com/vanackej/risco-m
 
 ## Requirements
 
-- Node.js (currently tested with >=ver. 10.x)
+- Node.js (currently tested with >=ver. 18.x)
 - Mqtt Server - e.g. Mosquitto, HiveMQ, etc.
 - Home Assistant
 
@@ -35,21 +35,21 @@ This project is a fork of [Johann Vanackere](https://github.com/vanackej/risco-m
 - System battery status, tamper and phone line binary sensor
 - Ready status sensor for each partition
 - For home arming and group arming, delayed arming introduced in response to partition not ready (otherwise command just fails).  This will retry for up to 30 seconds if partition not ready to arm when arming command called.  HA alarm control panel will reflect this by showing 'arming'.  This is not the same as the Risco 'arming' state which initiates delayed arming (not supported).
-- Local alarm code now supported.  This doesn't validate with the panel, but is for local validation within Home Assistant.  From 20246.4 this is by partition.
+- Local alarm code now supported.  This doesn't validate with the panel, but is for local validation within Home Assistant.  From 2024.6.4 this is by partition.
 - Ability to temporarily change logging in live application (input select)
 - Logging to file option
-- Now supports .yaml configuration
+- Now supports .yaml configuration.  If you are already using the application, it will create a `config.yaml` file for you, so you can delete the old `config.json` file.
 
 ## Installation
 
 ```
-docker run -v $(pwd)/config.json:/data/config.json markxroberts/risco-mqtt-local:latest
+docker run -v $(pwd)/config.json:/data/config.yaml markxroberts/risco-mqtt-local:latest
 ```
 Or install as HA add-on.
 
 ## Configuration
 
-Create a file config.yaml in your project directory.  I suggest using ```config-sample.yaml``` in this folder rather than copying the commented version below.
+Create a file config.yaml in your project directory.  I suggest using `config-sample.yaml` in this folder rather than copying the commented version below.
 
 ```
 log: info
@@ -123,31 +123,31 @@ NB Ensure that zone description matches label stored in panel exactly (including
 
 **risco-mqtt-local** subscribes at startup one topic for every partition in your risco alarm panel configuration.
 
-Topic format is `<risco_node_id>/alarm/<partition_id>/set` where **partition_id** is the id of the partition
+Topic format is `<risco_mqtt_topic>/alarm/<partition_id>/set` where **partition_id** is the id of the partition
 
-Payload could be : **disarmed** if risco panel is in disarmed mode,**armed_home** if risco panel is in armed at home mode and **armed_away** if risco panel is in armed away mode.
+Payload could be : **disarmed** if risco panel is in disarmed mode,**armed_home** if risco panel is in armed at home mode and **armed_away** if risco panel is in armed away mode.  There are other mapping options - see below.
 
 ## Publish Topics
 
 risco-mqtt-local publishes one topic for every partition and for every zones in your risco alarm panel configuration.
 
-Partition topics format is `<risco_node_id>/alarm/<partition_id>/status` where **partition_id** is the id of the partition
+Partition topics format is `<risco_mqtt_topic>/alarm/<partition_id>/status` where **partition_id** is the id of the partition
 
 Default payload could be: **disarmed** if risco panel is in disarmed mode,**armed_home** if risco panel is in armed at home mode and **armed_away** if risco panel is in armed away mode, **armed_custom_bypass** if another mapping has been defined.
 
-Zones topics format is `<risco_node_id>/alarm/<partition_id>/<zone_id>/status` where **partition_id** is the id of the partition and **zone_id** is the id of the zone.
+Zones topics format is `<risco_mqtt_topic>/alarm/<partition_id>/<zone_id>/status` where **partition_id** is the id of the partition and **zone_id** is the id of the zone.
 
 Payload could be : **triggered** if zone is curently triggered, and **idle** if zone is currently idle.
 
-In addition to every zone status, risco-mqtt-local publishes a topic for every zone with all the info of the zone in the payload in json format. Topics format is `<risco_node_id>/alarm/<partition_id>/<zone_id>` where **partition_id** is the id of the partition and **zone_id** is the id of the zone.
+In addition to every zone status, risco-mqtt-local publishes a topic for every zone with all the info of the zone in the payload in json format. Topics format is `<risco_mqtt_topic>/alarm/<partition_id>/<zone_id>` where **partition_id** is the id of the partition and **zone_id** is the id of the zone.
 
 Zones that may be bypassed are published as switches at: `<risco_alarm_panel>/alarm/<partition_id>/switch/<zone_id>-bypass`.  On some systems, Entry/exit zones may not be bypassed and so you can choose not to publish this by setting the filter_bypass_zones flag.
 
-Battery-powered zones have separate sensors for the battery.   These are published at: `<risco_node_id>/alarm/<partition_id>/<zone_id>/battery`.  These only have a binary state.
+Battery-powered zones have separate sensors for the battery.   These are published at: `<risco_mqtt_topic>/alarm/<partition_id>/<zone_id>/battery`.  These only have a binary state.
 
-Outputs are published as `<risco_node_id/alarm>/<output_id>/status` for sensor outputs.  For outputs where interaction is possible, these are published as `<risco_node_id>/alarm/<output_id>/status` unless buttons, which are stateless.  Switches/buttons are published to `<risco_node_id>/alarm/<output_id>/set` as subscribed topics.
+Outputs are published as `<risco_mqtt_topic/alarm>/<output_id>/status` for sensor outputs.  For outputs where interaction is possible, these are published as `<risco_mqtt_topic>/alarm/<output_id>/status` unless buttons, which are stateless.  Switches/buttons are published to `<risco_mqtt_topic>/alarm/<output_id>/set` as subscribed topics.
 
-The cloud proxy status is published at `<risco_node_id>/alarm/cloudstatus` if the cloud proxy is enabled.
+The cloud proxy status is published at `<risco_mqtt_topic>/alarm/cloudstatus` if the cloud proxy is enabled.
 
 Arming modes are shown in the configuration example above.  All of these are optional.  Defaults are shown.  The syntax shown here must be used for mappings to work.
 
@@ -155,7 +155,7 @@ Arming modes are shown in the configuration example above.  All of these are opt
 
 risco-mqtt-local supports [mqtt auto discovery](https://www.home-assistant.io/docs/mqtt/discovery/) feature.
 
-Default `<discovery_prefix>` is **homeassistant**. You can change it by overwriting the value within **ha_discovery_prefix_topic** config.
+Default `<ha_discovery_prefix>` is **homeassistant**. You can change it by overwriting the value within **ha_discovery_prefix_topic** config.
 
 Home assistant auto discovery is republished on Home Assistant restart.
 
@@ -163,9 +163,9 @@ For multiple partitions, change **risco_mqtt_topic** in each installation.
 
 ## Usage
 
-First, create the `config.json` file.  Only the first part of the file with system settings is mandatory.  It's not necessary to describe all of the zones/partitions/sensors as these can be customized from the Home Assistant front end.  I suggest using `config-sample.json` as a template.  The bind mount location is `/data` in the container.
+First, create the `config.yaml` file.  Only the first part of the file with system settings is mandatory.  It's not necessary to describe all of the zones/partitions/sensors as these can be customized from the Home Assistant front end.  I suggest using `config-sample.yaml` as a template.  The bind mount location is `/data` in the container.
 
-It needs to be strictly in json format.
+It needs to be in yaml format.
 
 ## Full configuration options - under "panel" heading (risco-lan-bridge)
 |**Entry**|**SubEntry**|**Type**|**Required**|**Example (default)**|**Description**|
