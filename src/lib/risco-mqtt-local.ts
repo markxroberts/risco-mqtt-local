@@ -592,11 +592,11 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
   }
 
   function publishSystemStateChange(system: MBSystem) {
-    if (system.SStatus !== undefined) {
-      mqttClient.publish(`${config.risco_mqtt_topic}/alarm/systemmessage`, `${system.SStatus}`, { qos: 1, retain: true });
-      logger.verbose(`[Panel => RML => MQTT] Published system message ${system.SStatus}`);
+    if (system.Status !== undefined) {
+      mqttClient.publish(`${config.risco_mqtt_topic}/alarm/systemmessage`, `${system.Status}`, { qos: 1, retain: true });
+      logger.verbose(`[Panel => RML => MQTT] Published system message ${system.Status}`);
     }
-    if (system.SStatus === undefined && firstSystemStatus) {
+    if (system.Status === undefined && firstSystemStatus) {
       mqttClient.publish(`${config.risco_mqtt_topic}/alarm/systemmessage`, `System initialized`, { qos: 1, retain: true });
       logger.verbose(`[Panel => RML => MQTT] Published system message System initialized`);
     } else {
