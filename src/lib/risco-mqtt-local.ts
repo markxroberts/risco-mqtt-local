@@ -607,28 +607,28 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
   }
 
   function publishSystemBatteryStatus(system: MBSystem) {
-    mqttClient.publish(`${config.risco_mqtt_topic}/alarm/systembattery`, `${system.SStatus}`, { qos: 1, retain: true });
-    logger.verbose(`[Panel => RML => MQTT] Published system battery state ${system.SStatus}`);
+    mqttClient.publish(`${config.risco_mqtt_topic}/alarm/systembattery`, `${system.LowBatteryTrouble}`, { qos: 1, retain: true });
+    logger.verbose(`[Panel => RML => MQTT] Published system battery state ${system.LowBatteryTrouble}`);
   }
 
   function publishSystemPhoneLineStatus(system: MBSystem) {
-    mqttClient.publish(`${config.risco_mqtt_topic}/alarm/systemphoneline`, `${system.SStatus}`, { qos: 1, retain: true });
-    logger.verbose(`[Panel => RML => MQTT] Published system phone line state ${system.SStatus}`);
+    mqttClient.publish(`${config.risco_mqtt_topic}/alarm/systemphoneline`, `${system.PhoneLineTrouble}`, { qos: 1, retain: true });
+    logger.verbose(`[Panel => RML => MQTT] Published system phone line state ${system.PhoneLineTrouble}`);
   }
 
   function publishSystemACPowerStatus(system: MBSystem) {
-    mqttClient.publish(`${config.risco_mqtt_topic}/alarm/systemacpowerstatus`, `${system.SStatus}`, { qos: 1, retain: true });
-    logger.verbose(`[Panel => RML => MQTT] Published system ac power state ${system.SStatus}`);
+    mqttClient.publish(`${config.risco_mqtt_topic}/alarm/systemacpowerstatus`, `${system.ACTrouble}`, { qos: 1, retain: true });
+    logger.verbose(`[Panel => RML => MQTT] Published system ac power state ${system.ACTrouble}`);
   }
 
   function publishSystemTamperStatus(system: MBSystem) {
-    mqttClient.publish(`${config.risco_mqtt_topic}/alarm/systemtamper`, `${system.SStatus}`, { qos: 1, retain: true });
-    logger.verbose(`[Panel => RML => MQTT] Published system tamper state ${system.SStatus}`);
+    mqttClient.publish(`${config.risco_mqtt_topic}/alarm/systemtamper`, `${system.BoxTamper}`, { qos: 1, retain: true });
+    logger.verbose(`[Panel => RML => MQTT] Published system tamper state ${system.BoxTamper}`);
   }
 
   function publishSystemProgModeStatus(system: MBSystem) {
-    mqttClient.publish(`${config.risco_mqtt_topic}/alarm/systemprogmode`, `${system.SStatus}`, { qos: 1, retain: true });
-    logger.verbose(`[Panel => RML => MQTT] Published system programming mode state ${system.SStatus}`);
+    mqttClient.publish(`${config.risco_mqtt_topic}/alarm/systemprogmode`, `${system.ProgMode}`, { qos: 1, retain: true });
+    logger.verbose(`[Panel => RML => MQTT] Published system programming mode state ${system.ProgMode}`);
   }
 
   function changeLoggingLevel(logging) {
@@ -1012,8 +1012,8 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       availability_mode: 'all',
       availability: [
         {topic: `${config.risco_mqtt_topic}/alarm/button_status`}],
-      payload_on: 'false',
-      payload_off: 'true',
+      payload_on: 'true',
+      payload_off: 'false',
       device_class: 'problem',
       device: getDeviceInfo(),
     };
