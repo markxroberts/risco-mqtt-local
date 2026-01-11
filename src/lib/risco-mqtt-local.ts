@@ -592,11 +592,11 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
   }
 
   function publishSystemStateChange(system: MBSystem) {
-    if (system.Status !== undefined) {
-      mqttClient.publish(`${config.risco_mqtt_topic}/alarm/systemmessage`, `${system.Status}`, { qos: 1, retain: true });
-      logger.verbose(`[Panel => RML => MQTT] Published system message ${system.Status}`);
+    if (system.SStatus !== undefined) {
+      mqttClient.publish(`${config.risco_mqtt_topic}/alarm/systemmessage`, `${system.SStatus}`, { qos: 1, retain: true });
+      logger.verbose(`[Panel => RML => MQTT] Published system message ${system.SStatus}`);
     }
-    if (system.Status === undefined && firstSystemStatus) {
+    if (system.SStatus === undefined && firstSystemStatus) {
       mqttClient.publish(`${config.risco_mqtt_topic}/alarm/systemmessage`, `System initialized`, { qos: 1, retain: true });
       logger.verbose(`[Panel => RML => MQTT] Published system message System initialized`);
     } else {
@@ -607,28 +607,28 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
   }
 
   function publishSystemBatteryStatus(system: MBSystem) {
-    mqttClient.publish(`${config.risco_mqtt_topic}/alarm/systembattery`, `${system.LowBatteryTrouble}`, { qos: 1, retain: true });
-    logger.verbose(`[Panel => RML => MQTT] Published system battery state ${system.LowBatteryTrouble}`);
+    mqttClient.publish(`${config.risco_mqtt_topic}/alarm/systembattery`, `${system.SStatus}`, { qos: 1, retain: true });
+    logger.verbose(`[Panel => RML => MQTT] Published system battery state ${system.SStatus}`);
   }
 
   function publishSystemPhoneLineStatus(system: MBSystem) {
-    mqttClient.publish(`${config.risco_mqtt_topic}/alarm/systemphoneline`, `${system.PhoneLineTrouble}`, { qos: 1, retain: true });
-    logger.verbose(`[Panel => RML => MQTT] Published system phone line state ${system.PhoneLineTrouble}`);
+    mqttClient.publish(`${config.risco_mqtt_topic}/alarm/systemphoneline`, `${system.SStatus}`, { qos: 1, retain: true });
+    logger.verbose(`[Panel => RML => MQTT] Published system phone line state ${system.SStatus}`);
   }
 
   function publishSystemACPowerStatus(system: MBSystem) {
-    mqttClient.publish(`${config.risco_mqtt_topic}/alarm/systemacpowerstatus`, `${system.ACTrouble}`, { qos: 1, retain: true });
-    logger.verbose(`[Panel => RML => MQTT] Published system ac power state ${system.ACTrouble}`);
+    mqttClient.publish(`${config.risco_mqtt_topic}/alarm/systemacpowerstatus`, `${system.SStatus}`, { qos: 1, retain: true });
+    logger.verbose(`[Panel => RML => MQTT] Published system ac power state ${system.SStatus}`);
   }
 
   function publishSystemTamperStatus(system: MBSystem) {
-    mqttClient.publish(`${config.risco_mqtt_topic}/alarm/systemtamper`, `${system.BoxTamper}`, { qos: 1, retain: true });
-    logger.verbose(`[Panel => RML => MQTT] Published system tamper state ${system.BoxTamper}`);
+    mqttClient.publish(`${config.risco_mqtt_topic}/alarm/systemtamper`, `${system.SStatus}`, { qos: 1, retain: true });
+    logger.verbose(`[Panel => RML => MQTT] Published system tamper state ${system.SStatus}`);
   }
 
   function publishSystemProgModeStatus(system: MBSystem) {
-    mqttClient.publish(`${config.risco_mqtt_topic}/alarm/systemprogmode`, `${system.ProgMode}`, { qos: 1, retain: true });
-    logger.verbose(`[Panel => RML => MQTT] Published system programming mode state ${system.ProgMode}`);
+    mqttClient.publish(`${config.risco_mqtt_topic}/alarm/systemprogmode`, `${system.SStatus}`, { qos: 1, retain: true });
+    logger.verbose(`[Panel => RML => MQTT] Published system programming mode state ${system.SStatus}`);
   }
 
   function changeLoggingLevel(logging) {
@@ -1527,7 +1527,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     if (['PhoneLineTrouble', 'PhoneLineOk'].includes(EventStr)) {
       publishSystemPhoneLineStatus(panel.mbSystem);
     }
-    if (['PProgModeOn', 'ProgModeOff'].includes(EventStr)) {
+    if (['ProgModeOn', 'ProgModeOff'].includes(EventStr)) {
       publishSystemProgModeStatus(panel.mbSystem);
     } else {
       publishSystemStateChange(panel.mbSystem)
