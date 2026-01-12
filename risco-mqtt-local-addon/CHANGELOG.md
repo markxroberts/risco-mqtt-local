@@ -1,5 +1,5 @@
 <!-- https://developers.home-assistant.io/docs/add-ons/presentation#keeping-a-changelog -->
-## 2026.1.1
+## 2026.1.2
 - arm-v7 architecture deprecated
 - republish MQTT discovery on restart
 - added binary sensor for programming mode
