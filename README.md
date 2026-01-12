@@ -39,17 +39,18 @@ This project is a fork of [Johann Vanackere](https://github.com/vanackej/risco-m
 - Ability to temporarily change logging in live application (input select)
 - Logging to file option
 - Now supports .yaml configuration.  If you are already using the application, it will create a `config.yaml` file for you, so you can delete the old `config.json` file.
+- Added new binary sensor for programming mode.  Underlying libraries suggest restart after programming mode entered.  This binary sensor can be used to support automations.
 
 ## Installation
 
 ```
-docker run -v $(pwd)/config.json:/data/config.yaml markxroberts/risco-mqtt-local:latest
+docker run -v $(pwd)/config.yaml:/data/config.yaml markxroberts/risco-mqtt-local:latest
 ```
 Or install as HA add-on.
 
 ## Configuration
 
-Create a file config.yaml in your project directory.  I suggest using `config-sample.yaml` in this folder rather than copying the commented version below.
+Create a file config.yaml in your project directory.  I suggest using `config-sample.yaml` in this folder rather than copying the version below.
 
 ```
 log: info
