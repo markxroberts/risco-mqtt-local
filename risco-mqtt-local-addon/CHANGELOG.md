@@ -1,4 +1,10 @@
 <!-- https://developers.home-assistant.io/docs/add-ons/presentation#keeping-a-changelog -->
+## 2026.1.2
+- arm-v7 architecture deprecated
+- republish MQTT discovery on restart
+- added binary sensor for programming mode
+- remove .json config example files in preparation for move to .yaml
+
 ## 2025.10.3
 - config.yaml is now default
 - HA autodiscovery now uses supported_features
