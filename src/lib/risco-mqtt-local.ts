@@ -1647,6 +1647,9 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       logger.info(`[RML => Panel] Subscribing to panel system events`);
       panel.mbSystem.on('SStatusChanged', (EventStr, value) => {statusListener(EventStr)});
 
+      logger.info(`[RML => Panel] Subscribing to panel programming mode events`);
+      panel.mbSystem.on('ProgModeOn', () => {publishSystemProgModeStatus(panel.mbSystem)});
+
       logger.info(`[RML => MQTT] Subscribing to Home Assistant online status`);
       mqttClient.subscribe(`${config.ha_discovery_prefix_topic}/status`, { qos: 0 }, function(error, granted) {
         if (error) {
