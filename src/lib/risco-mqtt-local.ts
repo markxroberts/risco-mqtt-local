@@ -1529,9 +1529,8 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     }
     if (['ProgModeOn', 'ProgModeOff'].includes(EventStr)) {
       publishSystemProgModeStatus(panel.mbSystem);
-    } else {
-      publishSystemStateChange(panel.mbSystem)
     }
+    publishSystemStateChange(panel.mbSystem)
   }
 
   function errorListener(type, data) {
