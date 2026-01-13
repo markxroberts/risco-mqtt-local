@@ -1,5 +1,5 @@
 <!-- https://developers.home-assistant.io/docs/add-ons/presentation#keeping-a-changelog -->
-## 2026.1.5-beta1
+## 2026.1.5-beta2
 - debug attempted to move to yaml files
 
 ## 2026.1.5-beta1
