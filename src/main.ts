@@ -9,36 +9,28 @@ try {
     let configPath = ""
     let json = true
     if ("RISCO_MQTT_HA_CONFIG_FILE" in process.env) {
-        // if this var is set, we know we are running in the addon and json config
-        console.log(`[RML] Checking if risco-config.json exists`)
+        // if this var is set, we know we are running in the addon
         configPath = process.env.RISCO_MQTT_HA_CONFIG_FILE
         if (fs.existsSync(configPath)) {
             json = true
-            console.log(`[RML] risco-config.json exists so using this config`)
-        } if ("RISCO_MQTT_HA_CONFIG_YAML" in process.env) {
-        // if this var is set, we know we are running in the addon and yaml config
-        console.log(`[RML] Checking if risco-config.yaml exists`)
+        }
+    } else if ("RISCO_MQTT_HA_CONFIG_YAML" in process.env) {
+        // if this var is set, we know we are running in the addon
         configPath = process.env.RISCO_MQTT_HA_CONFIG_YAML
         // check if is file
         const sampleConfigPath = path.join(__dirname, "../config-sample.yaml")
         if (!fs.existsSync(configPath) && fs.existsSync(sampleConfigPath)) {
             fs.copyFileSync(sampleConfigPath, configPath);
             json = false;
-            console.log(`[RML] risco-config.yaml exists so using this config`)
-        }
         }
     } else {
-        // Running as container
         const configJSON = path.join(process.cwd(), 'config.json')
         const configYAML = path.join(process.cwd(), 'config.yaml')
-        console.log(`[RML] Running as container`)
         if (fs.existsSync(configYAML)) {
             configPath = configYAML
             json = false
-            console.log(`[RML] config.yaml exists, so using this`)
         } else {
             configPath = configJSON
-            console.log(`[RML] config.yaml doesn't exist, so using config.json`)
         }
     }
     console.log('[RML] Loading config from: ' + configPath)
@@ -53,7 +45,7 @@ try {
         console.log(`[RML] Configuration file converted to yaml.  JSON version may be safely deleted.`)
         riscoMqttHomeAssistant(config)
     }
-    if (fs.existsSync(configPath) && !json) {
+    else if (fs.existsSync(configPath) && !json) {
         const config = yaml.load(fs.readFileSync(configPath, 'utf-8')) as RiscoMQTTConfig
         riscoMqttHomeAssistant(config)
     } else {

@@ -21,7 +21,7 @@ COPY --from=build /workspace/node_modules /app/node_modules
 
 COPY --from=build /workspace/dist /app/dist
 
-COPY --from=build /workspace/config-sample.yaml /app/
+COPY --from=build /workspace/config-sample.json /app/
 
 
 FROM ${BASE_IMAGE}
