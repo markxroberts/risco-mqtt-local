@@ -1,4 +1,10 @@
 <!-- https://developers.home-assistant.io/docs/add-ons/presentation#keeping-a-changelog -->
+## 2026.1.5-beta1
+- attempted to move to yaml files
+
+## 2026.1.3
+- deprecated as didn't work as add-on
+
 ## 2026.1.2
 - arm-v7 architecture deprecated
 - republish MQTT discovery on restart
