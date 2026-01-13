@@ -10,24 +10,24 @@ try {
     let json = false
     if ("RISCO_MQTT_HA_CONFIG_FILE" in process.env) {
         // if this var is set, we know we are running in the addon
-        console.log(`[RML] Running as add-on.  Checking if risco-config.json exists`)
+        console.log(`[RML] Running as add-on.  Checking if risco-mqtt.json exists`)
         configPath = process.env.RISCO_MQTT_HA_CONFIG_FILE
         if (fs.existsSync(configPath)) {
             json = true
             console.log(`[RML] risco-config.json exists so using this config`)
-        }
-    } if ("RISCO_MQTT_HA_CONFIG_YAML" in process.env && !json) {
-        // if this var is set, we know we are running in the addon
+        } else {
         configPath = process.env.RISCO_MQTT_HA_CONFIG_YAML
-        console.log(`[RML] Checking if risco-config.yaml exists`)
+        console.log(`[RML] Checking if risco-mqtt.yaml exists`)
         // check if is file
         const sampleConfigPath = path.join(__dirname, "../config-sample.yaml")
         if (!fs.existsSync(configPath) && fs.existsSync(sampleConfigPath)) {
             fs.copyFileSync(sampleConfigPath, configPath);
             json = false;
-            console.log(`[RML] risco-config.yaml exists so using this config`)
-        }
-    } else {
+            console.log(`[RML] risco-mqtt.yaml created as didn't exit.  Now using this config`)
+        } else {
+            console.log(`[RML] risco-mqtt.yaml exists so using this config`)
+        }}}
+    else {
         const configJSON = path.join(process.cwd(), 'config.json')
         const configYAML = path.join(process.cwd(), 'config.yaml')
         console.log(`[RML] Running as container`)
