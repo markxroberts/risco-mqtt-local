@@ -9,7 +9,7 @@
     "watch": "tsc -w",
     "prepublishOnly": "yarn run build",
     "run": "tsc && node ./dist/main.js",
-    "test": "echo \"Error: no test specified\""
+    "test": "node tests/proxy-recovery.cjs"
   },
   "repository": {
     "type": "git",

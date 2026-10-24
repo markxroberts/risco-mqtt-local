@@ -242,6 +242,11 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
   let partitionDetailType;
   let partitionReadyStatus = [];
   let armingTimer = false
+  let recoverySocket;
+  const disconnectedListener = () => { publishPanelStatus(false) };
+  const panelCommReadyListener = () => { publishPanelStatus(true) };
+  const socketErrorListener = (data) => { errorListener('SocketError', data) };
+  const commsErrorListener = (data) => { errorListener('CommsError', data) };
   let firstSystemStatus = true
 
   if (!config.mqtt?.url) throw new Error('[RML] MQTT url option is required');
@@ -250,7 +255,8 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
   let alarmMapping: PartitionArmingModes[] = [];
 
   panel.on('SystemInitComplete', () => {
-    panel.riscoComm.tcpSocket.on('Disconnected', () => {
+    recoverySocket = undefined;
+    panel.riscoComm.tcpSocket.once('Disconnected', () => {
       panelReady = false;
       socketListeners = false;
       publishOffline();
@@ -1541,6 +1547,30 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     } else {
       publishPanelStatus(false)
     }
+    // The bridge serializes Error objects, which omits their message/reason.
+    // A failed watchdog CLOCK is reported as CommsError with name and cmd only.
+    let failedClock = false;
+    if (type.includes('CommsError')) {
+      try {
+        const error = JSON.parse(data);
+        failedClock = error.name === 'RiscoCommandError' && error.cmd?.commandStr === 'CLOCK';
+      } catch {
+        failedClock = data.includes('Risco command error: TIMEOUT');
+      }
+    }
+    if (failedClock && config.panel.socketMode === 'proxy' && config.panel.autoConnect) {
+      const socket = panel.riscoComm.tcpSocket;
+      if (recoverySocket !== socket) {
+        // Set the guard before disconnect: it can emit further errors synchronously.
+        recoverySocket = socket;
+        panelReady = false;
+        reconnecting = true;
+        publishOffline();
+        logger.info('[RML] Watchdog CLOCK failed. Restarting proxy communications.');
+        socket.disconnect(true);
+      }
+      return;
+    }
     if (type.includes('CommsError')) {
       if (data.includes('New socket being connected')) {
       logger.info('[Panel => RML] TCP Socket disconnected, new socket being connected.  Ensure old listeners removed.');
@@ -1575,10 +1605,10 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
   }
 
   function removeSocketListeners() {
-    panel.riscoComm.tcpSocket.removeListener('Disconnected', (data) => {publishPanelStatus(false)})
-    panel.riscoComm.removeListener('PanelCommReady', (data) => {publishPanelStatus(true)})
-    panel.riscoComm.tcpSocket.removeListener('SocketError', (data) => {errorListener('SocketError', data)});
-    panel.riscoComm.removeListener('CommsError', (data) => {errorListener('CommsError', data)});
+    panel.riscoComm.tcpSocket.removeListener('Disconnected', disconnectedListener)
+    panel.riscoComm.removeListener('PanelCommReady', panelCommReadyListener)
+    panel.riscoComm.tcpSocket.removeListener('SocketError', socketErrorListener);
+    panel.riscoComm.removeListener('CommsError', commsErrorListener);
     socketListeners = false
     logger.info('[MQTT => Panel] Socket listeners removed')
   }
@@ -1666,16 +1696,16 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
 
     if (!socketListeners) {
       logger.info(`[RML => Panel] Subscribing to socket disconnection message`);
-      panel.riscoComm.tcpSocket.on('Disconnected', (data) => {publishPanelStatus(false)});
+      panel.riscoComm.tcpSocket.on('Disconnected', disconnectedListener);
   
       logger.info(`[RML => Panel] Subscribing to panel communications message`);
-      panel.riscoComm.on('PanelCommReady', (data) => {publishPanelStatus(true)});
+      panel.riscoComm.on('PanelCommReady', panelCommReadyListener);
   
       logger.info(`[RML => Panel] Subscribing to socket error message`);
-      panel.riscoComm.tcpSocket.on('SocketError', (data) => {errorListener('SocketError', data)});
+      panel.riscoComm.tcpSocket.on('SocketError', socketErrorListener);
   
       logger.info(`[RML => Panel] Subscribing to communications error message`);
-      panel.riscoComm.on('CommsError', (data) => {errorListener('CommsError', data)});
+      panel.riscoComm.on('CommsError', commsErrorListener);
       socketListeners = true
 
     } else {
