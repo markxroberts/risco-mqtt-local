@@ -254,3 +254,20 @@ Please use the bug issue template and fill all requested informations, including
 The bulk of this work was completed by [vanackej](https://github.com/vanackej).  I've adapted this and updated it, mainly for my purposes.  Thanks to [pergolafabio](https://github.com/pergolafabio) for the proxy testing.
 
 Thanks to [TJForc](https://github.com/TJForc) for the local communication library and [Alessandro Mancini](https://github.com/mancioshell) for his initial work.
+
+## Development and releases
+
+Use Node.js 22 or later and npm. Run `npm ci` and `npm test`; tests compile the project and exercise MQTT, reconnect, arming, and startup behavior without connecting to an alarm panel. `npm pack --dry-run` checks the published package contents. The package entry point exports the library; the `risco-mqtt-local` command starts the service.
+
+`package-lock.json` is the dependency lockfile for development, CI, and Docker builds. Dependabot checks npm packages, GitHub Actions, and the Docker base image weekly. Containers use Node 22 to preserve the existing ARMv7 image; Node 24 and 26 are also checked in CI. Official Node 24 Alpine images do not include ARMv7 (see the [supported image variants](https://github.com/nodejs/docker-node/blob/main/versions.json)).
+
+Before publishing:
+
+1. Update `package.json` and its lockfile, `risco-mqtt-local-addon/config.yaml`, and the fallback base image tag in `risco-mqtt-local-addon/Dockerfile` to the same new version. Update the add-on changelog.
+2. Run tests and test the build against the real panel, including home/away/group arming and recovery after a router restart.
+3. Ensure repository secrets `NPM_TOKEN`, `DOCKER_USERNAME`, and `DOCKER_PASSWORD` are valid. The npm token must have package publish permission and meet the account's 2FA requirements; the Docker Hub token must allow pushing the image. GitHub Packages and GHCR use `GITHUB_TOKEN` with package write permission.
+4. Publish a GitHub release whose tag exactly matches that version, without a `v` prefix. Release checks reject mismatched package, add-on, and base-image versions. Choose a new version; existing npm versions cannot be republished.
+
+Pull requests build and test without publishing. Published releases publish the npm package, GitHub package, Docker Hub/GHCR container images, and the amd64/aarch64 add-on images. Prereleases use the npm `next` tag and do not replace container `latest`. Add-on images build from the same source as the main image, after its build succeeds. The [deprecated Home Assistant builder](https://github.com/home-assistant/builder#legacy-home-assistantbuilder-action) has been replaced by Docker Buildx.
+
+Arming mappings support both the existing `arming_modes.House` form shown above and `arming_modes.partition.House`; the latter takes precedence when both are set. Home/group arming waits up to 30 seconds for that partition to become ready. Disarming or losing the panel connection cancels pending arming.

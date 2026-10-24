@@ -1,0 +1,10 @@
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const { version } = require('../package.json');
+const tag = process.env.RELEASE_TAG;
+assert.equal(tag, version, 'Release tag must exactly match package.json version (no v prefix)');
+const addon = fs.readFileSync('risco-mqtt-local-addon/config.yaml', 'utf8');
+assert.equal(addon.match(/^version:\s*(.+)$/m)?.[1], version, 'Add-on version must match package version');
+const dockerfile = fs.readFileSync('risco-mqtt-local-addon/Dockerfile', 'utf8');
+assert(dockerfile.includes(`risco-mqtt-local:${version}`), 'Add-on fallback base image must match package version');
+console.log(`Release versions agree: ${version}`);
