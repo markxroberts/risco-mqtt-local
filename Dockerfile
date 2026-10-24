@@ -1,10 +1,12 @@
 # Node 22 retains the ARMv7 image supported by this repository.
 ARG NODE_VERSION="22"
 ARG BASE_IMAGE="node:${NODE_VERSION}-alpine"
-FROM ${BASE_IMAGE} AS build
+# Run npm and the compiler on the builder CPU, avoiding QEMU during cross-builds.
+# Locked production dependencies are JavaScript; the native compiler is pruned.
+FROM --platform=$BUILDPLATFORM ${BASE_IMAGE} AS build
 WORKDIR /workspace
 COPY package.json package-lock.json ./
-RUN npm ci
+RUN node --version && npm --version && npm ci --foreground-scripts --loglevel=info
 COPY . ./
 RUN npm test && npm prune --omit=dev
 
