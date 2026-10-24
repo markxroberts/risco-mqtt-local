@@ -1,12 +1,16 @@
 {
   "compilerOptions": {
-    "module": "commonjs",
-    "target": "es2015",
+    "module": "Node16",
+    "target": "es2022",
     "declaration": true,
     "outDir": "./dist",
     "sourceMap": true,
     "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true
+    "allowSyntheticDefaultImports": true,
+    "moduleResolution": "Node16",
+    "rootDir": "./src",
+    "strict": false,
+    "noFallthroughCasesInSwitch": true
   },
   "include": [
     "src/**/*"

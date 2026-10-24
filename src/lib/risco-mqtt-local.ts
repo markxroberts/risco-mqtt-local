@@ -1,4 +1,4 @@
-import { IClientOptions } from 'mqtt/types/lib/client';
+import { IClientOptions } from 'mqtt';
 
 import merge from 'lodash/merge';
 import mqtt from 'mqtt';
@@ -15,11 +15,10 @@ import {
   MBSystem
 } from '@markxroberts/risco-lan-bridge/dist';
 import pkg from 'winston';
-import { cloneDeep, replace } from 'lodash';
+import { cloneDeep, escapeRegExp } from 'lodash';
 
 const { createLogger, format, transports } = pkg;
 const { combine, timestamp, printf, colorize } = format;
-const replaceAll = replace;
 
 type LogLevel = 'error' | 'warn' | 'info' | 'verbose' | 'debug';
 
@@ -178,7 +177,7 @@ const CONFIG_DEFAULTS: RiscoMQTTConfig = {
 
 export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
 
-  const config = merge(CONFIG_DEFAULTS, userConfig);
+  const config = merge({}, CONFIG_DEFAULTS, userConfig);
 
   let format = combine(
     timestamp({
@@ -218,8 +217,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
   logger.info(`[RML] Logtofile is enabled.   Now also logging to file risco.log`)
   }
 
-  logger.debug(`[RML] User config:\n${JSON.stringify(userConfig, null, 2)}`);
-  logger.debug(`[RML] Merged config:\n${JSON.stringify(config, null, 2)}`);
+  // Configuration contains panel and MQTT passwords; do not log it.
 
   class WinstonRiscoLogger implements RiscoLogger {
     log(log_lvl: LogLevel, log_data: any) {
@@ -237,11 +235,8 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
   let loop;
   let reconnect;
   let reconnecting = false;
-  let awaitPartitionReady = false;
-  let partitionDetailId;
-  let partitionDetailType;
-  let partitionReadyStatus = [];
-  let armingTimer = false
+  const pendingArming = new Map<number, { command: string; timer: ReturnType<typeof setTimeout> }>();
+  let republishTimer: ReturnType<typeof setTimeout>;
   let recoverySocket;
   const disconnectedListener = () => { publishPanelStatus(false) };
   const panelCommReadyListener = () => { publishPanelStatus(true) };
@@ -252,12 +247,13 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
   if (!config.mqtt?.url) throw new Error('[RML] MQTT url option is required');
 
   let panel = new RiscoPanel(config.panel);
-  let alarmMapping: PartitionArmingModes[] = [];
+  let alarmMapping: Record<number, ArmingConfig> = {};
 
   panel.on('SystemInitComplete', () => {
     recoverySocket = undefined;
     panel.riscoComm.tcpSocket.once('Disconnected', () => {
       panelReady = false;
+      for (const partId of pendingArming.keys()) cancelPendingArming(partId);
       socketListeners = false;
       publishOffline();
     });
@@ -271,8 +267,6 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
   const mqtt_options = {
     clientId: `${config.mqtt.clientId}`,
     reconnectPeriod: config.mqtt.reconnectPeriod,
-    username: `${config.mqtt.username}`,
-    password: `${config.mqtt.password}`,
     will: {
       topic: `${config.risco_mqtt_topic}/alarm/button_status`,
     }
@@ -290,11 +284,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
   });
 
   mqttClient.on('reconnect', () => {
-    logger.info('[RML] MQTT reconnected');
-    if (!mqttReady) {
-      mqttReady = true;
-      panelOrMqttConnected();
-    }
+    logger.info('[RML] Attempting MQTT reconnection');
   });
 
   mqttClient.on('disconnect', () => {
@@ -312,9 +302,9 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     mqttReady = false;
   });
 
-  const ALARM_TOPIC_REGEX = new RegExp(`^${config.risco_mqtt_topic}/alarm/partition/([0-9]+)/set$`);
-  const ZONE_BYPASS_TOPIC_REGEX = new RegExp(`^${config.risco_mqtt_topic}/alarm/zone/([0-9]+)-bypass/set$`);
-  const OUTPUT_TOPIC_REGEX = new RegExp(`^${config.risco_mqtt_topic}/alarm/output/([0-9]+)/trigger$`);
+  const ALARM_TOPIC_REGEX = new RegExp(`^${escapeRegExp(config.risco_mqtt_topic)}/alarm/partition/([0-9]+)/set$`);
+  const ZONE_BYPASS_TOPIC_REGEX = new RegExp(`^${escapeRegExp(config.risco_mqtt_topic)}/alarm/zone/([0-9]+)-bypass/set$`);
+  const OUTPUT_TOPIC_REGEX = new RegExp(`^${escapeRegExp(config.risco_mqtt_topic)}/alarm/output/([0-9]+)/trigger$`);
   const republishing_delay = config.ha_state_publishing_delay * 1000
 
   mqttClient.on('message', (topic, message) => {
@@ -337,7 +327,8 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       });
     } else if ((m = ZONE_BYPASS_TOPIC_REGEX.exec(topic)) !== null) {
       m.filter((match, groupIndex) => groupIndex !== 0).forEach(async (zoneId) => {
-        const bypass = parseInt(message.toString(), 10) == 1;
+        if (!['0', '1'].includes(message.toString())) return;
+        const bypass = message.toString() === '1';
         logger.verbose(`[MQTT => RML => Panel] Received bypass zone command ${bypass} on topic ${topic} for zone ${zoneId}`);
         try {
           if (bypass !== panel.zones.byId(zoneId).Bypass) {
@@ -358,9 +349,11 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     } else if ((m = OUTPUT_TOPIC_REGEX.exec(topic)) !== null) {
       m.filter((match, groupIndex) => groupIndex !== 0).forEach(async (outputId) => {
         const outputcommand = message.toString();
+        if (!['0', '1'].includes(outputcommand)) return;
         logger.verbose(`[MQTT => RML => Panel] Received output trigger command on topic ${topic} for output ${outputId}`);
         try {
-          if (outputcommand !== panel.outputs.byId(outputId).Status) {
+          const output = panel.outputs.byId(outputId);
+          if (output.Pulsed || (outputcommand === '1') !== output.Active) {
             const success = await panel.toggleOutput(outputId);
             if (success) {
               logger.verbose(`[Panel => RML] toggle output command sent on output ${outputId}`);
@@ -379,9 +372,10 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       if (message.toString() === 'online') {
         logger.info('[MQTT => RML] Home Assistant is online');
           logger.info(`[RML] Delay ${config.ha_state_publishing_delay} seconds before publishing initial states`);
-          let t: any;
-          t = setTimeout(() => publishInitialStates(), republishing_delay);
+          clearTimeout(republishTimer);
+          republishTimer = setTimeout(() => publishInitialStates(), republishing_delay);
       } else {
+        clearTimeout(republishTimer);
         logger.info('[MQTT => RML] Home Assistant has gone offline');
       }
     } else if (topic === `${config.risco_mqtt_topic}/republish`) {
@@ -417,51 +411,33 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     }
   };
 
+  function cancelPendingArming(partId: number) {
+    const pending = pendingArming.get(partId);
+    if (pending) clearTimeout(pending.timer);
+    pendingArming.delete(partId);
+  }
+
   async function changeAlarmStatus(code: string, partId: number) {
-    let letter = 'A';
-    if (code.includes('group')) {
-      letter = code.substr(code.length - 1);
-      logger.verbose(`[MQTT => RML] Group arming initiated.  Code is ${code}.`)
-      code = 'armed_group'
+    // MQTT topic captures are strings; normalize IDs before using them as map keys.
+    partId = Number(partId);
+    const partition = panel.partitions.byId(partId);
+    if (!partition) return false;
+    cancelPendingArming(partId);
+    if (code === 'disarmed') return await panel.disarmPart(partId);
+    if (code === 'armed_away') return await panel.armAway(partId);
+    if (code !== 'armed_home' && !/^armed_group_[ABCD]$/.test(code)) return false;
+    if (!partition.Ready) {
+      const timer = setTimeout(() => {
+        pendingArming.delete(partId);
+        publishPartitionStateChanged(partition, false);
+        logger.info(`[RML] Arming command timed out on partition ${partId}`);
+      }, 30000);
+      pendingArming.set(partId, { command: code, timer });
+      publishPartitionStateChanged(partition, true);
+      return true;
     }
-    const group = groupLetterToNumber(letter);
-    const partStatus = panel.partitions.byId(partId).Ready
-    logger.debug(`[RML => Panel] Changing code for letter.  Letter is ${letter}.  Group is ${group}.`)
-    switch (code) {
-      case 'disarmed':
-        return await panel.disarmPart(partId);
-      case 'armed_home':
-        if (partitionReadyStatus[partId] === true) {
-          logger.verbose(`[Panel => RML] Partition ${partId} ready, sending arm command`)
-          logger.debug(`${partitionReadyStatus[partId]}`)
-          return await panel.armHome(partId);
-      } else {
-          awaitPartitionReady = true
-          partitionDetailId = partId
-          partitionDetailType = code
-          logger.verbose(`[Panel => RML] Partition ${partId} not ready.  Will await Ready status.`)
-          logger.debug(`${partitionReadyStatus[partId]}`)
-        }
-      case 'armed_away':
-        try {
-          return await panel.armAway(partId);
-        }
-        catch (error) {
-          logger.info(`${error}`)
-        }
-      case 'armed_group':
-        if (partitionReadyStatus[partId] === true) {
-          logger.verbose(`[Panel => RML] Partition ${partId} ready, sending arm command`)
-          logger.debug(`${partitionReadyStatus[partId]}`)
-          return await panel.armGroup(partId, group);
-        } else {
-          awaitPartitionReady = true
-          partitionDetailId = partId
-          partitionDetailType = code
-          logger.verbose(`[Panel => RML] Partition ${partId} not ready.  Will await Ready status.`)
-          logger.debug(`${partitionReadyStatus[partId]}`)
-        }
-    }
+    if (code === 'armed_home') return await panel.armHome(partId);
+    return await panel.armGroup(partId, groupLetterToNumber(code.slice(-1)));
   }
 
   function returnPanelAlarmState(partition: Partition) {
@@ -486,25 +462,15 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
   }
 
   function alarmPayload(partition: Partition) {
-    const partitionId = (partition.Id -1);
-    const partitionIdEnd = (partitionId + 1);
-    const partitionLabel = partition.Label;
-    logger.debug(`[RML] Partition being updated is ${partitionId}.`)
-    logger.verbose(`[RML] Currently mapped states are \n${JSON.stringify(alarmMapping, null, 2)}.`);
     if (partition.Alarm) {
       return 'triggered';
     } else if (!partition.Arm && !partition.HomeStay && !partition.GrpAArm && !partition.GrpBArm && !partition.GrpCArm && !partition.GrpDArm) {
       return 'disarmed';
     } else {
       const panelState = returnPanelAlarmState(partition);
-      logger.debug(`[Panel => MQTT] Panel alarm state for partition ${partition.Label} is ${panelState}.`);
-      const partitionAlarmMapping = alarmMapping.slice(partitionId,partitionIdEnd);
-      logger.verbose(`[RML] Currently mapped states are \n${JSON.stringify(partitionAlarmMapping, null, 2)}.`);
-      logger.verbose(`[RML] Currently mapped keys are \n${JSON.stringify(partitionAlarmMapping[0][partitionLabel], null, 2)}.`);
-      const mappedKey = (Object.keys(partitionAlarmMapping[0][partitionLabel]) as (keyof ArmingModes)[]).find((key) => {
-        return partitionAlarmMapping[0][partitionLabel][key] === panelState;
-        logger.debug(`[RML] Mapped key = ${mappedKey}`)});
-      return mappedKey;
+      const mapping = alarmMapping[partition.Id] || {};
+      return (Object.keys(mapping) as (keyof ArmingModes)[])
+        .find(key => mapping[key] === panelState) || panelState;
     }
   };
   function outputState(output: Output, EventStr: string) {
@@ -598,17 +564,10 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
   }
 
   function publishSystemStateChange(system: MBSystem) {
-    if (system.Status !== undefined) {
-      mqttClient.publish(`${config.risco_mqtt_topic}/alarm/systemmessage`, `${system.Status}`, { qos: 1, retain: true });
-      logger.verbose(`[Panel => RML => MQTT] Published system message ${system.Status}`);
-    }
-    if (system.Status === undefined && firstSystemStatus) {
-      mqttClient.publish(`${config.risco_mqtt_topic}/alarm/systemmessage`, `System initialized`, { qos: 1, retain: true });
-      logger.verbose(`[Panel => RML => MQTT] Published system message System initialized`);
-    } else {
-      mqttClient.publish(`${config.risco_mqtt_topic}/alarm/systemmessage`, `No system message`, { qos: 1, retain: true });
-      logger.verbose(`[Panel => RML => MQTT] Published system message No system message`);
-    }
+    const message = system.Status !== undefined ? system.Status
+      : firstSystemStatus ? 'System initialized' : 'No system message';
+    mqttClient.publish(`${config.risco_mqtt_topic}/alarm/systemmessage`, message, { qos: 1, retain: true });
+    logger.verbose(`[Panel => RML => MQTT] Published system message ${message}`);
     firstSystemStatus = false
   }
 
@@ -751,7 +710,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
   }
   function publishZoneAlarmStateChange(zone: Zone, publishAttributes: boolean) {
     if (publishAttributes) {
-      mqttClient.publish(`${config.risco_mqtt_topic}/alarm/zone/${zone.Id}/battery`, JSON.stringify({
+      mqttClient.publish(`${config.risco_mqtt_topic}/alarm/zone/${zone.Id}`, JSON.stringify({
         id: zone.Id,
         arm: zone.Arm,
         label: zone.Label,
@@ -860,7 +819,8 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
   }
 
   function publishHomeAssistantDiscoveryInfo() {
-    const formattedEntityIdStem = replaceAll(config.risco_mqtt_topic,"-","_")
+    const formattedEntityIdStem = config.risco_mqtt_topic.replace(/-/g, '_');
+    alarmMapping = {};
     if (config.panel.socketMode === 'proxy') {
       const proxyPayload = {
         name: `Proxy connection status`,
@@ -1113,36 +1073,22 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
 
     for (const partition of activePartitions(panel.partitions)) {
 
-      partitionReadyStatus.push({[partition.Id]: partition.Ready})
       logger.debug(`Partition status on ${partition.Id} is ${partition.Ready}`)
 
       const partitionConf = cloneDeep(config.partitions.default);
       merge(partitionConf, config.partitions?.[partition.Label]);
 
       const armingConfig = cloneDeep(config.arming_modes.partition.default);
-      merge(armingConfig, config.arming_modes?.[partition.Label]);
+      merge(armingConfig, config.arming_modes?.[partition.Label], config.arming_modes.partition?.[partition.Label]);
 
       const partitionLabel = partition.Label
 
-      let alarmRemap: PartitionArmingModes;
-      alarmRemap = {
-        [partitionLabel]: {
-          armed_away: armingConfig.armed_away,
-          armed_home: armingConfig.armed_home,
-          armed_night: armingConfig.armed_night,
-          armed_vacation: armingConfig.armed_vacation,
-          armed_custom_bypass: armingConfig.armed_custom_bypass
-        }};
-      alarmMapping.push(alarmRemap);
-      logger.info(`[RML] Added alarm state mapping for partition ${partitionLabel}.`)
-      logger.verbose(`[RML] Added alarm state mappings for partition ${partitionLabel} as \n${JSON.stringify(alarmRemap, null, 2)}.`)
-      
-      let supported_features: string[] = []
-      for (let key in armingConfig) {
-        if (armingConfig[key] !== "")
-        {supported_features.push(armingState(key))}
-      logger.verbose(`[RML] Supported alarm states in Home Assistant ${partitionLabel} as \n${JSON.stringify(supported_features, null, 2)}.`)
-      }
+      alarmMapping[partition.Id] = armingConfig;
+      logger.info(`[RML] Added alarm state mapping for partition ${partitionLabel}.`);
+
+      const supported_features = Object.keys(armingConfig)
+        .filter(key => Boolean(armingConfig[key]) && Boolean(armingState(key)))
+        .map(key => armingState(key));
 
       let payload
       payload = {
@@ -1458,7 +1404,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
     publishSystemStateChange(panel.mbSystem)
     publishSystemProgModeStatus(panel.mbSystem)
     logger.info(`[RML => MQTT] Finished publishing initial system, partitions, zones and output states to Home assistant`);
-    publishPanelStatus(true)
+    publishPanelStatus(panelReady)
     mqttClient.publish(`${config.risco_mqtt_topic}/alarm/logginglevel`, config.log, { qos: 1, retain: true });
   }
 
@@ -1467,31 +1413,12 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       publishPartitionStateChanged(panel.partitions.byId(Id), false);
     }
     if (['Ready', 'NotReady'].includes(EventStr)) {
-      let partitionwait
-      if (!awaitPartitionReady) {
       publishPartitionStatus(panel.partitions.byId(Id));
-      }
-      if (['Ready'].includes(EventStr)) {
-        partitionReadyStatus[Id] = true
-        if (awaitPartitionReady) {
-          logger.verbose(`[Panel => RML] Partition ${Id} now ready, so sending arming command.`)
-          clearTimeout(partitionwait);
-          changeAlarmStatus(partitionDetailType, partitionDetailId);
-          awaitPartitionReady = false
-          armingTimer = false
-        }
-      } else {
-        partitionReadyStatus[Id] = false;
-        if (awaitPartitionReady && !armingTimer) {
-          publishPartitionStateChanged(panel.partitions.byId(Id), true);
-          armingTimer = true
-          partitionwait = setTimeout(function() {
-            awaitPartitionReady = false;
-            armingTimer = false
-            logger.verbose(`[RML] Arming command timed out on partition ${Id}`)}, 30000)
-        } if (armingTimer) {
-          logger.verbose(`[RML] Delayed arming already initiated on partition ${Id}.`)
-        }
+      const partId = Number(Id);
+      const pending = pendingArming.get(partId);
+      if (EventStr === 'Ready' && pending) {
+        cancelPendingArming(partId);
+        changeAlarmStatus(pending.command, partId).catch(error => logger.error(error));
       }
     }
   }
@@ -1542,11 +1469,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
   function errorListener(type, data) {
     logger.info(`[Panel => RML] Error received ${type}, ${data}`);
     logger.info('[Panel => RML] Panel or cloud not communicating properly.');
-    if (data.includes('Cloud')) {
-      publishPanelStatus(true);
-    } else {
-      publishPanelStatus(false)
-    }
+    if (!data.includes('Cloud')) publishPanelStatus(false);
     // The bridge serializes Error objects, which omits their message/reason.
     // A failed watchdog CLOCK is reported as CommsError with name and cmd only.
     let failedClock = false;
@@ -1713,6 +1636,7 @@ export function riscoMqttHomeAssistant(userConfig: RiscoMQTTConfig) {
       logger.info('[RML] Listeners already installed, skipping listeners registration');
     }
     initialized = true
+    publishInitialStates();
     logger.info(`[RML] Panel initialization and autodiscovery completed`);
   }
 }

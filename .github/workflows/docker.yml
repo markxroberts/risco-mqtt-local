@@ -1,46 +1,75 @@
-# This workflow uses actions that are not certified by GitHub.
-# They are provided by a third-party and are governed by
-# separate terms of service, privacy policy, and support
-# documentation.
-
-name: Publish Docker image
+name: Container images
 
 on:
+  pull_request:
+    branches: [main]
   release:
     types: [published]
 
+permissions:
+  contents: read
+
 jobs:
-  push_to_registry:
-    name: Push Docker image to Docker Hub
+  build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
     steps:
-      - name: Check out the repo
-        uses: actions/checkout@v4
-
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v2
-
-      - name: Set up Docker Buildx
-        id: buildx
-        uses: docker/setup-buildx-action@v3
-
+      - uses: actions/checkout@v7.0.1
+      - uses: actions/setup-node@v7.1.0
+        with:
+          node-version: 24
+          package-manager-cache: false
+      - name: Validate release version
+        if: github.event_name == 'release'
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: node scripts/check-release.cjs
+      - uses: docker/setup-qemu-action@v4.4.0
+      - uses: docker/setup-buildx-action@v4.4.1
+      - name: Log in to GHCR
+        if: github.event_name == 'release'
+        uses: docker/login-action@v4.7.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
       - name: Log in to Docker Hub
-        uses: docker/login-action@v3
+        if: github.event_name == 'release'
+        uses: docker/login-action@v4.7.0
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
-
-      - name: Extract metadata (tags, labels) for Docker
+      - uses: docker/metadata-action@v6.2.0
         id: meta
-        uses: docker/metadata-action@v4
         with:
-          images: markxroberts/risco-mqtt-local
-
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v5
+          images: |
+            ghcr.io/${{ github.repository }}
+            ${{ github.repository }}
+          flavor: latest=false
+          tags: |
+            type=ref,event=pr
+            type=raw,value=${{ github.event.release.tag_name }},enable=${{ github.event_name == 'release' }}
+            type=raw,value=latest,enable=${{ github.event_name == 'release' && !github.event.release.prerelease }}
+      - uses: docker/build-push-action@v7.4.0
         with:
           context: .
-          push: true
+          target: runtime
+          push: ${{ github.event_name == 'release' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          platforms: linux/arm64,linux/amd64,linux/arm/v7
+          platforms: linux/amd64,linux/arm64,linux/arm/v7
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  addon:
+    needs: build
+    permissions:
+      contents: read
+      packages: write
+    uses: ./.github/workflows/ha-addon-builder.yaml
+    with:
+      publish: ${{ github.event_name == 'release' }}
+      image-tag: ${{ github.event.release.tag_name || 'pr-test' }}
+    secrets: inherit

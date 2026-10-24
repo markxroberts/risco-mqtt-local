@@ -1,5 +1,9 @@
+.git
 .github
 .yarn
-.dist
+dist
 node_modules
 config.json
+config.yaml
+risco.log
+*.tgz
